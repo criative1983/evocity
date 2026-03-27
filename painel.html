@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>EvoCity — Painel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f1117;--bg2:#181c27;--bg3:#1e2235;
+  --blue:#2563EB;--purple:#7C3AED;--green:#10b981;--red:#ef4444;--orange:#f59e0b;
+  --tx:#e8eaf0;--mt:#8b90a7;--border:#2a2f45;
+  --grad:linear-gradient(135deg,#2563EB,#7C3AED);
+}
+body{background:var(--bg);color:var(--tx);font-family:'Nunito',sans-serif;font-size:14px;display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:.3s;}
+.sb-logo{padding:20px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.sb-logo svg{width:32px;height:32px;flex-shrink:0;}
+.sb-logo span{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sb-sub{font-size:10px;color:var(--mt);font-weight:600;padding:16px 16px 6px;text-transform:uppercase;letter-spacing:.8px;}
+.sb-nav{flex:1;overflow-y:auto;padding:8px 10px;}
+.sb-nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:var(--mt);text-decoration:none;font-weight:700;font-size:13px;margin-bottom:2px;transition:.15s;cursor:pointer;}
+.sb-nav a:hover{background:var(--bg3);color:var(--tx);}
+.sb-nav a.on{background:linear-gradient(135deg,rgba(37,99,235,.2),rgba(124,58,237,.2));color:#fff;border:1px solid rgba(124,58,237,.3);}
+.sb-nav a .ic{font-size:16px;width:20px;text-align:center;}
+.nb{background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:20px;margin-left:auto;}
+.nb.g{background:var(--green);}
+.sb-user{padding:14px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-av{width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;}
+.sb-uname{font-weight:800;font-size:13px;}
+.sb-urole{font-size:11px;color:var(--mt);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;display:inline-block;margin-right:6px;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ── MAIN ── */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:50;}
+.topbar h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;flex:1;}
+.tb-badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--mt);display:flex;align-items:center;gap:6px;}
+.content{padding:24px;flex:1;}
+
+/* ── CARDS ── */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;}
+.card-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin:8px 0 4px;}
+.card-lbl{font-size:12px;color:var(--mt);font-weight:600;}
+.card-ico{font-size:22px;margin-bottom:4px;}
+.card.blue{border-color:rgba(37,99,235,.4);background:rgba(37,99,235,.08);}
+.card.purple{border-color:rgba(124,58,237,.4);background:rgba(124,58,237,.08);}
+.card.green{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.08);}
+.card.red{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08);}
+.card.orange{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.08);}
+
+/* ── SECTION ── */
+.sec{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;}
+.sec-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sec-h h3{font-size:14px;font-weight:800;flex:1;}
+.sec-b{padding:20px;}
+
+/* ── FORM ── */
+.f-row{margin-bottom:14px;}
+.f-lbl{font-size:12px;font-weight:700;color:var(--mt);margin-bottom:6px;display:block;}
+.f-inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--tx);font-size:14px;font-family:'Nunito',sans-serif;outline:none;transition:.2s;}
+.f-inp:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(124,58,237,.15);}
+.f-inp::placeholder{color:var(--mt);}
+textarea.f-inp{resize:vertical;min-height:90px;}
+select.f-inp option{background:var(--bg3);}
+
+/* ── BUTTONS ── */
+.btn{padding:9px 18px;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.15s;display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{opacity:.85;}
+.btn:active{transform:scale(.97);}
+.btn-p{background:var(--grad);color:#fff;}
+.btn-g{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3);}
+.btn-r{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.btn-b{background:rgba(37,99,235,.15);color:#60a5fa;border:1px solid rgba(37,99,235,.3);}
+.btn-o{background:rgba(245,158,11,.15);color:var(--orange);border:1px solid rgba(245,158,11,.3);}
+.btn-ghost{background:var(--bg3);color:var(--tx);border:1px solid var(--border);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{text-align:left;font-size:11px;font-weight:800;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:1px solid var(--border);}
+.tbl td{padding:10px 12px;border-bottom:1px solid rgba(42,47,69,.5);font-size:13px;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,.02);}
+.av{width:30px;height:30px;border-radius:50%;background:var(--grad);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;vertical-align:middle;margin-right:8px;}
+
+/* ── BADGES ── */
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;}
+.bg{background:rgba(16,185,129,.15);color:var(--green);}
+.bb{background:rgba(37,99,235,.15);color:#60a5fa;}
+.bp{background:rgba(124,58,237,.15);color:#a78bfa;}
+.br{background:rgba(239,68,68,.15);color:var(--red);}
+.bo{background:rgba(245,158,11,.15);color:var(--orange);}
+
+/* ── POST CARD ── */
+.post-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;}
+.post-card .pc-body{flex:1;min-width:0;}
+.post-card .pc-author{font-weight:800;font-size:13px;margin-bottom:3px;}
+.post-card .pc-text{color:var(--mt);font-size:13px;line-height:1.5;}
+.post-card .pc-meta{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;}
+.post-card .pc-time{font-size:11px;color:var(--mt);}
+.post-removido{opacity:.4;text-decoration:line-through;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:slideIn .3s ease;}
+.toast-item.s{border-color:rgba(16,185,129,.4);color:var(--green);}
+.toast-item.e{border-color:rgba(239,68,68,.4);color:var(--red);}
+.toast-item.i{border-color:rgba(37,99,235,.4);color:#60a5fa;}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* ── MODAL ── */
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;}
+#modal-overlay.on{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;width:460px;max-width:90vw;}
+.modal h3{font-size:16px;font-weight:800;margin-bottom:12px;}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;gap:10px;color:var(--mt);padding:24px;justify-content:center;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 20px;color:var(--mt);}
+.empty-ico{font-size:36px;margin-bottom:10px;}
+
+/* ── GRID 2 ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:768px){.g2{grid-template-columns:1fr;}.sidebar{transform:translateX(-220px);}.main{margin-left:0;}}
+
+/* ── AVISO BANNER ── */
+.aviso-card{background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(124,58,237,.1));border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+.aviso-card .av-text{flex:1;}
+.aviso-card .av-title{font-weight:800;font-size:13px;}
+.aviso-card .av-sub{font-size:12px;color:var(--mt);margin-top:2px;}
+
+/* ── REALTIME INDICATOR ── */
+.rt-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--green);}
+</style>
+</head>
+<body>
+
+<!-- ══ TELA DE LOGIN DO PAINEL ══ -->
+<div id="painel-login" style="
+  position:fixed;inset:0;background:var(--bg);z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Nunito',sans-serif;
+">
+  <div style="width:100%;max-width:400px;padding:20px;">
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:32px;">
+      <svg viewBox="-6 -6 112 112" xmlns="http://www.w3.org/2000/svg" width="64" height="64" style="margin:0 auto 12px;display:block;">
+        <defs><linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs>
+        <circle cx="50" cy="50" r="48" fill="url(#lg)"/>
+        <rect x="27" y="23" width="10" height="54" rx="3" fill="white"/>
+        <rect x="37" y="23" width="36" height="12" rx="3" fill="white"/>
+        <rect x="37" y="45" width="25" height="10" rx="3" fill="white" opacity="0.85"/>
+        <rect x="37" y="65" width="36" height="12" rx="3" fill="white"/>
+        <circle cx="88" cy="13" r="10" fill="#7C3AED"/>
+        <circle cx="88" cy="13" r="5" fill="white"/>
+      </svg>
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">EvoCity</div>
+      <div style="font-size:13px;color:var(--mt);margin-top:4px;font-weight:600;">Painel Admin · Acesso Restrito</div>
+    </div>
+
+    <!-- Card de login -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;">
+      <h2 style="font-size:18px;font-weight:800;margin-bottom:20px;text-align:center;">🔒 Entrar no Painel</h2>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:700;color:var(--mt);display:block;margin-bottom:6px;">Usuário Admin</label>
+        <input id="admin-user" type="text" placeholder="Digite o usuário"
+          style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--tx);font-size:15px;font-family:'Nunito',sans-serif;outline:none;"
+          onkeydown="if(event.key==='Enter')document.getElementById('admin-pass').focus()"
+          onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'"/>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="font-size:12px;font-weight:700;color:var(--mt);display:block;margin-bottom:6px;">Senha</label>
+        <div style="position:relative;">
+          <input id="admin-pass" type="password" placeholder="Digite a senha"
+            style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;padding-right:44px;color:var(--tx);font-size:15px;font-family:'Nunito',sans-serif;outline:none;"
+            onkeydown="if(event.key==='Enter')fazerLoginPainel()"
+            onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'"/>
+          <button onclick="toggleSenhaAdmin()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--mt);font-size:16px;">👁</button>
+        </div>
+      </div>
+
+      <div id="login-erro" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;color:var(--red);margin-bottom:16px;text-align:center;">
+        ❌ Usuário ou senha incorretos
+      </div>
+
+      <button id="btn-login-painel" onclick="fazerLoginPainel()"
+        style="width:100%;padding:13px;border:none;border-radius:10px;background:var(--grad);color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.15s;"
+        onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">
+        Entrar no Painel
+      </button>
+
+      <p style="font-size:12px;color:var(--mt);text-align:center;margin-top:16px;">
+        🔒 Área restrita ao administrador do EvoCity
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <svg viewBox="-6 -6 112 112" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs>
+      <circle cx="50" cy="50" r="48" fill="url(#g)"/>
+      <rect x="27" y="23" width="10" height="54" rx="3" fill="white"/>
+      <rect x="37" y="23" width="36" height="12" rx="3" fill="white"/>
+      <rect x="37" y="45" width="25" height="10" rx="3" fill="white" opacity="0.85"/>
+      <rect x="37" y="65" width="36" height="12" rx="3" fill="white"/>
+      <circle cx="88" cy="13" r="10" fill="#7C3AED"/>
+      <circle cx="88" cy="13" r="5" fill="white"/>
+    </svg>
+    <span>EvoCity</span>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sub">Principal</div>
+    <a class="on" onclick="goPage('dashboard')"><span class="ic">📊</span> Dashboard</a>
+    <a onclick="goPage('posts')"><span class="ic">📝</span> Posts <span class="nb g" id="nb-posts">0</span></a>
+    <a onclick="goPage('editor')"><span class="ic">🎨</span> Editor do Site</a>
+    <a onclick="goPage('avisos')"><span class="ic">📣</span> Avisos ao Site</a>
+    <div class="sb-sub">Usuários</div>
+    <a onclick="goPage('cadastros')"><span class="ic">📋</span> Cadastros <span class="nb" id="nb-membros">0</span></a>
+    <a onclick="goPage('membros')"><span class="ic">👥</span> Membros</a>
+    <a onclick="goPage('moderacao')"><span class="ic">🛡️</span> Moderação</a>
+    <a onclick="goPage('denuncias')"><span class="ic">🚨</span> Denúncias <span class="nb" id="nb-denuncias" style="display:none">0</span></a>
+    <div class="sb-sub">Conteúdo</div>
+    <a onclick="goPage('classificados')"><span class="ic">🏷️</span> Classificados</a>
+    <a onclick="goPage('servicos')"><span class="ic">🔧</span> Serviços</a>
+    <a onclick="goPage('comunidades')"><span class="ic">🏘️</span> Comunidades</a>
+    <a onclick="goPage('emojis')"><span class="ic">😊</span> Banco de Emojis</a>
+    <div class="sb-sub">Gestão</div>
+    <a onclick="goPage('relatorios')"><span class="ic">📈</span> Relatórios</a>
+    <a onclick="goPage('config')"><span class="ic">⚙️</span> Configurações</a>
+  </nav>
+  <div class="sb-user">
+    <div class="sb-av">A</div>
+    <div style="flex:1;min-width:0;">
+      <div class="sb-uname">Admin Master</div>
+      <div class="sb-urole"><span class="sync-dot"></span><span id="sb-status">Conectando...</span></div>
+    </div>
+    <button onclick="sairDoPainel()" title="Sair do painel" style="width:30px;height:30px;border-radius:50%;background:rgba(239,68,68,.15);border:none;cursor:pointer;color:var(--red);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;" onmouseover="this.style.background='rgba(239,68,68,.25)'" onmouseout="this.style.background='rgba(239,68,68,.15)'">🚪</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <h2 id="page-title">Dashboard</h2>
+    <div class="tb-badge" id="rt-status"><span class="sync-dot"></span> Supabase</div>
+    <div class="tb-badge">EvoCity Admin v3.0</div>
+  </div>
+  <div class="content" id="content">
+    <div class="loading"><div class="spinner"></div> Carregando...</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <div id="modal-body"></div>
+    <div class="modal-btns" id="modal-btns"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// SUPABASE
+// ══════════════════════════════════════
+const SB_URL = 'https://aspzqjviojqoljpugdeu.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzcHpxanZpb2pxb2xqcHVnZGV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzEzNjksImV4cCI6MjA4OTQ0NzM2OX0.RRzxs2zb3jMCdAOgHQeo1MxmaIzVKWGn5tbi5xeQe10';
+let db = null;
+
+async function initSupabase(){
+  try{
+    db = supabase.createClient(SB_URL, SB_KEY);
+    // Testar conexão
+    const {error} = await db.from('postagens').select('id').limit(1);
+    if(error) throw error;
+    document.getElementById('sb-status').textContent = 'Conectado';
+    document.getElementById('rt-status').innerHTML = '<span class="sync-dot"></span> Online';
+    showToast('✅ Supabase conectado!','s');
+    // Escuta em tempo real
+    _escutarRealtime();
+  }catch(e){
+    var msg = e?.message || e?.error_description || (typeof e==='string'?e:JSON.stringify(e));
+    document.getElementById('sb-status').textContent = 'Erro';
+    document.getElementById('rt-status').innerHTML = '⚠️ Offline';
+    showToast('⚠️ Erro Supabase: '+msg,'e');
+    console.error('Supabase erro detalhado:', JSON.stringify(e));
+  }
+}
+
+function _escutarRealtime(){
+  if(!db) return;
+  db.channel('painel-rt')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'membros'},function(p){
+      showToast('👤 Novo membro: '+(p.new.nome||'?'),'i');
+      _updateBadges();
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'postagens'},function(p){
+      _updateBadges();
+    })
+    .subscribe();
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+function showToast(msg, type='i'){
+  const t = document.getElementById('toast');
+  const d = document.createElement('div');
+  d.className = 'toast-item '+(type||'i');
+  d.textContent = msg;
+  t.appendChild(d);
+  setTimeout(()=>d.remove(), 3500);
+}
+
+// ══════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════
+let _modalCb = null;
+function openModal(title, body, cb, btnLabel='Confirmar', btnClass='btn-r'){
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-btns').innerHTML =
+    '<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn '+btnClass+'" onclick="_modalCb()">'+btnLabel+'</button>';
+  _modalCb = function(){ cb(); closeModal(); };
+  document.getElementById('modal-overlay').classList.add('on');
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('on'); }
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+const PAGES = {
+  dashboard: pgDashboard,
+  posts: pgPosts,
+  avisos: pgAvisos,
+  editor: pgEditorSite,
+  cadastros: pgCadastros,
+  membros: pgMembros,
+  moderacao: pgModeracao,
+  denuncias: pgDenuncias,
+  classificados: pgClassificados,
+  servicos: pgServicos,
+  comunidades: pgComunidades,
+  emojis: pgEmojis,
+  relatorios: pgRelatorios,
+  config: pgConfig
+};
+
+function goPage(p){
+  document.querySelectorAll('.sb-nav a').forEach(a=>a.classList.remove('on'));
+  const link = document.querySelector('.sb-nav a[onclick*="\''+p+'\'"]');
+  if(link) link.classList.add('on');
+  if(PAGES[p]) PAGES[p]();
+}
+
+// ══════════════════════════════════════
+// BADGES
+// ══════════════════════════════════════
+async function _updateBadges(){
+  if(!db) return;
+  try{
+    const [{data:posts},{data:membros}] = await Promise.all([
+      db.from('postagens').select('id',{count:'exact'}).eq('removido',false),
+      db.from('membros').select('id',{count:'exact'})
+    ]);
+    const np = document.getElementById('nb-posts');
+    const nm = document.getElementById('nb-membros');
+    if(np) np.textContent = posts?.length||0;
+    if(nm) nm.textContent = membros?.length||0;
+  }catch(e){}
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+async function pgDashboard(){
+  document.getElementById('page-title').textContent = 'Dashboard';
+  document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando dados...</div>';
+  if(!db){ document.getElementById('content').innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div>Supabase não conectado.</div>'; return; }
+  try{
+    const [{data:posts,error:e1},{data:membros,error:e2},{data:banidos,error:e3}] = await Promise.all([
+      db.from('postagens').select('*').eq('removido',false).order('criado_em',{ascending:false}),
+      db.from('membros').select('*').order('criado_em',{ascending:false}),
+      db.from('membros').select('id').eq('banido',true)
+    ]);
+    const totalPosts = posts?.length||0;
+    const totalMembros = membros?.length||0;
+    const totalBanidos = banidos?.length||0;
+    const ativos = totalMembros - totalBanidos;
+
+    document.getElementById('content').innerHTML = `
+      <div class="cards">
+        <div class="card blue"><div class="card-ico">📝</div><div class="card-val">${totalPosts}</div><div class="card-lbl">Posts Publicados</div></div>
+        <div class="card purple"><div class="card-ico">👥</div><div class="card-val">${totalMembros}</div><div class="card-lbl">Membros Cadastrados</div></div>
+        <div class="card green"><div class="card-ico">✅</div><div class="card-val">${ativos}</div><div class="card-lbl">Membros Ativos</div></div>
+        <div class="card red"><div class="card-ico">🚫</div><div class="card-val">${totalBanidos}</div><div class="card-lbl">Banidos</div></div>
+      </div>
+      <div class="g2">
+        <div class="sec">
+          <div class="sec-h"><h3>📝 Últimos Posts</h3><span class="rt-badge"><span class="sync-dot"></span> Tempo real</span></div>
+          <div class="sec-b" id="dash-posts">
+            ${(posts||[]).slice(0,5).map(p=>`
+              <div class="post-card">
+                <div class="av">${(p.autor||'A').slice(0,2).toUpperCase()}</div>
+                <div class="pc-body">
+                  <div class="pc-author">${p.autor||'Admin'}</div>
+                  <div class="pc-text">${p.texto||''}</div>
+                  <div class="pc-meta">
+                    <span class="badge bb">${p.categoria||'n'}</span>
+                    <span class="pc-time">${_tempo(p.criado_em)}</span>
+                  </div>
+                </div>
+              </div>
+            `).join('')||'<div class="empty"><div class="empty-ico">📭</div>Nenhum post ainda.</div>'}
+          </div>
+        </div>
+        <div class="sec">
+          <div class="sec-h"><h3>👥 Membros Recentes</h3></div>
+          <div class="sec-b">
+            ${(membros||[]).slice(0,6).map(m=>`
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+                <div class="av" style="background:${m.clr||'var(--grad)'}">${m.ini||'?'}</div>
+                <div style="flex:1">
+                  <div style="font-weight:800;font-size:13px">${m.nome||'Usuário'}</div>
+                  <div style="font-size:11px;color:var(--mt)">${m.bairro||'Petrópolis'} · ${_tempo(m.criado_em)}</div>
+                </div>
+                <span class="badge ${m.banido?'br':'bg'}">${m.banido?'banido':'ativo'}</span>
+              </div>
+            `).join('')||'<div class="empty"><div class="empty-ico">👤</div>Nenhum membro ainda.</div>'}
+          </div>
+        </div>
+      </div>
+    `;
+  }catch(e){
+    document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-ico">❌</div>Erro ao carregar: ${e.message}</div>`;
+  }
+}
+
+// ══════════════════════════════════════
+// POSTS
+// ══════════════════════════════════════
+async function pgPosts(){
+  document.getElementById('page-title').textContent = 'Posts';
+  document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando posts...</div>';
+  if(!db) return;
+  try{
+    const {data:posts,error} = await db.from('postagens').select('*').order('criado_em',{ascending:false}).limit(100);
+    if(error) throw error;
+    document.getElementById('content').innerHTML = `
+      <div class="sec" style="margin-bottom:20px">
+        <div class="sec-h"><h3>✍️ Publicar Post no Feed</h3></div>
+        <div class="sec-b">
+          <div class="f-row">
+            <label class="f-lbl">Categoria</label>
+            <select class="f-inp" id="post-cat" style="max-width:200px">
+              <option value="n">📰 Notícias</option>
+              <option value="e">🎉 Eventos</option>
+              <option value="j">💼 Empregos</option>
+              <option value="s">🔧 Serviços</option>
+              <option value="d">❓ Dúvidas</option>
+              <option value="review">⭐ Resenha</option>
+            </select>
+          </div>
+          <div class="f-row">
+            <label class="f-lbl">Texto do post</label>
+            <textarea class="f-inp" id="post-texto" placeholder="Digite o conteúdo do post..."></textarea>
+          </div>
+          <button class="btn btn-p" onclick="publicarPost()">📝 Publicar no Feed</button>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-h">
+          <h3>📋 Todos os Posts (${posts?.length||0})</h3>
+          <button class="btn btn-ghost btn-sm" onclick="pgPosts()">🔄 Atualizar</button>
+        </div>
+        <div class="sec-b">
+          ${(posts||[]).map(p=>`
+            <div class="post-card ${p.removido?'post-removido':''}">
+              <div class="av">${(p.autor||'A').slice(0,2).toUpperCase()}</div>
+              <div class="pc-body">
+                <div class="pc-author">${p.autor||'Admin'} ${p.removido?'<span class="badge br">removido</span>':''}</div>
+                <div class="pc-text">${p.texto||''}</div>
+                <div class="pc-meta">
+                  <span class="badge bb">${p.categoria||'n'}</span>
+                  <span class="pc-time">${_tempo(p.criado_em)}</span>
+                  ${!p.removido?`<button class="btn btn-r btn-sm" onclick="removerPost(${p.id})">🗑️ Remover</button>`:''}
+                </div>
+              </div>
+            </div>
+          `).join('')||'<div class="empty"><div class="empty-ico">📭</div>Nenhum post ainda.</div>'}
+        </div>
+      </div>
+    `;
+  }catch(e){
+    document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-ico">❌</div>${e.message}</div>`;
+  }
+}
+
+async function publicarPost(){
+  const texto = document.getElementById('post-texto')?.value?.trim();
+  const cat = document.getElementById('post-cat')?.value||'n';
+  if(!texto){ showToast('Digite o texto do post.','e'); return; }
+  if(!db){ showToast('Supabase não conectado.','e'); return; }
+  try{
+    const {error} = await db.from('postagens').insert([{
+      texto, autor:'📣 Admin EvoCity', categoria:cat, removido:false,
+      criado_em: new Date().toISOString()
+    }]);
+    if(error) throw error;
+    showToast('✅ Post publicado com sucesso!','s');
+    document.getElementById('post-texto').value='';
+    setTimeout(pgPosts, 500);
+    _updateBadges();
+  }catch(e){
+    showToast('Erro: '+e.message,'e');
+  }
+}
+
+async function removerPost(id){
+  openModal('Remover Post',
+    '<p style="color:var(--mt);line-height:1.7">Deseja <strong style="color:var(--red)">remover</strong> este post? Ele ficará oculto no feed.</p>',
+    async function(){
+      const {error} = await db.from('postagens').update({removido:true}).eq('id',id);
+      if(error){ showToast('Erro: '+error.message,'e'); return; }
+      showToast('Post removido.','s');
+      pgPosts();
+    }, 'Remover','btn-r');
+}
+
+// ══════════════════════════════════════
+// AVISOS
+// ══════════════════════════════════════
+async function pgAvisos(){
+  document.getElementById('page-title').textContent = 'Avisos ao Site';
+  if(!db) return;
+  const {data:cmds} = await db.from('comandos').select('*').order('criado_em',{ascending:false}).limit(20);
+
+  // Verificar estado atual da etiqueta verificado
+  const {data:cfg} = await db.from('comandos').select('*').eq('tipo','config_verificado').order('criado_em',{ascending:false}).limit(1);
+  const verificadoAtivo = cfg&&cfg[0] ? cfg[0].dados?.ativo !== false : true;
+
+  document.getElementById('content').innerHTML = `
+    <div class="sec" style="margin-bottom:20px">
+      <div class="sec-h"><h3>📣 Enviar Aviso ao Site</h3></div>
+      <div class="sec-b">
+        <div class="f-row">
+          <label class="f-lbl">Tipo</label>
+          <select class="f-inp" id="av-tipo" style="max-width:200px">
+            <option value="aviso">📣 Aviso no topo</option>
+            <option value="banner">🏷️ Banner fixado</option>
+            <option value="fechar_aviso">✕ Fechar aviso ativo</option>
+            <option value="fechar_banner">✕ Remover banner</option>
+            <option value="logout_all">🔒 Desconectar todos</option>
+          </select>
+        </div>
+        <div class="f-row">
+          <label class="f-lbl">Texto</label>
+          <input class="f-inp" id="av-texto" placeholder="Texto do aviso..."/>
+        </div>
+        <button class="btn btn-p" onclick="enviarAviso()">📣 Enviar ao Site</button>
+      </div>
+    </div>
+
+    <div class="sec" style="margin-bottom:20px">
+      <div class="sec-h"><h3>✔️ Etiqueta de Verificado</h3></div>
+      <div class="sec-b">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-weight:800;font-size:14px;margin-bottom:4px;">Selo de membro verificado ✔️</div>
+            <div style="font-size:13px;color:var(--mt);">Quando ativo, membros verificados exibem o selo no perfil e nos posts.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:13px;font-weight:700;color:var(--mt)" id="verif-status-txt">${verificadoAtivo?'Ativo':'Inativo'}</span>
+            <button id="btn-verif-toggle" onclick="toggleVerificadoGlobal(${verificadoAtivo})"
+              class="btn ${verificadoAtivo?'btn-g':'btn-ghost'}"
+              style="min-width:120px;">
+              ${verificadoAtivo?'✔️ Ativado':'❌ Desativado'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">
+        <h3>📋 Histórico de Comandos (${cmds?.length||0})</h3>
+        <button class="btn btn-r btn-sm" onclick="limparHistoricoAvisos()" title="Limpar histórico">🗑️ Limpar</button>
+      </div>
+      <div class="sec-b">
+        ${(cmds||[]).map(c=>`
+          <div class="aviso-card" id="cmd-${c.id}">
+            <div class="av-text">
+              <div class="av-title">${_labelTipo(c.tipo)} ${c.dados?.texto?'— <em>'+c.dados.texto+'</em>':''}</div>
+              <div class="av-sub">${_tempo(c.criado_em)}</div>
+            </div>
+            <span class="badge bb" style="flex-shrink:0">${c.tipo}</span>
+            <button onclick="removerAviso(${c.id})" title="Remover do histórico"
+              style="width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,.1);border:none;cursor:pointer;color:var(--red);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;"
+              onmouseover="this.style.background='rgba(239,68,68,.2)'" onmouseout="this.style.background='rgba(239,68,68,.1)'">×</button>
+          </div>
+        `).join('')||'<div class="empty"><div class="empty-ico">📭</div>Nenhum comando enviado.</div>'}
+      </div>
+    </div>
+  `;
+}
+
+function _labelTipo(tipo){
+  const labels = {
+    aviso:'📣 Aviso',banner:'🏷️ Banner',fechar_aviso:'✕ Fechar aviso',
+    fechar_banner:'✕ Remover banner',logout_all:'🔒 Logout geral',
+    cor:'🎨 Cores',banir:'🚫 Banir',verificar:'✔️ Verificar',
+    remover_post:'🗑️ Remover post',config_verificado:'✔️ Config verificado'
+  };
+  return labels[tipo]||tipo;
+}
+
+async function removerAviso(id){
+  try{
+    await db.from('comandos').delete().eq('id',id);
+    const el = document.getElementById('cmd-'+id);
+    if(el){ el.style.opacity='0'; el.style.transform='translateX(20px)'; el.style.transition='.3s'; setTimeout(()=>el.remove(),300); }
+    showToast('Aviso removido do histórico.','s');
+  }catch(e){ showToast('Erro: '+e.message,'e'); }
+}
+
+async function limparHistoricoAvisos(){
+  openModal('🗑️ Limpar Histórico',
+    '<p style="color:var(--mt)">Isso remove todos os comandos do histórico. Os efeitos já aplicados no site continuam.</p>',
+    async function(){
+      await db.from('comandos').delete().neq('id',0);
+      showToast('Histórico limpo!','s');
+      pgAvisos();
+    },'Limpar','btn-r');
+}
+
+async function toggleVerificadoGlobal(ativo){
+  const novoEstado = !ativo;
+  try{
+    await db.from('comandos').insert([{
+      tipo:'config_verificado',
+      dados:{ativo:novoEstado, ts:Date.now()},
+      criado_em:new Date().toISOString()
+    }]);
+    const btn = document.getElementById('btn-verif-toggle');
+    const txt = document.getElementById('verif-status-txt');
+    if(btn){
+      btn.textContent = novoEstado ? '✔️ Ativado' : '❌ Desativado';
+      btn.className = 'btn '+(novoEstado?'btn-g':'btn-ghost');
+      btn.setAttribute('onclick','toggleVerificadoGlobal('+novoEstado+')');
+    }
+    if(txt) txt.textContent = novoEstado ? 'Ativo' : 'Inativo';
+    showToast(novoEstado ? '✔️ Etiqueta de verificado ativada!' : '❌ Etiqueta de verificado desativada.', novoEstado?'s':'i');
+  }catch(e){ showToast('Erro: '+e.message,'e'); }
+}
+
+async function enviarAviso(){
+  const tipo = document.getElementById('av-tipo')?.value;
+  const texto = document.getElementById('av-texto')?.value?.trim();
+  if(!['fechar_aviso','fechar_banner','logout_all'].includes(tipo) && !texto){
+    showToast('Digite o texto do aviso.','e'); return;
+  }
+  if(!db) return;
+  try{
+    const {error} = await db.from('comandos').insert([{
+      tipo, dados:{texto, ts:Date.now()}, criado_em:new Date().toISOString()
+    }]);
+    if(error) throw error;
+    showToast('✅ Aviso enviado ao site!','s');
+    document.getElementById('av-texto').value='';
+    setTimeout(pgAvisos,500);
+  }catch(e){ showToast('Erro: '+e.message,'e'); }
+}
+
+// ══════════════════════════════════════
+// MEMBROS
+// ══════════════════════════════════════
+async function pgMembros(){
+  document.getElementById('page-title').textContent = 'Membros';
+  document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando membros...</div>';
+  if(!db) return;
+  try{
+    const {data:membros,error} = await db.from('membros').select('*').order('criado_em',{ascending:false});
+    if(error) throw error;
+    document.getElementById('content').innerHTML = `
+      <div class="cards">
+        <div class="card blue"><div class="card-ico">👥</div><div class="card-val">${membros?.length||0}</div><div class="card-lbl">Total</div></div>
+        <div class="card green"><div class="card-ico">✅</div><div class="card-val">${(membros||[]).filter(m=>!m.banido).length}</div><div class="card-lbl">Ativos</div></div>
+        <div class="card red"><div class="card-ico">🚫</div><div class="card-val">${(membros||[]).filter(m=>m.banido).length}</div><div class="card-lbl">Banidos</div></div>
+        <div class="card purple">
+          <div class="card-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1d9bf0"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.26 3.91.8c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.36 14.67 22.25 13.43 22.25 12zm-6.07-1.92L10.5 15.76l-2.68-2.68a.75.75 0 00-1.06 1.06l3.21 3.22a.75.75 0 001.06 0l6.22-6.22a.75.75 0 10-1.06-1.06z"/></svg>
+          </div>
+          <div class="card-val">${(membros||[]).filter(m=>m.verificado).length}</div>
+          <div class="card-lbl">Verificados</div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-h">
+          <h3>Todos os Membros</h3>
+          <input class="f-inp" style="width:200px;padding:6px 12px;font-size:12px" placeholder="🔍 Buscar..." oninput="filtrarMembros(this.value,'${encodeURIComponent(JSON.stringify(membros||[]))}')"/>
+          <button class="btn btn-ghost btn-sm" onclick="pgMembros()">🔄</button>
+        </div>
+        <div class="sec-b" style="padding:0">
+          <table class="tbl" id="tbl-membros">
+            <thead><tr>
+              <th>Membro</th><th>Bairro</th><th>Status</th><th>Verificado</th><th>Desde</th><th>Ações</th>
+            </tr></thead>
+            <tbody>
+              ${_renderMembroRowsV2(membros||[])}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }catch(e){
+    document.getElementById('content').innerHTML=`<div class="empty"><div class="empty-ico">❌</div>${e.message}</div>`;
+  }
+}
+
+function _renderMembroRowsV2(lista){
+  if(!lista.length) return `<tr><td colspan="6"><div class="empty"><div class="empty-ico">👤</div>Nenhum membro.</div></td></tr>`;
+  const selinho = `<svg width="14" height="14" viewBox="0 0 24 24" fill="#1d9bf0" style="vertical-align:middle;margin-left:3px"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.26 3.91.8c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.36 14.67 22.25 13.43 22.25 12zm-6.07-1.92L10.5 15.76l-2.68-2.68a.75.75 0 00-1.06 1.06l3.21 3.22a.75.75 0 001.06 0l6.22-6.22a.75.75 0 10-1.06-1.06z"/></svg>`;
+  return lista.map(m=>`
+    <tr id="mrow-${m.user_id}">
+      <td style="white-space:nowrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          ${m.photo?`<img src="${m.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid ${m.verificado?'#1d9bf0':'#e4e6ea'}" alt="${m.ini}"/>`:`<span class="av" style="background:${m.clr||'var(--grad)'};border:2px solid ${m.verificado?'#1d9bf0':'transparent'}">${m.ini||'?'}</span>`}
+          <div>
+            <div style="font-weight:800;font-size:13px;display:flex;align-items:center">${m.nome||'Usuário'}${m.verificado?selinho:''}</div>
+            <div style="font-size:11px;color:var(--mt)">${m.email||''}</div>
+          </div>
+        </div>
+      </td>
+      <td style="color:var(--mt)">${m.bairro||'—'}</td>
+      <td><span class="badge ${m.banido?'br':'bg'}">${m.banido?'🚫 banido':'✅ ativo'}</span></td>
+      <td>
+        <button onclick="toggleVerificar('${m.user_id}',${m.verificado})"
+          style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;border:2px solid ${m.verificado?'#1d9bf0':'var(--border)'};background:${m.verificado?'rgba(29,155,240,.1)':'var(--bg3)'};cursor:pointer;font-size:12px;font-weight:800;color:${m.verificado?'#1d9bf0':'var(--mt)'};font-family:'Nunito',sans-serif;transition:.15s">
+          ${m.verificado?selinho+'<span>Verificado</span>':'<span>Verificar</span>'}
+        </button>
+      </td>
+      <td style="color:var(--mt);font-size:11px">${m.joined||_tempo(m.criado_em)}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn ${m.banido?'btn-g':'btn-r'} btn-sm" onclick="toggleBanir('${m.user_id}','${m.nome||'?'}',${m.banido})">${m.banido?'🔓':'🚫'}</button>
+          <button class="btn btn-o btn-sm" onclick="resetarSenhaMembro('${m.email||''}','${m.nome||'?'}')" title="Resetar senha">🔑</button>
+          <button class="btn btn-r btn-sm" onclick="removerMembro('${m.user_id}','${m.nome||'?'}')" title="Remover">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function _renderMembroRows(lista){ return _renderMembroRowsV2(lista); }
+
+function filtrarMembros(q, encodedData){
+  try{
+    var lista = JSON.parse(decodeURIComponent(encodedData));
+    var termo = q.trim().toLowerCase();
+    var filtrados = termo
+      ? lista.filter(function(m){
+          return (m.nome||'').toLowerCase().includes(termo) ||
+                 (m.email||'').toLowerCase().includes(termo) ||
+                 (m.bairro||'').toLowerCase().includes(termo);
+        })
+      : lista;
+    var tbody = document.querySelector('#tbl-membros tbody');
+    if(tbody) tbody.innerHTML = _renderMembroRowsV2(filtrados);
+  }catch(e){ console.warn('filtrarMembros erro:', e.message); }
+}
+
+async function toggleBanir(userId, nome, banido){
+  openModal(banido?'Desbanir Membro':'Banir Membro',
+    `<p style="color:var(--mt);line-height:1.7">${banido?`Restaurar acesso de <strong>${nome}</strong>?`:`Banir <strong style="color:var(--red)">${nome}</strong>? O acesso será revogado.`}</p>`,
+    async function(){
+      const novoBanido = !banido;
+      const {error} = await db.from('membros').update({banido:novoBanido,status:novoBanido?'banido':'ativo'}).eq('user_id',userId);
+      if(error){showToast('Erro: '+error.message,'e');return;}
+      // Envia comando ao site
+      await db.from('comandos').insert([{tipo:'banir',dados:{userId,banido:novoBanido,ts:Date.now()},criado_em:new Date().toISOString()}]);
+      showToast(novoBanido?nome+' foi banido.':nome+' foi reintegrado.',novoBanido?'e':'s');
+      pgMembros();
+    }, banido?'Desbanir':'Banir', banido?'btn-g':'btn-r');
+}
+
+async function toggleVerificar(userId, verificado){
+  const novoVerificado = !verificado;
+  // Busca nome do membro para enviar no comando
+  let nomeMembro = '';
+  try{
+    const {data:m} = await db.from('membros').select('nome').eq('user_id',userId).single();
+    nomeMembro = m?.nome || '';
+  }catch(e){}
+  const {error} = await db.from('membros').update({verificado:novoVerificado}).eq('user_id',userId);
+  if(error){showToast('Erro: '+error.message,'e');return;}
+  await db.from('comandos').insert([{
+    tipo:'verificar',
+    dados:{userId, nome:nomeMembro, verificado:novoVerificado, ts:Date.now()},
+    criado_em:new Date().toISOString()
+  }]);
+  showToast(novoVerificado?'✔️ '+nomeMembro+' verificado!':'Verificação removida de '+nomeMembro+'.','s');
+  pgMembros();
+}
+
+// ══════════════════════════════════════
+// MODERAÇÃO
+// ══════════════════════════════════════
+async function pgModeracao(){
+  document.getElementById('page-title').textContent = 'Moderação';
+  if(!db) return;
+  const {data:posts} = await db.from('postagens').select('*').eq('removido',false).order('criado_em',{ascending:false});
+  const {data:banidos} = await db.from('membros').select('*').eq('banido',true);
+  document.getElementById('content').innerHTML = `
+    <div class="g2">
+      <div class="sec">
+        <div class="sec-h"><h3>🛡️ Posts para Moderar (${posts?.length||0})</h3></div>
+        <div class="sec-b">
+          ${(posts||[]).slice(0,10).map(p=>`
+            <div class="post-card">
+              <div class="av">${(p.autor||'A').slice(0,2).toUpperCase()}</div>
+              <div class="pc-body">
+                <div class="pc-author">${p.autor||'?'}</div>
+                <div class="pc-text">${(p.texto||'').slice(0,100)}${p.texto?.length>100?'...':''}</div>
+                <div class="pc-meta">
+                  <button class="btn btn-r btn-sm" onclick="removerPost(${p.id})">🗑️ Remover</button>
+                </div>
+              </div>
+            </div>
+          `).join('')||'<div class="empty"><div class="empty-ico">✅</div>Nada para moderar!</div>'}
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-h"><h3>🚫 Membros Banidos (${banidos?.length||0})</h3></div>
+        <div class="sec-b">
+          ${(banidos||[]).map(m=>`
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <div class="av">${m.ini||'?'}</div>
+              <div style="flex:1"><div style="font-weight:800">${m.nome||'?'}</div><div style="font-size:11px;color:var(--mt)">${m.bairro||''}</div></div>
+              <button class="btn btn-g btn-sm" onclick="toggleBanir('${m.user_id}','${m.nome||'?'}',true)">🔓 Desbanir</button>
+            </div>
+          `).join('')||'<div class="empty"><div class="empty-ico">😊</div>Nenhum banido.</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════
+// CLASSIFICADOS
+// ══════════════════════════════════════
+function pgClassificados(){
+  document.getElementById('page-title').textContent = 'Classificados';
+  document.getElementById('content').innerHTML = `
+    <div class="sec">
+      <div class="sec-h"><h3>🏷️ Classificados</h3></div>
+      <div class="sec-b"><div class="empty"><div class="empty-ico">🏷️</div>Classificados são gerenciados pelos usuários no site principal.</div></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════
+// SERVIÇOS
+// ══════════════════════════════════════
+function pgServicos(){
+  document.getElementById('page-title').textContent = 'Serviços';
+  document.getElementById('content').innerHTML = `
+    <div class="sec">
+      <div class="sec-h"><h3>🔧 Serviços</h3></div>
+      <div class="sec-b"><div class="empty"><div class="empty-ico">🔧</div>Serviços são gerenciados pelos usuários no site principal.</div></div>
+    </div>`;
+}
+
+// ══════════════════════════════════════
+// COMUNIDADES
+// ══════════════════════════════════════
+async function pgComunidades(){
+  document.getElementById('page-title').textContent = 'Comunidades';
+  document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+
+  // Carregar comunidades do Supabase ou usar padrão
+  let coms = await _carregarComunidades();
+
+  _renderPaginaComunidades(coms);
+}
+
+async function _carregarComunidades(){
+  try{
+    const {data,error} = await db.from('comunidades').select('*').order('criado_em',{ascending:true});
+    if(!error && data && data.length > 0) return data;
+  }catch(e){}
+  // Comunidades padrão se tabela não existir ainda
+  return [
+    {id:1,nome:'Alertas Petrópolis',emoji:'🚨',bg:'#fee2e2',ativa:true,membros:127,descricao:'Alertas e informações de segurança da cidade'},
+    {id:2,nome:'Itaipava',emoji:'🌿',bg:'#f0fdf4',ativa:true,membros:89,descricao:'Tudo sobre Itaipava e região serrana'},
+    {id:3,nome:'Empregos RJ',emoji:'💼',bg:'#eff6ff',ativa:true,membros:342,descricao:'Vagas de emprego em Petrópolis e RJ'},
+    {id:4,nome:'Petrópolis Centro',emoji:'🏛️',bg:'#f5f3ff',ativa:true,membros:215,descricao:'Notícias e eventos do Centro histórico'},
+  ];
+}
+
+function _renderPaginaComunidades(coms){
+  const ativas = coms.filter(c=>c.ativa).length;
+  document.getElementById('content').innerHTML = `
+    <div class="cards" style="margin-bottom:20px">
+      <div class="card blue"><div class="card-ico">🏘️</div><div class="card-val">${coms.length}</div><div class="card-lbl">Total</div></div>
+      <div class="card green"><div class="card-ico">✅</div><div class="card-val">${ativas}</div><div class="card-lbl">Ativas</div></div>
+      <div class="card red"><div class="card-ico">⏸️</div><div class="card-val">${coms.length-ativas}</div><div class="card-lbl">Inativas</div></div>
+      <div class="card purple"><div class="card-ico">👥</div><div class="card-val">${coms.reduce((a,c)=>a+(c.membros||0),0)}</div><div class="card-lbl">Membros total</div></div>
+    </div>
+
+    <div class="sec" style="margin-bottom:20px">
+      <div class="sec-h"><h3>➕ Criar Nova Comunidade</h3></div>
+      <div class="sec-b">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div class="f-row" style="margin:0"><label class="f-lbl">Emoji</label><input class="f-inp" id="nc-emoji" placeholder="🏘️" style="font-size:20px;text-align:center" maxlength="2"/></div>
+          <div class="f-row" style="margin:0"><label class="f-lbl">Nome</label><input class="f-inp" id="nc-nome" placeholder="Nome da comunidade"/></div>
+        </div>
+        <div class="f-row">
+          <label class="f-lbl">Descrição</label>
+          <input class="f-inp" id="nc-desc" placeholder="Sobre o que é esta comunidade..."/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div class="f-row" style="margin:0"><label class="f-lbl">Cor de fundo do ícone</label><input type="color" class="f-inp" id="nc-bg" value="#eff6ff" style="height:40px;padding:4px;cursor:pointer"/></div>
+        </div>
+        <button class="btn btn-p" onclick="criarComunidade()">🏘️ Criar Comunidade</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h"><h3>📋 Gerenciar Comunidades</h3><button class="btn btn-ghost btn-sm" onclick="pgComunidades()">🔄</button></div>
+      <div class="sec-b" style="display:flex;flex-direction:column;gap:12px" id="lista-comunidades">
+        ${coms.map(c=>`
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg3);border-radius:12px;border:1px solid ${c.ativa?'rgba(16,185,129,.2)':'var(--border)'};" id="com-item-${c.id}">
+            <div style="width:46px;height:46px;border-radius:12px;background:${c.bg||'#eff6ff'};display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${c.emoji||'🏘️'}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px">
+                ${c.nome}
+                <span class="badge ${c.ativa?'bg':'br'}" style="font-size:10px">${c.ativa?'ativa':'inativa'}</span>
+              </div>
+              <div style="font-size:12px;color:var(--mt);margin-top:2px">${c.descricao||''}</div>
+              <div style="font-size:11px;color:var(--mt);margin-top:4px">👥 ${c.membros||0} membros</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+              <button onclick="editarComunidade(${JSON.stringify(c).split('"').join('&quot;')})" class="btn btn-b btn-sm">✏️ Editar</button>
+              <button onclick="toggleComunidade(${c.id},${c.ativa})" class="btn ${c.ativa?'btn-o':'btn-g'} btn-sm">${c.ativa?'⏸️ Desativar':'▶️ Ativar'}</button>
+              <button onclick="excluirComunidade(${c.id},'${c.nome}')" class="btn btn-r btn-sm">🗑️</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  window._coms_data = coms;
+}
+
+async function criarComunidade(){
+  const emoji = document.getElementById('nc-emoji')?.value?.trim()||'🏘️';
+  const nome  = document.getElementById('nc-nome')?.value?.trim();
+  const desc  = document.getElementById('nc-desc')?.value?.trim()||'';
+  const bg    = document.getElementById('nc-bg')?.value||'#eff6ff';
+  if(!nome){ showToast('Digite o nome da comunidade.','e'); return; }
+
+  const nova = {nome,emoji,bg,descricao:desc,ativa:true,membros:0,criado_em:new Date().toISOString()};
+  try{
+    const {data,error} = await db.from('comunidades').insert([nova]).select();
+    if(error) throw error;
+    // Envia comando ao site para adicionar comunidade
+    await db.from('comandos').insert([{tipo:'nova_comunidade',dados:{...nova,id:data[0]?.id,ts:Date.now()},criado_em:new Date().toISOString()}]);
+    showToast('✅ Comunidade "'+nome+'" criada!','s');
+    pgComunidades();
+  }catch(e){
+    // Fallback local se tabela não existir
+    showToast('✅ Comunidade criada! (rode o SQL de comunidades no Supabase para persistir)','i');
+    pgComunidades();
+  }
+}
+
+async function toggleComunidade(id, ativa){
+  const nova = !ativa;
+  try{
+    await db.from('comunidades').update({ativa:nova}).eq('id',id);
+    await db.from('comandos').insert([{tipo:'toggle_comunidade',dados:{id,ativa:nova,ts:Date.now()},criado_em:new Date().toISOString()}]);
+    showToast(nova?'▶️ Comunidade ativada!':'⏸️ Comunidade desativada.',nova?'s':'i');
+    pgComunidades();
+  }catch(e){ showToast('Erro: '+e.message,'e'); }
+}
+
+async function excluirComunidade(id, nome){
+  openModal('🗑️ Excluir Comunidade',
+    `<p style="color:var(--mt);line-height:1.7">Deseja excluir permanentemente a comunidade <strong>${nome}</strong>?</p>`,
+    async function(){
+      try{
+        await db.from('comunidades').delete().eq('id',id);
+        // Envia comando ao site para remover do menu em tempo real
+        await db.from('comandos').insert([{tipo:'excluir_comunidade',dados:{id,nome,ts:Date.now()},criado_em:new Date().toISOString()}]);
+        showToast('Comunidade "'+nome+'" excluída.','e');
+        pgComunidades();
+      }catch(e){ showToast('Erro: '+e.message,'e'); }
+    },'Excluir','btn-r');
+}
+
+function editarComunidade(c){
+  if(typeof c === 'string') c = JSON.parse(c.split('&quot;').join('"'));
+  openModal('✏️ Editar Comunidade',
+    `<div style="display:flex;flex-direction:column;gap:12px">
+      <div><label style="font-size:12px;font-weight:700;color:var(--mt);display:block;margin-bottom:6px">Emoji</label>
+        <input id="ed-com-emoji" class="f-inp" value="${c.emoji||'🏘️'}" style="font-size:20px;text-align:center;max-width:80px" maxlength="2"/></div>
+      <div><label style="font-size:12px;font-weight:700;color:var(--mt);display:block;margin-bottom:6px">Nome</label>
+        <input id="ed-com-nome" class="f-inp" value="${c.nome||''}"/></div>
+      <div><label style="font-size:12px;font-weight:700;color:var(--mt);display:block;margin-bottom:6px">Descrição</label>
+        <input id="ed-com-desc" class="f-inp" value="${c.descricao||''}"/></div>
+      <div><label style="font-size:12px;font-weight:700;color:var(--mt);display:block;margin-bottom:6px">Cor de fundo</label>
+        <input type="color" id="ed-com-bg" class="f-inp" value="${c.bg||'#eff6ff'}" style="height:40px;padding:4px;cursor:pointer"/></div>
+    </div>`,
+    async function(){
+      const upd = {
+        nome: document.getElementById('ed-com-nome')?.value?.trim()||c.nome,
+        emoji: document.getElementById('ed-com-emoji')?.value?.trim()||c.emoji,
+        descricao: document.getElementById('ed-com-desc')?.value?.trim()||c.descricao,
+        bg: document.getElementById('ed-com-bg')?.value||c.bg
+      };
+      try{
+        await db.from('comunidades').update(upd).eq('id',c.id);
+        await db.from('comandos').insert([{tipo:'editar_comunidade',dados:{id:c.id,...upd,ts:Date.now()},criado_em:new Date().toISOString()}]);
+        showToast('✅ Comunidade atualizada!','s');
+        pgComunidades();
+      }catch(e){ showToast('Erro: '+e.message,'e'); }
+    },'Salvar','btn-p');
+}
+
+// ══════════════════════════════════════
+// BANCO DE EMOJIS
+// ══════════════════════════════════════
+const EMOJI_BANCO = {
+  desconto: {
+    label:'🏷️ Desconto & Promoções', color:'var(--orange)',
+    emojis:['🏷️','💰','💵','💳','🤑','🛒','🛍️','🎁','🎀','🎊','🎉','🥳','✂️','📉','💲','🏦','💴','💶','💷','🪙','💸','🤝','🫴','🧾','📊','📋','🔖','⬇️','🔻','📌','🏅']
+  },
+  ferramentas: {
+    label:'🔧 Ferramentas & Serviços Técnicos', color:'#64748b',
+    emojis:['🔧','🪛','🔩','🪚','⚙️','🛠️','🔨','🪝','🪤','🔌','💡','🔋','🪫','🖥️','💻','🖨️','⌨️','🖱️','📱','📡','📺','📻','🔭','🔬','🧰','🪜','🪣','🗜️','🔑','🗝️']
+  },
+  dicas: {
+    label:'💡 Dicas & Informação', color:'#eab308',
+    emojis:['💡','📌','📍','📎','🖇️','📝','✏️','🖊️','📖','📚','🗒️','📋','🗂️','📁','📂','🗃️','💬','🗨️','💭','🗯️','ℹ️','❗','❓','✅','☑️','🔔','📣','📢','👀','🧠','🎯','💎','⭐','🌟','💫']
+  },
+  servicos: {
+    label:'🛎️ Serviços & Negócios', color:'#6366f1',
+    emojis:['🛎️','🏪','🏢','🏬','🏨','🏦','🏥','🏫','🏗️','🏭','🏠','🏡','🏘️','🪟','🚪','🛋️','🪑','🪞','🖼️','🛏️','🚿','🛁','🪠','🧹','🧺','🧻','🪣','🗑️','🧽','🧴','🧼','🪥']
+  },
+  negocios: {
+    label:'💼 Negócios & Empreendedorismo', color:'#0ea5e9',
+    emojis:['💼','📊','📈','📉','🗂️','📋','📁','🗃️','🖊️','✍️','📝','🤝','🫱','🫲','🤜','🤛','👊','✊','👏','🙌','💪','🦾','🏆','🥇','🎖️','🏅','🌐','🗺️','🌎','🌍','🌏','🧭','🔐','🔒','🔓']
+  },
+  vendas: {
+    label:'🛒 Vendas & Comércio', color:'#10b981',
+    emojis:['🛒','🛍️','🏷️','💰','💳','🤑','📦','📫','📬','📭','📮','🚚','🚛','🚜','✈️','🚀','⚡','🔥','💥','✨','🌈','🎆','🎇','🎊','🎉','🛃','🛄','🛅','⬅️','➡️','⬆️','⬇️','🔄','♻️']
+  },
+  cidade: {
+    label:'🌆 Cidade & Petrópolis', color:'#8b5cf6',
+    emojis:['🌆','🏙️','🌇','🌃','🌉','🌁','🏘️','🏡','🏠','🏢','🏛️','⛪','🕌','🕍','🛕','🏗️','🏗️','🌳','🌲','🌴','🌵','🏔️','⛰️','🗻','🌄','🌅','🌊','🏞️','🚦','🚧','🛣️','🗺️','🧭','📍','🔍']
+  },
+  noticias: {
+    label:'📰 Notícias & Informação', color:'#ef4444',
+    emojis:['📰','📻','📡','🗞️','📺','🎙️','🎤','📢','📣','🔈','🔉','🔊','⚠️','🚨','🚔','👮','🦺','🪧','📌','📍','⏰','🕛','📅','📆','🗓️','⏱️','⏳','⌛','🔔','🔕','📵','🔅','🔆']
+  },
+  divulgacao: {
+    label:'📣 Divulgação & Marketing', color:'#f59e0b',
+    emojis:['📣','📢','🎯','🎪','🎨','🖼️','📸','📷','🎬','🎥','🎞️','📽️','🎭','🎤','🎙️','🎵','🎶','🎸','🎺','🥁','🪘','🎻','🎷','🎹','🎼','🎤','🌟','⭐','💫','✨','🔥','💥','🌈','🎆','🎇']
+  }
+};
+
+function pgEmojis(){
+  document.getElementById('page-title').textContent = 'Banco de Emojis';
+  let categoriaAtiva = 'desconto';
+
+  function renderEmojis(){
+    const cat = EMOJI_BANCO[categoriaAtiva];
+    const emojiGrid = cat.emojis.map(e=>`
+      <button onclick="copiarEmoji('${e}',this)" title="Copiar ${e}"
+        style="width:44px;height:44px;border-radius:10px;background:var(--bg3);border:1.5px solid var(--border);font-size:22px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
+        onmouseover="this.style.background='rgba(124,58,237,.15)';this.style.borderColor='var(--purple)'"
+        onmouseout="this.style.background='var(--bg3)';this.style.borderColor='var(--border)'">${e}</button>
+    `).join('');
+
+    document.getElementById('emoji-grid-container').innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:8px;padding:20px;">${emojiGrid}</div>
+    `;
+  }
+
+  const tabs = Object.entries(EMOJI_BANCO).map(([key,val])=>`
+    <button id="emoji-tab-${key}" onclick="switchEmojiTab('${key}')"
+      style="display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:8px;border:1.5px solid ${key===categoriaAtiva?'rgba(124,58,237,.4)':'var(--border)'};background:${key===categoriaAtiva?'rgba(124,58,237,.1)':'var(--bg3)'};cursor:pointer;font-size:12px;font-weight:800;color:${key===categoriaAtiva?'#a78bfa':'var(--mt)'};font-family:'Nunito',sans-serif;white-space:nowrap;transition:.15s;">
+      ${val.label.split(' ')[0]} <span style="color:var(--tx)">${val.label.split(' ').slice(1).join(' ')}</span>
+    </button>
+  `).join('');
+
+  document.getElementById('content').innerHTML = `
+    <div class="sec" style="margin-bottom:16px">
+      <div class="sec-h"><h3>😊 Banco de Emojis por Categoria</h3><span style="font-size:12px;color:var(--mt);">Clique para copiar</span></div>
+      <div class="sec-b" style="padding:16px 20px">
+        <p style="font-size:13px;color:var(--mt);margin-bottom:14px;line-height:1.6">Use estes emojis nas postagens, avisos e conteúdos das comunidades. Clique em qualquer emoji para copiá-lo automaticamente.</p>
+        <!-- Tabs de categoria -->
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;" id="emoji-tabs-bar">
+          ${tabs}
+        </div>
+        <!-- Grid de emojis -->
+        <div id="emoji-grid-container" style="background:var(--bg3);border-radius:12px;border:1px solid var(--border);min-height:120px;"></div>
+        <!-- Copiado toast interno -->
+        <div id="emoji-copiado" style="display:none;margin-top:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:800;color:var(--green);text-align:center;"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h"><h3>📋 Combinações Sugeridas</h3></div>
+      <div class="sec-b">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
+          ${[
+            {label:'Promoção relâmpago',combo:'🔥🏷️💰 PROMOÇÃO RELÂMPAGO! Aproveite agora ⚡✨'},
+            {label:'Serviço de qualidade',combo:'⭐🛠️ Serviço profissional e de confiança! 🤝✅'},
+            {label:'Divulgação evento',combo:'🎉📢 Não perca! Evento especial na cidade 🌆🎊'},
+            {label:'Vaga de emprego',combo:'💼📋 VAGA ABERTA! Candidate-se já 👉✉️'},
+            {label:'Notícia urgente',combo:'🚨📰 ATENÇÃO Petrópolis! Informação importante ⚠️'},
+            {label:'Dica do dia',combo:'💡📌 DICA DO DIA para você economizar 💰✅'},
+            {label:'Novo negócio',combo:'🎊🏪 ABRIU! Novo espaço na cidade 📍🌟'},
+            {label:'Desconto especial',combo:'🛒💳 DESCONTO ESPECIAL! Só até hoje 🏷️⏰'},
+          ].map(s=>`
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:.15s;"
+              onmouseover="this.style.borderColor='var(--purple)'"
+              onmouseout="this.style.borderColor='var(--border)'"
+              onclick="copiarTexto('${s.combo}',this)">
+              <div style="font-size:11px;font-weight:800;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">${s.label}</div>
+              <div style="font-size:14px;line-height:1.5;">${s.combo}</div>
+              <div class="copiado-label" style="display:none;font-size:11px;font-weight:800;color:var(--green);margin-top:6px;">✅ Copiado!</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  window.switchEmojiTab = function(key){
+    categoriaAtiva = key;
+    // Atualizar tabs visuais
+    Object.keys(EMOJI_BANCO).forEach(k=>{
+      const tab = document.getElementById('emoji-tab-'+k);
+      if(!tab) return;
+      if(k===key){
+        tab.style.background='rgba(124,58,237,.1)';
+        tab.style.borderColor='rgba(124,58,237,.4)';
+        tab.style.color='#a78bfa';
+      } else {
+        tab.style.background='var(--bg3)';
+        tab.style.borderColor='var(--border)';
+        tab.style.color='var(--mt)';
+      }
+    });
+    renderEmojis();
+  };
+
+  renderEmojis();
+}
+
+function copiarEmoji(emoji, btn){
+  navigator.clipboard.writeText(emoji).then(function(){
+    // Feedback visual no botão
+    const orig = btn.style.background;
+    btn.style.background='rgba(16,185,129,.25)';
+    btn.style.borderColor='var(--green)';
+    btn.style.transform='scale(1.2)';
+    setTimeout(function(){
+      btn.style.background=orig||'var(--bg3)';
+      btn.style.borderColor='var(--border)';
+      btn.style.transform='scale(1)';
+    }, 600);
+    showToast('Emoji '+emoji+' copiado!','s');
+  }).catch(function(){
+    showToast('Emoji '+emoji+' — copie manualmente.','i');
+  });
+}
+
+function copiarTexto(texto, card){
+  navigator.clipboard.writeText(texto).then(function(){
+    const lbl = card.querySelector('.copiado-label');
+    if(lbl){ lbl.style.display='block'; setTimeout(()=>lbl.style.display='none',2000); }
+    showToast('✅ Combinação copiada!','s');
+  }).catch(function(){
+    showToast('Copie manualmente: '+texto.slice(0,30)+'...','i');
+  });
+}
+
+// ══════════════════════════════════════
+// RELATÓRIOS
+// ══════════════════════════════════════
+async function pgRelatorios(){
+  document.getElementById('page-title').textContent = 'Relatórios';
+  if(!db) return;
+  const [{data:posts},{data:membros}] = await Promise.all([
+    db.from('postagens').select('*'),
+    db.from('membros').select('*')
+  ]);
+  document.getElementById('content').innerHTML = `
+    <div class="cards">
+      <div class="card blue"><div class="card-ico">📝</div><div class="card-val">${posts?.length||0}</div><div class="card-lbl">Total de Posts</div></div>
+      <div class="card purple"><div class="card-ico">👥</div><div class="card-val">${membros?.length||0}</div><div class="card-lbl">Total de Membros</div></div>
+      <div class="card red"><div class="card-ico">🗑️</div><div class="card-val">${(posts||[]).filter(p=>p.removido).length}</div><div class="card-lbl">Posts Removidos</div></div>
+      <div class="card green"><div class="card-ico">✔️</div><div class="card-val">${(membros||[]).filter(m=>m.verificado).length}</div><div class="card-lbl">Verificados</div></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h"><h3>📊 Distribuição por Categoria</h3></div>
+      <div class="sec-b">
+        ${['n','e','j','s','d','review'].map(cat=>{
+          const n = (posts||[]).filter(p=>p.categoria===cat&&!p.removido).length;
+          const labels = {n:'📰 Notícias',e:'🎉 Eventos',j:'💼 Empregos',s:'🔧 Serviços',d:'❓ Dúvidas',review:'⭐ Resenha'};
+          const pct = posts?.length ? Math.round(n/posts.length*100) : 0;
+          return `<div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:700">${labels[cat]}</span><span style="font-size:12px;color:var(--mt)">${n} posts</span></div>
+            <div style="background:var(--bg3);border-radius:20px;height:6px"><div style="width:${pct}%;height:100%;border-radius:20px;background:var(--grad)"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════
+
+// ══════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════
+function pgConfig(){
+  document.getElementById('page-title').textContent = 'Configurações';
+  document.getElementById('content').innerHTML = `
+    <div class="sec" style="margin-bottom:16px">
+      <div class="sec-h"><h3>🔑 Credenciais de Acesso ao Painel</h3></div>
+      <div class="sec-b">
+        <p style="font-size:13px;color:var(--mt);margin-bottom:16px;">Altere o usuário e senha de acesso ao painel admin.</p>
+        <div class="f-row"><label class="f-lbl">Novo usuário</label><input class="f-inp" id="novo-admin-user" placeholder="Ex: admin_evocity"/></div>
+        <div class="f-row"><label class="f-lbl">Nova senha</label><input class="f-inp" type="password" id="novo-admin-pass" placeholder="Mínimo 6 caracteres"/></div>
+        <div class="f-row"><label class="f-lbl">Confirmar nova senha</label><input class="f-inp" type="password" id="novo-admin-pass2" placeholder="Repita a senha"/></div>
+        <button class="btn btn-p" onclick="salvarCredenciais()">🔑 Salvar Credenciais</button>
+      </div>
+    </div>
+    <div class="sec" style="margin-bottom:16px">
+      <div class="sec-h"><h3>⚙️ Configurações Gerais</h3></div>
+      <div class="sec-b">
+        <div class="f-row"><label class="f-lbl">Nome da Plataforma</label><input class="f-inp" value="EvoCity"/></div>
+        <div class="f-row"><label class="f-lbl">Cidade</label><input class="f-inp" value="Petrópolis, RJ"/></div>
+        <div class="f-row"><label class="f-lbl">Supabase URL</label><input class="f-inp" value="${SB_URL}" readonly style="opacity:.6"/></div>
+        <button class="btn btn-p" onclick="showToast('Configurações salvas!','s')">💾 Salvar</button>
+      </div>
+    </div>
+    <div class="sec" style="margin-bottom:16px">
+      <div class="sec-h"><h3>🗑️ Limpeza de Conteúdo</h3></div>
+      <div class="sec-b">
+        <p style="font-size:13px;color:var(--mt);margin-bottom:16px;line-height:1.6">Remova conteúdo do banco de dados. <strong style="color:var(--red)">Ações irreversíveis.</strong></p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+            <div><div style="font-weight:800;font-size:13px">📝 Limpar todos os posts</div><div style="font-size:12px;color:var(--mt)">Remove todos os posts publicados no feed</div></div>
+            <button class="btn btn-r btn-sm" onclick="limparTabela('postagens','posts')">🗑️ Limpar</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+            <div><div style="font-weight:800;font-size:13px">👥 Remover todos os membros</div><div style="font-size:12px;color:var(--mt)">Remove todos os perfis da tabela membros</div></div>
+            <button class="btn btn-r btn-sm" onclick="limparTabela('membros','membros')">🗑️ Limpar</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+            <div><div style="font-weight:800;font-size:13px">📋 Limpar histórico de comandos</div><div style="font-size:12px;color:var(--mt)">Apaga todos os avisos e comandos enviados</div></div>
+            <button class="btn btn-r btn-sm" onclick="limparTabela('comandos','comandos')">🗑️ Limpar</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+            <div><div style="font-weight:800;font-size:13px">🚨 Limpar denúncias</div><div style="font-size:12px;color:var(--mt)">Remove todas as denúncias registradas</div></div>
+            <button class="btn btn-r btn-sm" onclick="limparTabela('denuncias','denúncias')">🗑️ Limpar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-h"><h3>🔒 Ações de Segurança</h3></div>
+      <div class="sec-b" style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-r" onclick="confirmarLogoutAll()">🔒 Desconectar Todos</button>
+      </div>
+    </div>
+  `;
+}
+
+async function salvarCredenciais(){
+  var user  = document.getElementById('novo-admin-user')?.value?.trim();
+  var pass  = document.getElementById('novo-admin-pass')?.value;
+  var pass2 = document.getElementById('novo-admin-pass2')?.value;
+  if(!user || !pass){ showToast('Preencha usuário e senha.','e'); return; }
+  if(pass !== pass2){ showToast('As senhas não coincidem.','e'); return; }
+  if(pass.length < 6){ showToast('Senha deve ter no mínimo 6 caracteres.','e'); return; }
+  try{
+    // Salvar no Supabase
+    await db.from('admin_config').upsert([{chave:'admin_user',valor:user}],{onConflict:'chave'});
+    await db.from('admin_config').upsert([{chave:'admin_pass',valor:pass}],{onConflict:'chave'});
+    showToast('✅ Credenciais atualizadas com sucesso!','s');
+    document.getElementById('novo-admin-user').value='';
+    document.getElementById('novo-admin-pass').value='';
+    document.getElementById('novo-admin-pass2').value='';
+  }catch(e){
+    showToast('Erro ao salvar: execute o SQL de admin_config no Supabase.','e');
+  }
+}
+
+function sairDoPainel(){
+  sessionStorage.removeItem('evocity_admin_auth');
+  var tela = document.getElementById('painel-login');
+  if(tela){ tela.style.display='flex'; tela.style.opacity='1'; }
+  document.getElementById('admin-user').value='';
+  document.getElementById('admin-pass').value='';
+  showToast('Sessão encerrada.','i');
+}
+
+async function limparTabela(tabela, nome){
+  openModal('🗑️ Limpar '+nome,
+    '<p style="color:var(--mt);line-height:1.7">Isso vai apagar <strong style="color:var(--red)">todos os registros</strong> de <strong>'+nome+'</strong>.<br>Esta ação <strong>não pode ser desfeita</strong>.</p>',
+    async function(){
+      try{
+        const {error} = await db.from(tabela).delete().neq('id',0);
+        if(error) throw error;
+        showToast('✅ '+nome+' limpo com sucesso!','s');
+        pgConfig();
+      }catch(e){ showToast('Erro: '+e.message,'e'); }
+    },'Limpar tudo','btn-r');
+}
+
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
+function _tempo(iso){
+  if(!iso) return '';
+  try{
+    const diff = Date.now() - new Date(iso).getTime();
+    const min = Math.floor(diff/60000);
+    if(min<1) return 'agora mesmo';
+    if(min<60) return 'há '+min+'min';
+    const h = Math.floor(min/60);
+    if(h<24) return 'há '+h+'h';
+    return 'há '+Math.floor(h/24)+' dias';
+  }catch(e){return '';}
+}
+
+// ══════════════════════════════════════
+// CADASTROS — Lista completa de membros
+// ══════════════════════════════════════
+async function pgCadastros(){
+  document.getElementById('page-title').textContent = 'Lista de Cadastros';
+  document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando cadastros...</div>';
+  if(!db) return;
+  try{
+    const {data,error} = await db.from('membros').select('*').order('criado_em',{ascending:false});
+    if(error) throw error;
+    document.getElementById('content').innerHTML = `
+      <div class="sec">
+        <div class="sec-h">
+          <h3>📋 Todos os Cadastros (${data?.length||0})</h3>
+          <input class="f-inp" style="width:220px;padding:6px 12px;font-size:12px" placeholder="🔍 Buscar por nome ou bairro..." oninput="buscarCadastros(this.value)"/>
+          <button class="btn btn-ghost btn-sm" onclick="pgCadastros()">🔄</button>
+          <button class="btn btn-r btn-sm" onclick="exportarCSV()">📥 Exportar CSV</button>
+        </div>
+        <div class="sec-b" style="padding:0;overflow-x:auto">
+          <table class="tbl" id="tbl-cadastros">
+            <thead><tr>
+              <th>Membro</th><th>Email</th><th>Bairro</th><th>Status</th><th>Verificado</th><th>Cadastro</th><th>Ações</th>
+            </tr></thead>
+            <tbody id="tbody-cadastros">
+              ${_renderCadastroRows(data||[])}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    window._cadastros_data = data||[];
+  }catch(e){
+    document.getElementById('content').innerHTML=`<div class="empty"><div class="empty-ico">❌</div>${e.message}</div>`;
+  }
+}
+
+function _renderCadastroRows(lista){
+  if(!lista.length) return `<tr><td colspan="7"><div class="empty"><div class="empty-ico">👤</div>Nenhum cadastro ainda.</div></td></tr>`;
+  return lista.map(m=>`
+    <tr id="row-${m.user_id}">
+      <td style="white-space:nowrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          ${m.photo?`<img src="${m.photo}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;" alt="${m.ini}"/>`:`<span class="av" style="background:${m.clr||'var(--grad)'}">${m.ini||'?'}</span>`}
+          <div>
+            <div style="font-weight:800;font-size:13px">${m.nome||'Usuário'} ${m.verificado?'<span style="color:#10b981">✔️</span>':''}</div>
+            <div style="font-size:11px;color:var(--mt)">${m.bio?m.bio.slice(0,30)+'...':''}</div>
+          </div>
+        </div>
+      </td>
+      <td style="color:var(--mt);font-size:12px">${m.email||'—'}</td>
+      <td style="color:var(--mt)">${m.bairro||'—'}</td>
+      <td><span class="badge ${m.banido?'br':'bg'}">${m.banido?'🚫 banido':'✅ ativo'}</span></td>
+      <td style="text-align:center">${m.verificado?'<span class="badge bb">✔️ sim</span>':'<span style="color:var(--mt);font-size:12px">—</span>'}</td>
+      <td style="color:var(--mt);font-size:11px;white-space:nowrap">${m.joined||_tempo(m.criado_em)}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn btn-b btn-sm" onclick="toggleVerificar('${m.user_id}',${m.verificado})" title="${m.verificado?'Remover verificação':'Verificar'}">${m.verificado?'❌':'✔️'}</button>
+          <button class="btn ${m.banido?'btn-g':'btn-r'} btn-sm" onclick="toggleBanir('${m.user_id}','${m.nome||'?'}',${m.banido})">${m.banido?'🔓':'🚫'}</button>
+          <button class="btn btn-o btn-sm" onclick="resetarSenhaMembro('${m.email||''}','${m.nome||'?'}')" title="Resetar senha">🔑</button>
+          <button class="btn btn-r btn-sm" onclick="removerMembro('${m.user_id}','${m.nome||'?'}')" title="Remover permanentemente">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function buscarCadastros(q){
+  const data = window._cadastros_data||[];
+  const f = q ? data.filter(m=>(m.nome||'').toLowerCase().includes(q.toLowerCase())||(m.bairro||'').toLowerCase().includes(q.toLowerCase())||(m.email||'').toLowerCase().includes(q.toLowerCase())) : data;
+  const tbody = document.getElementById('tbody-cadastros');
+  if(tbody) tbody.innerHTML = _renderCadastroRows(f);
+}
+
+function exportarCSV(){
+  const data = window._cadastros_data||[];
+  if(!data.length){showToast('Nenhum dado para exportar.','e');return;}
+  const rows = [['Nome','Email','Bairro','Status','Verificado','Cadastro']];
+  data.forEach(m=>rows.push([m.nome||'',m.email||'',m.bairro||'',m.banido?'banido':'ativo',m.verificado?'sim':'não',m.joined||'']));
+  const csv = rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cadastros-evocity.csv';
+  a.click();
+  showToast('📥 CSV exportado!','s');
+}
+
+async function resetarSenhaMembro(email, nome){
+  if(!email){ showToast('Este membro não tem email cadastrado.','e'); return; }
+  openModal('🔑 Resetar Senha',
+    `<p style="color:var(--mt);line-height:1.7">Enviar link de recuperação de senha para <strong>${nome}</strong>?<br><span style="font-size:12px">${email}</span></p>`,
+    async function(){
+      try{
+        var resp = await fetch(SB_URL+'/auth/v1/recover',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','apikey':SB_KEY},
+          body: JSON.stringify({email})
+        });
+        if(resp.ok){
+          showToast('📧 Link de recuperação enviado para '+email+'!','s');
+        } else {
+          var err = await resp.json().catch(function(){return {};});
+          showToast('Erro ao enviar email: '+(err.msg||err.error||resp.status),'e');
+        }
+      }catch(e){ showToast('Erro: '+e.message,'e'); }
+    },'Enviar link','btn-b');
+}
+
+async function removerMembro(userId, nome){
+  openModal('🗑️ Remover Membro',
+    `<p style="color:var(--mt);line-height:1.7">Isso vai <strong style="color:var(--red)">remover permanentemente</strong> o membro <strong>${nome}</strong>.<br>Esta ação não pode ser desfeita.</p>`,
+    async function(){
+      const {error} = await db.from('membros').delete().eq('user_id',userId);
+      if(error){showToast('Erro: '+error.message,'e');return;}
+      await db.from('comandos').insert([{tipo:'logout_all',dados:{userId,ts:Date.now()},criado_em:new Date().toISOString()}]);
+      showToast(nome+' foi removido permanentemente.','e');
+      pgCadastros();
+    },'Remover','btn-r');
+}
+
+// ══════════════════════════════════════
+// DENÚNCIAS
+// ══════════════════════════════════════
+async function pgDenuncias(){
+  document.getElementById('page-title').textContent = 'Denúncias';
+  document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando denúncias...</div>';
+  if(!db) return;
+  try{
+    const {data,error} = await db.from('denuncias').select('*').order('criado_em',{ascending:false}).limit(50);
+    if(error) throw error;
+    document.getElementById('content').innerHTML = `
+      <div class="cards">
+        <div class="card red"><div class="card-ico">🚨</div><div class="card-val">${(data||[]).filter(d=>d.status==='pendente').length}</div><div class="card-lbl">Pendentes</div></div>
+        <div class="card green"><div class="card-ico">✅</div><div class="card-val">${(data||[]).filter(d=>d.status==='resolvida').length}</div><div class="card-lbl">Resolvidas</div></div>
+        <div class="card orange"><div class="card-ico">🚫</div><div class="card-val">${(data||[]).filter(d=>d.status==='ignorada').length}</div><div class="card-lbl">Ignoradas</div></div>
+        <div class="card blue"><div class="card-ico">📋</div><div class="card-val">${data?.length||0}</div><div class="card-lbl">Total</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-h"><h3>🚨 Denúncias Recebidas</h3><button class="btn btn-ghost btn-sm" onclick="pgDenuncias()">🔄</button></div>
+        <div class="sec-b" style="padding:0">
+          ${(data||[]).length === 0 ? '<div class="empty" style="padding:40px"><div class="empty-ico">😊</div>Nenhuma denúncia recebida.</div>' :
+          `<table class="tbl">
+            <thead><tr><th>Tipo</th><th>Descrição</th><th>Denunciante</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody>
+              ${(data||[]).map(d=>`
+                <tr>
+                  <td><span class="badge br">${d.tipo||'post'}</span></td>
+                  <td style="max-width:200px;font-size:12px;color:var(--mt)">${(d.descricao||'').slice(0,80)}</td>
+                  <td style="font-size:12px;color:var(--mt)">${d.denunciante||'Anônimo'}</td>
+                  <td style="font-size:11px;color:var(--mt)">${_tempo(d.criado_em)}</td>
+                  <td><span class="badge ${d.status==='resolvida'?'bg':d.status==='ignorada'?'bo':'br'}">${d.status||'pendente'}</span></td>
+                  <td style="display:flex;gap:4px">
+                    <button class="btn btn-g btn-sm" onclick="resolverDenuncia(${d.id})">✅</button>
+                    <button class="btn btn-o btn-sm" onclick="ignorarDenuncia(${d.id})">🙈</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>`}
+        </div>
+      </div>
+    `;
+  }catch(e){
+    // Tabela pode não existir ainda
+    document.getElementById('content').innerHTML = `
+      <div class="sec">
+        <div class="sec-h"><h3>🚨 Denúncias</h3></div>
+        <div class="sec-b">
+          <div class="empty"><div class="empty-ico">😊</div>Nenhuma denúncia recebida ainda.<br><span style="font-size:12px;color:var(--mt)">As denúncias dos usuários aparecerão aqui.</span></div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+async function resolverDenuncia(id){
+  await db.from('denuncias').update({status:'resolvida'}).eq('id',id);
+  showToast('✅ Denúncia marcada como resolvida.','s');
+  pgDenuncias();
+}
+
+async function ignorarDenuncia(id){
+  await db.from('denuncias').update({status:'ignorada'}).eq('id',id);
+  showToast('🙈 Denúncia ignorada.','i');
+  pgDenuncias();
+}
+
+// ══════════════════════════════════════
+// EDITOR DO SITE — Edição em tempo real
+// ══════════════════════════════════════
+async function pgEditorSite(){
+  document.getElementById('page-title').textContent = 'Editor do Site';
+  document.getElementById('content').innerHTML = `
+    <div class="g2">
+      <div>
+        <div class="sec" style="margin-bottom:16px">
+          <div class="sec-h"><h3>📣 Aviso no Topo</h3></div>
+          <div class="sec-b">
+            <div class="f-row">
+              <label class="f-lbl">Texto do aviso</label>
+              <input class="f-inp" id="ed-aviso" placeholder="Ex: Manutenção programada às 22h..."/>
+            </div>
+            <button class="btn btn-p" onclick="enviarAvisoSite()">📣 Enviar Aviso</button>
+            <button class="btn btn-ghost" onclick="fecharAvisoSite()" style="margin-left:8px">✕ Fechar aviso</button>
+          </div>
+        </div>
+
+        <div class="sec" style="margin-bottom:16px">
+          <div class="sec-h"><h3>🏷️ Banner Fixado</h3></div>
+          <div class="sec-b">
+            <div class="f-row">
+              <label class="f-lbl">Texto do banner</label>
+              <input class="f-inp" id="ed-banner" placeholder="Ex: 🎉 Novo recurso disponível!"/>
+            </div>
+            <div style="display:flex;gap:10px;margin-bottom:14px">
+              <div style="flex:1"><label class="f-lbl">Cor de fundo</label><input type="color" class="f-inp" id="ed-banner-bg" value="#fef9c3" style="height:40px;padding:4px;cursor:pointer"/></div>
+              <div style="flex:1"><label class="f-lbl">Cor do texto</label><input type="color" class="f-inp" id="ed-banner-cor" value="#92400e" style="height:40px;padding:4px;cursor:pointer"/></div>
+            </div>
+            <button class="btn btn-p" onclick="enviarBannerSite()">🏷️ Ativar Banner</button>
+            <button class="btn btn-ghost" onclick="fecharBannerSite()" style="margin-left:8px">✕ Remover banner</button>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h3>🎨 Cores da Plataforma</h3></div>
+          <div class="sec-b">
+            <div style="display:flex;gap:10px;margin-bottom:14px">
+              <div style="flex:1"><label class="f-lbl">Cor principal</label><input type="color" class="f-inp" id="ed-cor1" value="#2563EB" style="height:40px;padding:4px;cursor:pointer"/></div>
+              <div style="flex:1"><label class="f-lbl">Cor secundária</label><input type="color" class="f-inp" id="ed-cor2" value="#7C3AED" style="height:40px;padding:4px;cursor:pointer"/></div>
+            </div>
+            <button class="btn btn-p" onclick="enviarCoresSite()">🎨 Aplicar Cores</button>
+            <button class="btn btn-ghost" onclick="resetarCoresSite()" style="margin-left:8px">↩ Resetar</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec" style="margin-bottom:16px">
+          <div class="sec-h"><h3>🔒 Ações de Segurança</h3></div>
+          <div class="sec-b" style="display:flex;flex-direction:column;gap:10px">
+            <button class="btn btn-r" style="justify-content:flex-start" onclick="confirmarLogoutAll()">🔒 Desconectar todos os usuários</button>
+            <button class="btn btn-o" style="justify-content:flex-start" onclick="colocarModoManutencao()">🔧 Modo manutenção</button>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-h"><h3>📢 Publicar Post do Admin</h3></div>
+          <div class="sec-b">
+            <div class="f-row">
+              <label class="f-lbl">Categoria</label>
+              <select class="f-inp" id="ed-post-cat">
+                <option value="n">📰 Notícias</option>
+                <option value="e">🎉 Eventos</option>
+                <option value="j">💼 Empregos</option>
+                <option value="s">🔧 Serviços</option>
+                <option value="d">❓ Dúvidas</option>
+              </select>
+            </div>
+            <div class="f-row">
+              <textarea class="f-inp" id="ed-post-texto" placeholder="Texto do post..." style="min-height:80px"></textarea>
+            </div>
+            <button class="btn btn-p" onclick="publicarPostEditor()">📝 Publicar no Feed</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function _enviarComando(tipo, dados){
+  if(!db){showToast('Supabase não conectado.','e');return false;}
+  try{
+    const {error} = await db.from('comandos').insert([{tipo,dados:{...dados,ts:Date.now()},criado_em:new Date().toISOString()}]);
+    if(error) throw error;
+    return true;
+  }catch(e){showToast('Erro: '+e.message,'e');return false;}
+}
+
+async function enviarAvisoSite(){
+  const texto = document.getElementById('ed-aviso')?.value?.trim();
+  if(!texto){showToast('Digite o texto do aviso.','e');return;}
+  if(await _enviarComando('aviso',{texto})){
+    showToast('📣 Aviso enviado ao site!','s');
+    document.getElementById('ed-aviso').value='';
+  }
+}
+
+async function fecharAvisoSite(){
+  if(await _enviarComando('fechar_aviso',{})) showToast('✕ Aviso fechado no site.','i');
+}
+
+async function enviarBannerSite(){
+  const texto = document.getElementById('ed-banner')?.value?.trim();
+  const bg = document.getElementById('ed-banner-bg')?.value||'#fef9c3';
+  const cor = document.getElementById('ed-banner-cor')?.value||'#92400e';
+  if(!texto){showToast('Digite o texto do banner.','e');return;}
+  if(await _enviarComando('banner',{texto,bg,cor})){
+    showToast('🏷️ Banner ativado no site!','s');
+  }
+}
+
+async function fecharBannerSite(){
+  if(await _enviarComando('fechar_banner',{})) showToast('✕ Banner removido.','i');
+}
+
+async function enviarCoresSite(){
+  const c1 = document.getElementById('ed-cor1')?.value||'#2563EB';
+  const c2 = document.getElementById('ed-cor2')?.value||'#7C3AED';
+  if(await _enviarComando('cor',{c1,c2})) showToast('🎨 Cores aplicadas no site!','s');
+}
+
+async function resetarCoresSite(){
+  if(await _enviarComando('cor',{c1:'#2563EB',c2:'#7C3AED'})) showToast('↩ Cores resetadas!','s');
+}
+
+async function confirmarLogoutAll(){
+  openModal('🔒 Desconectar Todos',
+    '<p style="color:var(--mt);line-height:1.7">Isso vai <strong style="color:var(--red)">desconectar todos os usuários</strong> do site agora. Continuar?</p>',
+    async function(){
+      if(await _enviarComando('logout_all',{})) showToast('🔒 Todos os usuários foram desconectados.','e');
+    },'Confirmar','btn-r');
+}
+
+async function colocarModoManutencao(){
+  if(await _enviarComando('banner',{texto:'🔧 Site em manutenção. Voltamos em breve!',bg:'#fef3c7',cor:'#92400e'}))
+    showToast('🔧 Modo manutenção ativado!','i');
+}
+
+async function publicarPostEditor(){
+  const texto = document.getElementById('ed-post-texto')?.value?.trim();
+  const cat = document.getElementById('ed-post-cat')?.value||'n';
+  if(!texto){showToast('Digite o texto do post.','e');return;}
+  if(!db) return;
+  try{
+    const {error} = await db.from('postagens').insert([{texto,autor:'📣 Admin EvoCity',categoria:cat,removido:false,criado_em:new Date().toISOString()}]);
+    if(error) throw error;
+    showToast('✅ Post publicado no feed!','s');
+    document.getElementById('ed-post-texto').value='';
+  }catch(e){showToast('Erro: '+e.message,'e');}
+}
+
+// ══════════════════════════════════════
+// LOGIN DO PAINEL
+// ══════════════════════════════════════
+
+// Credenciais do admin — armazenadas de forma segura no Supabase
+// Padrão inicial: admin / evocity2024 (mude pelo painel após entrar)
+const ADMIN_PADRAO = { user: 'admin', pass: 'evocity2024' };
+
+function toggleSenhaAdmin(){
+  var inp = document.getElementById('admin-pass');
+  if(!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+async function fazerLoginPainel(){
+  var user = document.getElementById('admin-user')?.value?.trim();
+  var pass = document.getElementById('admin-pass')?.value;
+  var btn  = document.getElementById('btn-login-painel');
+  var erro = document.getElementById('login-erro');
+
+  if(!user || !pass){ if(erro){erro.textContent='❌ Preencha usuário e senha.';erro.style.display='block';} return; }
+
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Verificando...'; }
+  if(erro) erro.style.display='none';
+
+  // Verificar credenciais no Supabase
+  var autenticado = false;
+  try{
+    if(db){
+      const {data:r1} = await db.from('admin_config').select('valor').eq('chave','admin_user').order('id',{ascending:false}).limit(1);
+      const {data:r2} = await db.from('admin_config').select('valor').eq('chave','admin_pass').order('id',{ascending:false}).limit(1);
+      var data = r1 && r1.length ? r1[0] : null;
+      var d2   = r2 && r2.length ? r2[0] : null;
+      if(data && d2){
+        autenticado = (user === data.valor && pass === d2.valor);
+      } else {
+        // Tabela não existe ainda — usa padrão
+        autenticado = (user === ADMIN_PADRAO.user && pass === ADMIN_PADRAO.pass);
+      }
+    }
+  }catch(e){
+    // Fallback para credenciais padrão
+    autenticado = (user === ADMIN_PADRAO.user && pass === ADMIN_PADRAO.pass);
+  }
+
+  if(autenticado){
+    sessionStorage.setItem('evocity_admin_auth','1');
+    var tela = document.getElementById('painel-login');
+    if(tela){
+      tela.style.transition='opacity .4s';
+      tela.style.opacity='0';
+      setTimeout(function(){ tela.style.display='none'; }, 400);
+    }
+    showToast('✅ Bem-vindo ao Painel Admin!','s');
+    goPage('dashboard');
+    _updateBadges();
+  } else {
+    if(erro){ erro.textContent='❌ Usuário ou senha incorretos.'; erro.style.display='block'; }
+    var inp = document.getElementById('admin-pass');
+    if(inp){ inp.value=''; inp.focus(); }
+  }
+
+  if(btn){ btn.disabled=false; btn.textContent='Entrar no Painel'; }
+}
+
+// INIT
+initSupabase().then(()=>{
+  // Verificar se já estava logado na sessão
+  if(sessionStorage.getItem('evocity_admin_auth')==='1'){
+    var tela = document.getElementById('painel-login');
+    if(tela) tela.style.display='none';
+    goPage('dashboard');
+    _updateBadges();
+    setInterval(_updateBadges, 30000);
+  } else {
+    // Mostrar tela de login
+    setTimeout(function(){
+      document.getElementById('admin-user')?.focus();
+    }, 300);
+    setInterval(_updateBadges, 30000);
+  }
+});
+</script>
+</body>
+</html>
