@@ -1796,10 +1796,20 @@ async function doLogin(){
 // CADASTRO REAL
 async function doReg(){
   var n     = document.getElementById('r-name').value.trim();
-  var email = document.getElementById('r-email').value.trim();
+  var email = document.getElementById('r-email').value.trim().toLowerCase();
   var pass  = document.getElementById('r-pass').value;
   var b     = document.getElementById('r-bairro').value;
+
+  // Validações básicas
   if(!n||!email||!pass||!b){ showToast('Preencha todos os campos.'); return; }
+
+  // Validação de formato de email
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailRegex.test(email)){ showToast('❌ Digite um e-mail válido.'); return; }
+
+  // Validação de nome (mínimo 2 palavras)
+  if(n.split(' ').filter(Boolean).length < 2){ showToast('❌ Digite seu nome completo.'); return; }
+
   if(pass.length < 6){ showToast('A senha deve ter pelo menos 6 caracteres.'); return; }
   if(!window._sb){ showToast('Erro de conexão. Tente novamente.'); return; }
   _setLoading('btn-reg', true, 'Criar minha conta');
@@ -1812,11 +1822,22 @@ async function doReg(){
 
   try{
     var {data, error} = await window._sb.auth.signUp({
-      email, password: pass,
+      email: email,
+      password: pass,
       options:{ data:{ nome: n, bairro: b } }
     });
     clearTimeout(_regTimeout);
+
+    // Tratar erros retornados sem throw (Supabase às vezes retorna error sem lançar exceção)
     if(error) throw error;
+
+    // Supabase pode retornar data.user = null se email já existe mas não confirmado
+    if(!data || !data.user){
+      showToast('❌ Não foi possível criar a conta. Tente com outro e-mail.');
+      _setLoading('btn-reg', false, 'Criar minha conta');
+      return;
+    }
+
     var user = data.user;
     var ini  = n.split(' ').filter(Boolean).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     var cores= ['#1d4ed8','#7c3aed','#059669','#dc2626','#d97706','#db2777','#0891b2'];
@@ -1830,26 +1851,43 @@ async function doReg(){
       hora: agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),
       criado_em: agora.toISOString()
     };
-    // Salvar perfil na tabela membros
-    await window._sb.from('membros').upsert([membro]);
+
+    // Salvar perfil na tabela membros (ignorar erro silenciosamente para não bloquear o fluxo)
+    try { await window._sb.from('membros').upsert([membro]); } catch(_){}
+
     U.id = user.id; U.clr = clr; U.email = email;
     U.joined = membro.joined;
-    // Se email confirmado automaticamente, entra direto
+
+    // Se email confirmado automaticamente (email confirm desativado no Supabase), entra direto
     if(data.session){
       launch({name:n, ini:ini, bairro:b+', Petrópolis', email:email, clr:clr});
       setTimeout(function(){ showToast('✅ Cadastro realizado! Bem-vindo(a) ao EvoCity!'); }, 400);
     } else {
       // Precisa confirmar email
-      showToast('📧 Verifique seu email para confirmar o cadastro!');
+      showToast('📧 Verifique seu e-mail para confirmar o cadastro!');
       document.getElementById('r-name').value='';
       document.getElementById('r-email').value='';
       document.getElementById('r-pass').value='';
     }
   }catch(e){
     clearTimeout(_regTimeout);
-    var msg = e.message||'';
-    if(msg.includes('already registered')) showToast('❌ Este email já está cadastrado.');
-    else showToast('❌ Erro: '+msg);
+    var msg = (e && e.message) ? e.message : String(e);
+    // Mensagens de erro traduzidas e amigáveis
+    if(msg.includes('already registered') || msg.includes('User already registered')){
+      showToast('❌ Este e-mail já está cadastrado. Tente fazer login.');
+    } else if(msg.includes('invalid email') || msg.includes('Invalid email')){
+      showToast('❌ E-mail inválido. Verifique e tente novamente.');
+    } else if(msg.includes('Password should be') || msg.includes('password')){
+      showToast('❌ A senha deve ter pelo menos 6 caracteres.');
+    } else if(msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch')){
+      showToast('❌ Sem conexão. Verifique sua internet e tente novamente.');
+    } else if(msg.includes('rate limit') || msg.includes('too many')){
+      showToast('❌ Muitas tentativas. Aguarde alguns minutos e tente novamente.');
+    } else if(msg.includes('signup_disabled') || msg.includes('Signups not allowed')){
+      showToast('❌ Cadastros temporariamente desativados. Tente mais tarde.');
+    } else {
+      showToast('❌ Erro ao criar conta: ' + msg);
+    }
   }
   _setLoading('btn-reg', false, 'Criar minha conta');
 }
