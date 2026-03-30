@@ -1653,6 +1653,16 @@ img.av-foto[data-ini]{display:block;}
         </div>
       </div>
 
+      <!-- ── ALERTAS DE RISCO ── -->
+      <div class="right-card" id="alerta-card" style="display:none;border-left:4px solid #ef4444;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <p class="right-title" style="margin:0;color:#ef4444;">⚠️ Alertas Ativos</p>
+          <span id="alerta-hora" style="font-size:11px;font-weight:600;color:#9ca3af;"></span>
+        </div>
+        <div id="alerta-lista" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <p style="font-size:11px;color:#9ca3af;margin:10px 0 0;text-align:center;">Fonte: Open-Meteo · Petrópolis, RJ</p>
+      </div>
+
       <!-- ── PROFISSIONAL EM DESTAQUE ── -->
       <div class="right-card" id="destaque-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -2656,14 +2666,33 @@ function cardPerfil(p){
   return html;
 }
 function toggleCommentsPerfil(el){
-  var box = el.closest('.post-card').querySelector('[id^="cmt-box-p-"]');
+  var box = el.closest('.post-card').querySelector('[id^="cmt-box-"]');
   if(!box) return;
   var open = box.style.display==='none'||box.style.display==='';
   box.style.display = open ? 'block' : 'none';
   if(open){
     var postId = parseInt(box.dataset.postid);
     var pid = box.id.replace('cmt-box-','');
-    renderCommentsPerfil(pid, postId);
+    // Se não tem comentários em memória mas tem no Supabase, busca primeiro
+    var p = posts.find(function(x){ return x.id===postId; });
+    if(p && p.supabase_id && (!p.commentList || !p.commentList.length) && p.comments > 0 && window._sb){
+      var listEl = document.getElementById('cmt-list-'+pid);
+      if(listEl) listEl.innerHTML = '<p style="font-size:13px;color:#90949c;padding:4px 0;">Carregando comentários...</p>';
+      window._sb.from('comentarios').select('*').eq('post_id', p.supabase_id)
+        .order('criado_em',{ascending:true}).then(function(res){
+          if(res.data && res.data.length){
+            p.commentList = res.data.map(function(c){
+              return {supabase_id:c.id, name:c.autor_nome||'?', ini:c.autor_ini||'?', clr:'linear-gradient(135deg,#2563EB,#7C3AED)', photo:'', text:c.texto, time:new Date(c.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), likes:0, likedByMe:false};
+            });
+            p.comments = p.commentList.length;
+          } else {
+            p.commentList = p.commentList || [];
+          }
+          renderCommentsPerfil(pid, postId);
+        });
+    } else {
+      renderCommentsPerfil(pid, postId);
+    }
     setTimeout(function(){ var inp=document.getElementById('cmt-inp-'+pid); if(inp) inp.focus(); },50);
   }
 }
@@ -2671,7 +2700,7 @@ function renderCommentsPerfil(pid, postId){
   const p=posts.find(x=>x.id===postId); if(!p) return;
   if(!p.commentList) p.commentList=[];
   const el=document.getElementById('cmt-list-'+pid); if(!el) return;
-  if(!p.commentList.length){el.innerHTML='';return;}
+  if(!p.commentList.length){el.innerHTML='<p style="font-size:13px;color:#90949c;padding:4px 0;">Nenhum comentário ainda.</p>';return;}
   el.innerHTML=p.commentList.map((c,idx)=>{
     const isMe=c.name===U.name;
     const photo=isMe?(getUserAvatar()||(c.photo||'')):(c.photo||'');
@@ -2863,7 +2892,7 @@ function card(p,i){
     </button>`:
     `<button class="post-act" onclick="delPost(${p.id})" style="color:#ef4444;">🗑 Apagar</button>`}
   </div>
-  <div id="cmt-box-${p.id}" style="display:none;border-top:1px solid #ced0d4;padding:12px 16px;">
+  <div id="cmt-box-${p.id}" style="display:${p.commentList && p.commentList.length ? 'block' : 'none'};border-top:1px solid #ced0d4;padding:12px 16px;">
     <div style="display:flex;gap:10px;margin-bottom:12px;">
       <div id="cmt-av-${p.id}" class="post-av" style="width:32px;height:32px;font-size:11px;flex-shrink:0;background:linear-gradient(135deg,#2563EB,#7C3AED);${U.photo?'background-image:url('+JSON.stringify(U.photo)+');background-size:cover;background-position:center;':''}">${U.photo?'':U.ini}</div>
       <div style="flex:1;display:flex;gap:8px;align-items:center;">
@@ -2874,7 +2903,7 @@ function card(p,i){
         </button>
       </div>
     </div>
-    <div id="cmt-list-${p.id}"></div>
+    <div id="cmt-list-${p.id}">${p.commentList && p.commentList.length ? _buildCmtListHTML(p) : ''}</div>
   </div>
 </div>`;
 }
@@ -2903,29 +2932,15 @@ function doLike(id){
 }
 
 function toggleComments(id, btn){
-  // Busca o cmt-box dentro do mesmo post-card do botão clicado
   var card = btn ? btn.closest('[data-id]') : null;
-  var sec = card ? card.querySelector('#cmt-box-'+id) : document.getElementById('cmt-box-'+id);
+  var sec = card ? card.querySelector('[id^="cmt-box-"]') : document.getElementById('cmt-box-'+id);
   if(!sec) sec = document.getElementById('cmt-box-'+id);
   if(!sec) return;
   const open = sec.style.display==='none' || sec.style.display==='';
   sec.style.display = open ? 'block' : 'none';
   if(open){
-    // Carregar comentários do Supabase se o post tem supabase_id e lista vazia
-    var p = posts.find(function(x){ return x.id===id; });
-    if(p && p.supabase_id && (!p.commentList || !p.commentList.length) && window._sb){
-      window._sb.from('comentarios').select('*').eq('post_id', p.supabase_id)
-        .order('criado_em',{ascending:true}).then(function(res){
-          if(res.data && res.data.length){
-            p.commentList = res.data.map(function(c){
-              return {supabase_id:c.id, name:c.autor_nome||'?', ini:c.autor_ini||'?', clr:'linear-gradient(135deg,#2563EB,#7C3AED)', photo:'', text:c.texto, time:new Date(c.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), likes:0, likedByMe:false};
-            });
-            p.comments = p.commentList.length;
-            renderComments(id);
-          }
-        });
-    }
-    renderCommentsEl(id, sec);
+    var p = posts.find(function(x){ return x.id===id || String(x.supabase_id)===String(id); });
+    // Atualiza o avatar do usuário logado na caixa de comentários
     const av = sec.querySelector('[id^="cmt-av-"]');
     if(av){
       const photo = getUserAvatar();
@@ -2939,6 +2954,29 @@ function toggleComments(id, btn){
         av.textContent = U.ini;
       }
     }
+    if(p && p.supabase_id && (!p.commentList || !p.commentList.length) && window._sb){
+      // Mostrar loading enquanto busca
+      var listEl = sec.querySelector('[id^="cmt-list-"]');
+      if(listEl) listEl.innerHTML = '<p style="font-size:13px;color:#90949c;padding:4px 0;">Carregando comentários...</p>';
+      window._sb.from('comentarios').select('*').eq('post_id', p.supabase_id)
+        .order('criado_em',{ascending:true}).then(function(res){
+          if(res.data && res.data.length){
+            p.commentList = res.data.map(function(c){
+              return {supabase_id:c.id, name:c.autor_nome||'?', ini:c.autor_ini||'?', clr:'linear-gradient(135deg,#2563EB,#7C3AED)', photo:'', text:c.texto, time:new Date(c.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), likes:0, likedByMe:false};
+            });
+            p.comments = p.commentList.length;
+          } else {
+            p.commentList = p.commentList || [];
+          }
+          // Renderiza depois que os dados chegaram
+          if(listEl) _renderCmtList(listEl, p);
+          // Atualiza contador
+          _updateCmtCount(p);
+        });
+    } else {
+      // Já tem comentários em memória — renderiza direto
+      renderCommentsEl(id, sec);
+    }
     setTimeout(function(){
       var inp = sec.querySelector('[id^="cmt-inp-"]');
       if(inp) inp.focus();
@@ -2946,18 +2984,35 @@ function toggleComments(id, btn){
   }
 }
 
+function _updateCmtCount(p){
+  var ids = [p.id, p.supabase_id].filter(Boolean);
+  ids.forEach(function(pid){
+    document.querySelectorAll('[id="cmt-count-'+pid+'"]').forEach(function(el){
+      el.textContent = p.comments > 0 ? p.comments + ' comentários' : '';
+    });
+  });
+}
+
 function renderComments(id){
-  const p=posts.find(x=>x.id===id); if(!p) return;
-  // Renderiza em TODOS os cmt-list com esse id (feed + perfil)
-  document.querySelectorAll('[id="cmt-list-'+id+'"]').forEach(function(el){
-    _renderCmtList(el, p);
+  const p=posts.find(x=>x.id===id || String(x.supabase_id)===String(id)); if(!p) return;
+  // Renderiza em TODOS os cmt-list com esse id (feed + perfil) — busca pelos dois IDs possíveis
+  var ids = [p.id, p.supabase_id].filter(Boolean);
+  ids.forEach(function(pid){
+    document.querySelectorAll('[id="cmt-list-'+pid+'"]').forEach(function(el){
+      _renderCmtList(el, p);
+    });
   });
 }
 function renderCommentsEl(id, container){
-  const p=posts.find(x=>x.id===id); if(!p) return;
+  const p=posts.find(x=>x.id===id || String(x.supabase_id)===String(id)); if(!p) return;
   const el = container ? container.querySelector('[id^="cmt-list-"]') : null;
   if(el) _renderCmtList(el, p);
   else renderComments(id);
+}
+function _buildCmtListHTML(p){
+  var tmp = document.createElement('div');
+  _renderCmtList(tmp, p);
+  return tmp.innerHTML;
 }
 function _renderCmtList(el, p){
   if(!p.commentList) p.commentList=[];
@@ -3014,9 +3069,7 @@ function deleteCmt(postId, idx){
   p.commentList.splice(idx,1);
   p.comments = Math.max(0, p.comments-1);
   renderComments(postId);
-  document.querySelectorAll('[id="cmt-count-'+postId+'"]').forEach(function(cnt){
-    cnt.textContent = p.comments>0 ? p.comments+' comentários' : '';
-  });
+  _updateCmtCount(p);
   if(window._sb && p.supabase_id){
     window._sb.from('postagens').update({comentarios:p.comments}).eq('id',p.supabase_id).then(function(){});
   }
@@ -3035,9 +3088,7 @@ function addComment(id){
   inp.value='';
   renderComments(id);
   // Atualiza contador em feed E perfil
-  document.querySelectorAll('[id="cmt-count-'+id+'"]').forEach(function(cnt){
-    cnt.textContent=p.comments+' comentários';
-  });
+  _updateCmtCount(p);
   if(!p.own){
     addNotif('comment', U.name, U.ini, '#2563EB', txt.slice(0,40)+(txt.length>40?'...':''));
   }
@@ -4522,14 +4573,14 @@ const _WMO_MAP = {
 
 async function renderClima(){
   const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
-  // Mostra "carregando" enquanto busca
   set('clima-hora', 'Atualizando...');
   try{
     const url = 'https://api.open-meteo.com/v1/forecast'
       + '?latitude='  + _PETRO_LAT
       + '&longitude=' + _PETRO_LON
-      + '&current=temperature_2m,relative_humidity_2m,weathercode,windspeed_10m'
-      + '&daily=temperature_2m_max,temperature_2m_min'
+      + '&current=temperature_2m,relative_humidity_2m,weathercode,windspeed_10m,precipitation'
+      + '&hourly=precipitation'
+      + '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode'
       + '&timezone=America%2FSao_Paulo'
       + '&forecast_days=1';
 
@@ -4552,16 +4603,117 @@ async function renderClima(){
     set('clima-max',   Math.round(daily.temperature_2m_max[0]) + '°');
     set('clima-hora',  'Atualizado às ' + hora);
 
-    // Atualiza de hora em hora automaticamente
-    setTimeout(renderClima, 60 * 60 * 1000);
+    // ── SISTEMA DE ALERTAS ──
+    _verificarAlertas(cur, daily);
+
+    // Atualiza a cada 30 minutos
+    setTimeout(renderClima, 30 * 60 * 1000);
 
   }catch(err){
-    console.warn('[EvoCity] Clima: erro na API, usando fallback. ' + String(err&&err.message?err.message:err));
-    // Fallback suave com dados genéricos de Petrópolis
+    console.warn('[EvoCity] Clima: erro na API. ' + String(err&&err.message?err.message:err));
     const hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     set('clima-hora', 'Dados offline · ' + hora);
-    // Não sobrescreve valores já exibidos se houver dados anteriores
   }
+}
+
+function _verificarAlertas(cur, daily){
+  const alertas = [];
+  const wcode = cur.weathercode;
+  const chuvaAcum = daily.precipitation_sum ? daily.precipitation_sum[0] : 0;
+  const vento = cur.windspeed_10m || 0;
+  const umidade = cur.relative_humidity_2m || 0;
+  const precAtual = cur.precipitation || 0;
+
+  // ── Chuva forte (weathercode >= 65 ou precipitação >= 10mm/h)
+  if(wcode >= 65 || precAtual >= 10){
+    const nivel = (wcode >= 82 || precAtual >= 20) ? 'ALTO' : 'MODERADO';
+    const cor   = nivel === 'ALTO' ? '#dc2626' : '#ea580c';
+    alertas.push({
+      icon: '🌧️',
+      titulo: 'Chuva Forte',
+      desc: nivel === 'ALTO'
+        ? 'Chuva intensa em curso. Evite áreas de encosta e ruas com histórico de alagamento.'
+        : 'Chuva forte prevista. Fique atento a pontos críticos da cidade.',
+      nivel, cor
+    });
+  }
+
+  // ── Risco de alagamento (chuva acumulada no dia >= 50mm ou código >= 82)
+  if(chuvaAcum >= 50 || wcode >= 82){
+    alertas.push({
+      icon: '🌊',
+      titulo: 'Risco de Alagamento',
+      desc: 'Acúmulo de chuva elevado (' + Math.round(chuvaAcum) + 'mm). Evite áreas baixas como Quitandinha, Centro e Itaipava.',
+      nivel: chuvaAcum >= 80 ? 'ALTO' : 'MODERADO',
+      cor: chuvaAcum >= 80 ? '#dc2626' : '#ea580c'
+    });
+  }
+
+  // ── Risco de deslizamento (chuva acumulada >= 80mm + umidade >= 90%)
+  if(chuvaAcum >= 80 && umidade >= 90){
+    alertas.push({
+      icon: '⛰️',
+      titulo: 'Risco de Deslizamento',
+      desc: 'Solo saturado. Alto risco em encostas e áreas serranas. Siga as orientações da Defesa Civil.',
+      nivel: 'ALTO',
+      cor: '#dc2626'
+    });
+  }
+
+  // ── Tempestade com raios (código 95, 96, 99)
+  if(wcode >= 95){
+    alertas.push({
+      icon: '⚡',
+      titulo: 'Tempestade com Raios',
+      desc: 'Tempestade elétrica em curso. Fique em local seguro, evite áreas abertas e equipamentos ligados.',
+      nivel: 'ALTO',
+      cor: '#dc2626'
+    });
+  }
+
+  // ── Queda de energia (inferido: tempestade + vento forte >= 50 km/h)
+  if(wcode >= 95 && vento >= 50){
+    alertas.push({
+      icon: '🔌',
+      titulo: 'Risco de Queda de Energia',
+      desc: 'Ventos de ' + Math.round(vento) + ' km/h combinados com tempestade. Possível interrupção no fornecimento elétrico.',
+      nivel: 'MODERADO',
+      cor: '#ea580c'
+    });
+  }
+
+  // ── Renderiza card de alertas
+  const card  = document.getElementById('alerta-card');
+  const lista = document.getElementById('alerta-lista');
+  const horaEl= document.getElementById('alerta-hora');
+  if(!card || !lista) return;
+
+  if(!alertas.length){
+    card.style.display = 'none';
+    return;
+  }
+
+  const hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  if(horaEl) horaEl.textContent = hora;
+  card.style.display = 'block';
+  card.style.borderLeftColor = alertas.some(a=>a.nivel==='ALTO') ? '#dc2626' : '#ea580c';
+
+  lista.innerHTML = alertas.map(function(a){
+    return '<div style="background:'+_hexToLight(a.cor)+';border-radius:8px;padding:10px 12px;border-left:3px solid '+a.cor+';">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'
+      + '<span style="font-size:18px;">'+a.icon+'</span>'
+      + '<span style="font-size:14px;font-weight:800;color:'+a.cor+';">'+a.titulo+'</span>'
+      + '<span style="margin-left:auto;font-size:10px;font-weight:900;background:'+a.cor+';color:#fff;padding:1px 7px;border-radius:20px;">'+a.nivel+'</span>'
+      + '</div>'
+      + '<p style="font-size:12px;color:#374151;margin:0;line-height:1.5;">'+a.desc+'</p>'
+      + '</div>';
+  }).join('');
+}
+
+function _hexToLight(hex){
+  // Retorna versão bem clara da cor para fundo do card
+  var map = {'#dc2626':'#fef2f2','#ea580c':'#fff7ed','#d97706':'#fffbeb'};
+  return map[hex] || '#fef2f2';
 }
 
 /* ==== PROFISSIONAL EM DESTAQUE ==== */
@@ -5922,7 +6074,10 @@ async function _carregarPostsSupabase(){
     var postIds = posts.filter(function(p){ return p.supabase_id; }).map(function(p){ return p.supabase_id; });
     if(postIds.length && window._sb){
       window._sb.from('comentarios').select('*').in('post_id', postIds).order('criado_em',{ascending:true}).then(function(cRes){
-        if(!cRes.data || !cRes.data.length) return;
+        // DIAGNÓSTICO — aparece no console do navegador (F12)
+        console.log('[EvoCity] Query comentarios:', cRes.error ? 'ERRO: '+cRes.error.message : (cRes.data ? cRes.data.length+' comentário(s) encontrado(s)' : 'sem dados'));
+        if(cRes.error){ showToast('⚠️ Comentários: '+cRes.error.message); }
+        if(!cRes.data || !cRes.data.length){ console.log('[EvoCity] Tabela comentarios vazia ou sem permissão de leitura (RLS)'); return; }
         cRes.data.forEach(function(c){
           var post = posts.find(function(p){ return String(p.supabase_id)===String(c.post_id); });
           if(!post) return;
@@ -5945,12 +6100,19 @@ async function _carregarPostsSupabase(){
         posts.forEach(function(p){
           if(p.commentList && p.commentList.length){
             p.comments = p.commentList.length;
-            document.querySelectorAll('[id="cmt-count-'+p.id+'"]').forEach(function(el){
-              el.textContent = p.comments+' comentários';
-            });
+            // Atualiza contador
+            _updateCmtCount(p);
+            // Mostra cmt-box e renderiza lista de comentários diretamente no DOM
+            var box = document.getElementById('cmt-box-'+p.id);
+            if(box){
+              var listEl = box.querySelector('[id^="cmt-list-"]');
+              if(listEl){
+                _renderCmtList(listEl, p);
+                box.style.display = 'block';
+              }
+            }
           }
         });
-        try{renderFeed();}catch(e){}
       });
     }
 
