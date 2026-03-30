@@ -1179,8 +1179,8 @@ img.av-foto[data-ini]{display:block;}
       </div>
       <!-- register -->
       <div id="fr" style="display:none;">
-        <input id="r-name" class="ln-input" type="text" placeholder="Nome completo"/>
-        <input id="r-email" class="ln-input" type="email" placeholder="E-mail"/>
+        <input id="r-name" class="ln-input" type="text" placeholder="Nome completo" autocomplete="name" onkeydown="if(event.key==='Enter')doReg()"/>
+        <input id="r-email" class="ln-input" type="email" placeholder="E-mail" autocomplete="email" autocorrect="off" autocapitalize="none" spellcheck="false" style="font-size:15px;" onkeydown="if(event.key==='Enter')doReg()"/>
         <div style="margin-bottom:12px;"><label class="ln-lbl">Bairro em Petrópolis</label>
           <select id="r-bairro" class="ln-input" style="margin-bottom:0;appearance:none;font-size:17px;">
             <option value="">Selecione seu bairro</option>
@@ -1191,7 +1191,7 @@ img.av-foto[data-ini]{display:block;}
             <option>Taquara</option><option>Valparaíso</option><option>Vila Industrial</option>
           </select>
         </div>
-        <input id="r-pass" class="ln-input" type="password" placeholder="Criar senha"/>
+        <input id="r-pass" class="ln-input" type="password" placeholder="Criar senha (mínimo 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')doReg()"/>
         <button id="btn-reg" class="btn-fb" onclick="doReg()" style="cursor:pointer;position:relative;z-index:9999;">Criar minha conta</button>
       </div>
     </div>
@@ -1881,8 +1881,8 @@ async function doReg(){
       showToast('❌ A senha deve ter pelo menos 6 caracteres.');
     } else if(msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch')){
       showToast('❌ Sem conexão. Verifique sua internet e tente novamente.');
-    } else if(msg.includes('rate limit') || msg.includes('too many')){
-      showToast('❌ Muitas tentativas. Aguarde alguns minutos e tente novamente.');
+    } else if(msg.includes('rate limit') || msg.includes('too many') || msg.includes('over_email_send_rate_limit') || msg.includes('email rate limit')){
+      showToast('⏳ Limite atingido. Aguarde 1 minuto e tente novamente com o mesmo e-mail e senha.');
     } else if(msg.includes('signup_disabled') || msg.includes('Signups not allowed')){
       showToast('❌ Cadastros temporariamente desativados. Tente mais tarde.');
     } else {
