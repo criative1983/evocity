@@ -923,8 +923,12 @@ img.av-foto[data-ini]{display:block;}
         </div>
       </div>
       <div>
-        <label class="form-lbl">Nome completo</label>
-        <input id="edit-name" class="form-inp" type="text" placeholder="Seu nome"/>
+        <label class="form-lbl">Username (seu @)</label>
+        <div style="position:relative;">
+          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700;color:#65676b;pointer-events:none;user-select:none;">@</span>
+          <input id="edit-name" class="form-inp" type="text" placeholder="seuusername" autocorrect="off" autocapitalize="none" spellcheck="false" style="padding-left:28px;" oninput="normUsername(this)"/>
+        </div>
+        <p id="edit-name-hint" style="font-size:12px;color:#ef4444;margin:4px 0 0;display:none;"></p>
       </div>
       <div>
         <label class="form-lbl">Bio</label>
@@ -1187,7 +1191,11 @@ img.av-foto[data-ini]{display:block;}
       </div>
       <!-- register -->
       <div id="fr" style="display:none;">
-        <input id="r-name" class="ln-input" type="text" placeholder="Nome completo" autocomplete="name" onkeydown="if(event.key==='Enter')doReg()"/>
+        <div style="position:relative;margin-bottom:12px;">
+          <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:17px;font-weight:700;color:#65676b;pointer-events:none;user-select:none;">@</span>
+          <input id="r-name" class="ln-input" type="text" placeholder="seuusername" autocomplete="username" autocorrect="off" autocapitalize="none" spellcheck="false" style="margin-bottom:0;padding-left:30px;" oninput="normUsername(this)" onkeydown="if(event.key==='Enter')doReg()"/>
+        </div>
+        <p id="r-name-hint" style="font-size:12px;color:#90949c;margin:-8px 0 12px;display:none;"></p>
         <input id="r-email" class="ln-input" type="email" placeholder="E-mail" autocomplete="email" autocorrect="off" autocapitalize="none" spellcheck="false" style="font-size:15px;" onkeydown="if(event.key==='Enter')doReg()"/>
         <div style="margin-bottom:12px;"><label class="ln-lbl">Bairro em Petrópolis</label>
           <select id="r-bairro" class="ln-input" style="margin-bottom:0;appearance:none;font-size:17px;">
@@ -1721,6 +1729,65 @@ img.av-foto[data-ini]{display:block;}
    STATE
 ============================================ */
 const U={name:'Visitante',ini:'EU',bairro:'Petrópolis, RJ'};
+
+// ─── USERNAME HELPERS ───────────────────────────────────────
+// Normaliza o campo enquanto o usuário digita: força @, só chars válidos, minúsculas
+function normUsername(inp){
+  var v = inp.value;
+  v = v.replace(/\s+/g,'');                        // sem espaços
+  v = v.replace(/[^a-zA-Z0-9_\.@]/g,'');           // só chars válidos
+  v = v.toLowerCase();
+  if(v && !v.startsWith('@')) v = '@' + v;
+  // garante só um @ no início
+  v = v.replace(/^@+/, '@');
+  inp.value = v;
+}
+
+// Valida formato do @username
+function validUsername(u){
+  // deve começar com @, depois 3-30 chars alfanuméricos/_/.
+  return /^@[a-z0-9_\.]{3,30}$/.test(u);
+}
+
+// Verifica se @username já existe no Supabase (excluindo user_id opcional)
+async function checkUsernameAvailable(username, excludeUserId){
+  if(!window._sb) return true;
+  var q = window._sb.from('membros').select('user_id').eq('nome', username);
+  if(excludeUserId) q = q.neq('user_id', excludeUserId);
+  var {data, error} = await q;
+  if(error) return true; // em caso de erro, permite (não bloqueia)
+  return !(data && data.length > 0);
+}
+
+// Gera um @username a partir de um nome livre (para migração)
+function nameToUsername(nome){
+  var u = '@' + nome
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
+    .replace(/\s+/g,'_')
+    .replace(/[^a-z0-9_\.]/g,'')
+    .slice(0,30);
+  if(u.length < 4) u = u + Math.floor(Math.random()*999);
+  return u;
+}
+
+// Migra silenciosamente um perfil antigo que ainda não tem @username
+async function migrateUsername(userId, nomeAtual){
+  if(!nomeAtual || nomeAtual.startsWith('@')) return nomeAtual;
+  var novoUsername = nameToUsername(nomeAtual);
+  // Se o username gerado já existe, adiciona número até achar livre
+  var tentativa = novoUsername;
+  var contador = 1;
+  while(!(await checkUsernameAvailable(tentativa, userId))){
+    tentativa = novoUsername.slice(0,27) + '_' + contador++;
+  }
+  // Salva no banco
+  if(window._sb && userId){
+    await window._sb.from('membros').update({nome: tentativa}).eq('user_id', userId);
+  }
+  return tentativa;
+}
+// ────────────────────────────────────────────────────────────
 let posts=[],cls_items=[],svc_items=[],convs=[],
     feed_filter='all',svc_filter='all',
     pid=100,cid=200,sid=300,conv_id=0,active_cid=null,
@@ -1795,6 +1862,7 @@ async function doLogin(){
     var perfil = perfilRes.data || {};
     if(perfil.banido){ await window._sb.auth.signOut(); alert('Sua conta foi suspensa. Contate o suporte.'); btn.disabled=false; btn.textContent='Entrar'; return; }
     var nome   = perfil.nome   || user.email.split('@')[0];
+    if(nome && !nome.startsWith('@')) nome = await migrateUsername(user.id, nome);
     var ini    = perfil.ini    || nome.slice(0,2).toUpperCase();
     var bairro = perfil.bairro || 'Petrópolis, RJ';
     var clr    = perfil.clr    || '#2563EB';
@@ -1827,15 +1895,36 @@ async function doReg(){
   // Validações básicas
   if(!n||!email||!pass||!b){ showToast('Preencha todos os campos.'); return; }
 
+  // Força @ no início e normaliza
+  if(n && !n.startsWith('@')) n = '@' + n;
+  n = n.toLowerCase().replace(/[^@a-z0-9_\.]/g,'').replace(/^@+/,'@');
+  document.getElementById('r-name').value = n;
+
   // Validação de formato de email
   var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if(!emailRegex.test(email)){ showToast('❌ Digite um e-mail válido.'); return; }
 
-  // Validação de nome (mínimo 2 palavras)
-  if(n.split(' ').filter(Boolean).length < 2){ showToast('❌ Digite seu nome completo.'); return; }
+  // Validação de @username
+  if(!validUsername(n)){
+    var hint = document.getElementById('r-name-hint');
+    if(hint){ hint.textContent='⚠️ Use entre 3 e 30 letras/números (ex: @joao_silva)'; hint.style.display='block'; hint.style.color='#ef4444'; }
+    showToast('❌ Username inválido. Ex: @joao_silva'); return;
+  }
+  var hint = document.getElementById('r-name-hint');
+  if(hint) hint.style.display='none';
 
   if(pass.length < 6){ showToast('A senha deve ter pelo menos 6 caracteres.'); return; }
   if(!window._sb){ showToast('Erro de conexão. Tente novamente.'); return; }
+
+  // Verifica se o @username já está em uso
+  var usernameDisponivel = await checkUsernameAvailable(n);
+  if(!usernameDisponivel){
+    var hint2 = document.getElementById('r-name-hint');
+    if(hint2){ hint2.textContent='❌ Este @username já está em uso. Escolha outro.'; hint2.style.display='block'; hint2.style.color='#ef4444'; }
+    showToast('❌ @username já em uso. Escolha outro.');
+    return;
+  }
+
   _setLoading('btn-reg', true, 'Criar minha conta');
 
   // Timeout de segurança — desbloqueia o botão se o Supabase não responder em 15s
@@ -2063,6 +2152,7 @@ async function _launchFromSession(session){
     var perfil = perfilRes.data || {};
     if(perfil.banido){ window._sb.auth.signOut(); return; }
     var nome   = perfil.nome   || user.email.split('@')[0];
+    if(nome && !nome.startsWith('@')) nome = await migrateUsername(user.id, nome);
     var ini    = perfil.ini    || nome.slice(0,2).toUpperCase();
     var bairro = perfil.bairro || 'Petrópolis, RJ';
     var clr    = perfil.clr    || '#2563EB';
@@ -4487,7 +4577,28 @@ function _comprimirImagem(file, maxSize, qualidade){
 
 async function saveProfile(){
   // Avatar já é enviado em tempo real por setAvatarFromEdit — não faz upload duplo
-  const name   = document.getElementById('edit-name').value.trim()   || U.name;
+  var rawName = document.getElementById('edit-name').value.trim() || U.name;
+  // Normaliza @username
+  if(!rawName.startsWith('@')) rawName = '@' + rawName;
+  rawName = rawName.toLowerCase().replace(/[^@a-z0-9_\.]/g,'').replace(/^@+/,'@');
+  document.getElementById('edit-name').value = rawName;
+
+  const hintEl = document.getElementById('edit-name-hint');
+
+  if(!validUsername(rawName)){
+    if(hintEl){ hintEl.textContent='Username inválido. Use 3-30 letras/números (ex: @joao_silva)'; hintEl.style.display='block'; }
+    showToast('❌ Username inválido.'); return;
+  }
+
+  // Checa unicidade (excluindo o próprio usuário)
+  var disponivel = await checkUsernameAvailable(rawName, U.id);
+  if(!disponivel){
+    if(hintEl){ hintEl.textContent='❌ Este @username já está em uso. Escolha outro.'; hintEl.style.display='block'; }
+    showToast('❌ @username já em uso. Escolha outro.'); return;
+  }
+  if(hintEl) hintEl.style.display='none';
+
+  const name   = rawName;
   const bio    = document.getElementById('edit-bio').value.trim();
   const bairro = document.getElementById('edit-bairro').value;
   const job    = document.getElementById('edit-job').value.trim();
