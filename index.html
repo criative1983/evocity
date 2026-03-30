@@ -1831,14 +1831,19 @@ async function doReg(){
     // Tratar erros retornados sem throw (Supabase às vezes retorna error sem lançar exceção)
     if(error) throw error;
 
-    // Supabase pode retornar data.user = null se email já existe mas não confirmado
-    if(!data || !data.user){
-      showToast('❌ Não foi possível criar a conta. Tente com outro e-mail.');
+    // Com "Confirm email" desativado o Supabase retorna data.session diretamente.
+    // Com "Confirm email" ativado retorna data.user mas data.session = null.
+    // Se data.user = null (email duplicado não confirmado), tratar adequadamente.
+    var user = data && data.user;
+    var session = data && data.session;
+
+    if(!user){
+      // Email já existe mas não foi confirmado — ou outro problema
+      showToast('⚠️ Este e-mail já foi cadastrado. Tente fazer login ou use outro e-mail.');
       _setLoading('btn-reg', false, 'Criar minha conta');
       return;
     }
 
-    var user = data.user;
     var ini  = n.split(' ').filter(Boolean).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     var cores= ['#1d4ed8','#7c3aed','#059669','#dc2626','#d97706','#db2777','#0891b2'];
     var clr  = cores[Math.floor(Math.random()*cores.length)];
@@ -1852,18 +1857,21 @@ async function doReg(){
       criado_em: agora.toISOString()
     };
 
-    // Salvar perfil na tabela membros (ignorar erro silenciosamente para não bloquear o fluxo)
-    try { await window._sb.from('membros').upsert([membro]); } catch(_){}
+    // Salvar perfil na tabela membros — loga erro no console mas não bloqueia o fluxo
+    try {
+      var upsertRes = await window._sb.from('membros').upsert([membro]);
+      if(upsertRes.error) console.warn('membros upsert erro:', upsertRes.error.message);
+    } catch(upsertErr){ console.warn('membros upsert exception:', upsertErr); }
 
     U.id = user.id; U.clr = clr; U.email = email;
     U.joined = membro.joined;
 
-    // Se email confirmado automaticamente (email confirm desativado no Supabase), entra direto
-    if(data.session){
+    if(session){
+      // Confirm email desativado — entra direto
       launch({name:n, ini:ini, bairro:b+', Petrópolis', email:email, clr:clr});
       setTimeout(function(){ showToast('✅ Cadastro realizado! Bem-vindo(a) ao EvoCity!'); }, 400);
     } else {
-      // Precisa confirmar email
+      // Confirm email ativado — pede para confirmar
       showToast('📧 Verifique seu e-mail para confirmar o cadastro!');
       document.getElementById('r-name').value='';
       document.getElementById('r-email').value='';
@@ -1872,6 +1880,7 @@ async function doReg(){
   }catch(e){
     clearTimeout(_regTimeout);
     var msg = (e && e.message) ? e.message : String(e);
+    console.error('doReg erro:', msg);
     // Mensagens de erro traduzidas e amigáveis
     if(msg.includes('already registered') || msg.includes('User already registered')){
       showToast('❌ Este e-mail já está cadastrado. Tente fazer login.');
@@ -1882,7 +1891,7 @@ async function doReg(){
     } else if(msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch')){
       showToast('❌ Sem conexão. Verifique sua internet e tente novamente.');
     } else if(msg.includes('rate limit') || msg.includes('too many') || msg.includes('over_email_send_rate_limit') || msg.includes('email rate limit')){
-      showToast('⏳ Limite atingido. Aguarde 1 minuto e tente novamente com o mesmo e-mail e senha.');
+      showToast('⏳ Limite atingido. Aguarde 1 minuto e tente novamente.');
     } else if(msg.includes('signup_disabled') || msg.includes('Signups not allowed')){
       showToast('❌ Cadastros temporariamente desativados. Tente mais tarde.');
     } else {
