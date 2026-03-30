@@ -349,9 +349,11 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .pil:hover{border-color:#adb0b5;background:#f5f6f7;}
 /* Feed Geral — gradiente marca */
 .pil[data-cat="all"].on,.pil:first-child.on{background:linear-gradient(135deg,#2563EB,#7C3AED);border-color:transparent;color:#fff;}
+.tag-g{background:#dcfce7;color:#166534;}
 /* Resenha — âmbar/dourado */
 .pil[data-cat="review"].on{background:linear-gradient(135deg,#d97706,#f59e0b);border-color:transparent;color:#fff;}
 /* Notícias — azul */
+.pil[data-cat="g"].on{background:#16a34a;border-color:transparent;color:#fff;}
 .pil[data-cat="n"].on{background:#2563EB;border-color:transparent;color:#fff;}
 /* Eventos — vermelho */
 .pil[data-cat="e"].on{background:#dc2626;border-color:transparent;color:#fff;}
@@ -638,7 +640,7 @@ img.av-foto[data-ini]{display:block;}
         <div>
           <p id="c-name" style="font-size:15px;font-weight:700;color:#050505;margin:0;">Visitante</p>
           <select id="c-cat" style="border:1px solid #ced0d4;border-radius:6px;padding:4px 8px;font-size:13px;font-weight:600;outline:none;background:#fff;font-family:'Nunito',sans-serif;margin-top:2px;">
-            <option value="n">📰 Notícias</option><option value="e">🎉 Eventos</option>
+            <option value="g">💬 Geral</option><option value="n">📰 Notícias</option><option value="e">🎉 Eventos</option>
             <option value="j">💼 Empregos</option><option value="s">🔧 Serviços</option>
             <option value="d">❓ Dúvidas</option><option value="review">⭐ Resenha</option>
           </select>
@@ -721,7 +723,7 @@ img.av-foto[data-ini]{display:block;}
 
       <div style="display:flex;gap:10px;">
         <div style="flex:1;"><label class="form-lbl">Preço</label><input id="cls-preco" class="form-inp" placeholder="R$ 0,00"/></div>
-        <div style="flex:1;"><label class="form-lbl">Bairro</label><select id="cls-bairro" class="form-inp"><option value="">Selecione</option><option>Centro</option><option>Itaipava</option><option>Quitandinha</option><option>Cascatinha</option><option>Nogueira</option><option>Retiro</option><option>Bingen</option><option>Valparaíso</option></select></div>
+        <div style="flex:1;"><label class="form-lbl">Região</label><select id="cls-bairro" class="form-inp"><option value="">Selecione</option><option>Centro</option><option>Quitandinha</option><option>Bingen</option><option>Alto da Serra</option><option>Meio da Serra</option><option>Quissamã</option><option>Itamarati</option><option>Cascatinha</option><option>Retiro</option><option>Carangola</option><option>Araras</option><option>Corrêas</option><option>Nogueira</option><option>Itaipava</option><option>Pedro do Rio</option><option>Posse</option></select></div>
       </div>
       <div><label class="form-lbl">WhatsApp</label><input id="cls-contato" class="form-inp" placeholder="(24) 9 9999-9999"/></div>
       <button class="btn-fb" onclick="submitCls()">Anunciar Agora</button>
@@ -786,7 +788,7 @@ img.av-foto[data-ini]{display:block;}
       <div><label class="form-lbl">Descrição</label><textarea id="svc-desc" class="form-inp" rows="3" style="resize:none;" placeholder="O que você oferece..."></textarea></div>
       <div style="display:flex;gap:10px;">
         <div style="flex:1;"><label class="form-lbl">Preço / Hora</label><input id="svc-preco" class="form-inp" placeholder="R$ ou A combinar"/></div>
-        <div style="flex:1;"><label class="form-lbl">Bairro</label><select id="svc-bairro" class="form-inp"><option>Toda Petrópolis</option><option>Centro</option><option>Itaipava</option><option>Quitandinha</option><option>Cascatinha</option><option>Retiro</option></select></div>
+        <div style="flex:1;"><label class="form-lbl">Região</label><select id="svc-bairro" class="form-inp"><option>Toda Petrópolis</option><option>Centro</option><option>Quitandinha</option><option>Bingen</option><option>Alto da Serra</option><option>Meio da Serra</option><option>Quissamã</option><option>Itamarati</option><option>Cascatinha</option><option>Retiro</option><option>Carangola</option><option>Araras</option><option>Corrêas</option><option>Nogueira</option><option>Itaipava</option><option>Pedro do Rio</option><option>Posse</option></select></div>
       </div>
       <div><label class="form-lbl">WhatsApp</label><input id="svc-contato" class="form-inp" placeholder="(24) 9 9999-9999"/></div>
       <button class="btn-fb" onclick="submitSvc()">Publicar Serviço</button>
@@ -846,12 +848,10 @@ img.av-foto[data-ini]{display:block;}
 
       <div style="display:flex;gap:10px;">
         <div style="flex:1;"><label class="form-lbl">Válido até</label><input id="promo-validade" class="form-inp" type="date"/></div>
-        <div style="flex:1;"><label class="form-lbl">Bairro / Local</label>
+        <div style="flex:1;"><label class="form-lbl">Região / Local</label>
           <select id="promo-bairro" class="form-inp">
             <option value="Toda Petrópolis">Toda Petrópolis</option>
-            <option>Centro</option><option>Itaipava</option><option>Quitandinha</option>
-            <option>Cascatinha</option><option>Nogueira</option><option>Retiro</option>
-            <option>Bingen</option><option>Valparaíso</option>
+            <option>Centro</option><option>Quitandinha</option><option>Bingen</option><option>Alto da Serra</option><option>Meio da Serra</option><option>Quissamã</option><option>Itamarati</option><option>Cascatinha</option><option>Retiro</option><option>Carangola</option><option>Araras</option><option>Corrêas</option><option>Nogueira</option><option>Itaipava</option><option>Pedro do Rio</option><option>Posse</option>
           </select>
         </div>
       </div>
@@ -892,11 +892,10 @@ img.av-foto[data-ini]{display:block;}
       </div>
       <div style="display:flex;gap:10px;">
         <div style="flex:1;"><label class="form-lbl">WhatsApp</label><input id="lead-phone" class="form-inp" placeholder="(24) 9 9999-9999"/></div>
-        <div style="flex:1;"><label class="form-lbl">Bairro</label>
+        <div style="flex:1;"><label class="form-lbl">Região</label>
           <select id="lead-bairro" class="form-inp">
             <option value="">Selecione</option>
-            <option>Centro</option><option>Itaipava</option><option>Quitandinha</option><option>Cascatinha</option>
-            <option>Nogueira</option><option>Retiro</option><option>Bingen</option><option>Valparaíso</option>
+            <option>Centro</option><option>Quitandinha</option><option>Bingen</option><option>Alto da Serra</option><option>Meio da Serra</option><option>Quissamã</option><option>Itamarati</option><option>Cascatinha</option><option>Retiro</option><option>Carangola</option><option>Araras</option><option>Corrêas</option><option>Nogueira</option><option>Itaipava</option><option>Pedro do Rio</option><option>Posse</option>
             <option>Toda Petrópolis</option>
           </select>
         </div>
@@ -946,15 +945,8 @@ img.av-foto[data-ini]{display:block;}
       </div>
       <div style="display:flex;gap:10px;">
         <div style="flex:1;">
-          <label class="form-lbl">Bairro</label>
-          <select id="edit-bairro" class="form-inp">
-            <option value="">Selecione</option>
-            <option>Alto da Serra</option><option>Bingen</option><option>Cascatinha</option><option>Centro</option>
-            <option>Chácara Flora</option><option>Caxambu</option><option>Coronel Veiga</option><option>Independência</option>
-            <option>Itaipava</option><option>Nogueira</option><option>Palatinato</option><option>Pedro do Rio</option>
-            <option>Quitandinha</option><option>Retiro</option><option>Samambaia</option><option>São Sebastião</option>
-            <option>Taquara</option><option>Valparaíso</option><option>Vila Industrial</option>
-          </select>
+          <label class="form-lbl">Região</label>
+          <select id="edit-bairro" class="form-inp"><option value="">Selecione</option><option>Centro</option><option>Quitandinha</option><option>Bingen</option><option>Alto da Serra</option><option>Meio da Serra</option><option>Quissamã</option><option>Itamarati</option><option>Cascatinha</option><option>Retiro</option><option>Carangola</option><option>Araras</option><option>Corrêas</option><option>Nogueira</option><option>Itaipava</option><option>Pedro do Rio</option><option>Posse</option></select>
         </div>
         <div style="flex:1;">
           <label class="form-lbl">Profissão</label>
@@ -1105,30 +1097,26 @@ img.av-foto[data-ini]{display:block;}
 <!-- ════ MODAL: PERFIL DE OUTRO USUÁRIO ════ -->
 <div id="overlay-verperfil" class="overlay" onclick="if(event.target===this)fecharVerPerfil()">
   <div class="modal" style="max-width:480px;padding:0;overflow:hidden;">
-    <!-- Header limpo sem capa -->
-    <div style="background:linear-gradient(135deg,#1e3a8a,#2563EB,#7C3AED);padding:16px 20px 60px;position:relative;">
-      <button class="x-btn" onclick="fecharVerPerfil()" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.2);color:#fff;border:none;">×</button>
+    <!-- Header com foto em destaque -->
+    <div style="position:relative;background:linear-gradient(160deg,#1e3a8a,#2563EB 50%,#7C3AED);min-height:140px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:56px;">
+      <button class="x-btn" onclick="fecharVerPerfil()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.35);color:#fff;border:none;z-index:2;">×</button>
+      <!-- Avatar centralizado e grande -->
+      <div id="vp-av" style="width:110px;height:110px;border-radius:50%;border:4px solid #fff;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:#fff;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.35);position:absolute;bottom:-52px;left:50%;transform:translateX(-50%);z-index:2;"></div>
     </div>
-    <!-- Avatar sobreposto ao header -->
-    <div style="padding:0 20px;">
-      <div id="vp-av" style="width:80px;height:80px;border-radius:50%;border:4px solid #fff;margin-top:-48px;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;overflow:hidden;"></div>
-    </div>
+    <!-- Espaço para o avatar que desce -->
+    <div style="height:60px;"></div>
     <!-- Info -->
-    <div style="padding:8px 20px 0;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-        <div>
-          <h2 id="vp-nome" style="font-size:20px;font-weight:800;color:#050505;margin:0;"></h2>
-          <p id="vp-bairro" style="font-size:13px;color:#65676b;margin:2px 0 0;"></p>
-          <p id="vp-job-status" style="font-size:12px;color:#059669;font-weight:700;margin:1px 0 0;"></p>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button id="vp-btn-seguir" onclick="vp_toggleSeguir()" style="padding:8px 18px;border-radius:8px;border:none;background:#2563EB;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Seguir</button>
-          <button onclick="vp_iniciarChat()" style="padding:8px 18px;border-radius:8px;border:1px solid #ced0d4;background:#e4e6ea;color:#050505;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">💬 Mensagem</button>
-        </div>
+    <div style="padding:4px 20px 0;text-align:center;">
+      <h2 id="vp-nome" style="font-size:20px;font-weight:800;color:#050505;margin:0 0 2px;"></h2>
+      <p id="vp-bairro" style="font-size:13px;color:#65676b;margin:0 0 2px;"></p>
+      <p id="vp-job-status" style="font-size:12px;color:#059669;font-weight:700;margin:0 0 10px;"></p>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;">
+        <button id="vp-btn-seguir" onclick="vp_toggleSeguir()" style="padding:8px 22px;border-radius:8px;border:none;background:#2563EB;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Seguir</button>
+        <button onclick="vp_iniciarChat()" style="padding:8px 22px;border-radius:8px;border:1px solid #ced0d4;background:#e4e6ea;color:#050505;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">💬 Mensagem</button>
       </div>
-      <p id="vp-bio" style="font-size:14px;color:#050505;margin:10px 0 0;line-height:1.5;"></p>
+      <p id="vp-bio" style="font-size:14px;color:#050505;margin:0 0 0;line-height:1.5;text-align:left;"></p>
       <!-- Stats -->
-      <div style="display:flex;gap:24px;margin:12px 0;padding:12px 0;border-top:1px solid #e4e6ea;border-bottom:1px solid #e4e6ea;">
+      <div style="display:flex;gap:24px;margin:12px 0;padding:12px 0;border-top:1px solid #e4e6ea;border-bottom:1px solid #e4e6ea;justify-content:center;">
         <div style="text-align:center;cursor:pointer;" onclick="abrirListaSeguidores('seguidores')">
           <strong id="vp-n-seguidores" style="font-size:18px;color:#050505;">0</strong>
           <p style="font-size:12px;color:#65676b;margin:0;">seguidores</p>
@@ -1207,15 +1195,8 @@ img.av-foto[data-ini]{display:block;}
         </div>
         <p id="r-name-hint" style="font-size:12px;color:#90949c;margin:-8px 0 12px;display:none;"></p>
         <input id="r-email" class="ln-input" type="email" placeholder="E-mail" autocomplete="email" autocorrect="off" autocapitalize="none" spellcheck="false" style="font-size:15px;" onkeydown="if(event.key==='Enter')doReg()"/>
-        <div style="margin-bottom:12px;"><label class="ln-lbl">Bairro em Petrópolis</label>
-          <select id="r-bairro" class="ln-input" style="margin-bottom:0;appearance:none;font-size:17px;">
-            <option value="">Selecione seu bairro</option>
-            <option>Alto da Serra</option><option>Bingen</option><option>Cascatinha</option><option>Centro</option>
-            <option>Chácara Flora</option><option>Caxambu</option><option>Coronel Veiga</option><option>Independência</option>
-            <option>Itaipava</option><option>Nogueira</option><option>Palatinato</option><option>Pedro do Rio</option>
-            <option>Quitandinha</option><option>Retiro</option><option>Samambaia</option><option>São Sebastião</option>
-            <option>Taquara</option><option>Valparaíso</option><option>Vila Industrial</option>
-          </select>
+        <div style="margin-bottom:12px;"><label class="ln-lbl">Região em Petrópolis</label>
+          <select id="r-bairro" class="ln-input" style="margin-bottom:0;appearance:none;font-size:17px;"><option value="">Selecione sua região</option><option>Centro</option><option>Quitandinha</option><option>Bingen</option><option>Alto da Serra</option><option>Meio da Serra</option><option>Quissamã</option><option>Itamarati</option><option>Cascatinha</option><option>Retiro</option><option>Carangola</option><option>Araras</option><option>Corrêas</option><option>Nogueira</option><option>Itaipava</option><option>Pedro do Rio</option><option>Posse</option></select>
         </div>
         <input id="r-pass" class="ln-input" type="password" placeholder="Criar senha (mínimo 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')doReg()"/>
         <button id="btn-reg" class="btn-fb" onclick="doReg()" style="cursor:pointer;position:relative;z-index:9999;">Criar minha conta</button>
@@ -1384,8 +1365,9 @@ img.av-foto[data-ini]{display:block;}
         <!-- pills -->
         <div class="pill-bar">
           <button class="pil on" data-cat="all" onclick="filterFeed('all',this)">🌐 Feed Geral</button>
-          <button class="pil" data-cat="review" onclick="filterFeed('review',this)">⭐ Resenha</button>
+          <button class="pil" data-cat="g" onclick="filterFeed('g',this)">💬 Geral</button>
           <button class="pil" data-cat="n" onclick="filterFeed('n',this)">📰 Notícias</button>
+          <button class="pil" data-cat="review" onclick="filterFeed('review',this)">⭐ Resenha</button>
           <button class="pil" data-cat="e" onclick="filterFeed('e',this)">🎉 Eventos</button>
           <button class="pil" data-cat="j" onclick="filterFeed('j',this)">💼 Empregos</button>
           <button class="pil" data-cat="s" onclick="filterFeed('s',this)">🔧 Serviços</button>
@@ -1621,7 +1603,7 @@ img.av-foto[data-ini]{display:block;}
                       <input type="file" accept="image/*" style="display:none;" id="prof-pub-file" onchange="setProfPhoto(this)"/>
                     </label>
                     <select id="prof-pub-cat" style="border:1px solid #ced0d4;border-radius:8px;padding:8px 12px;font-size:14px;font-weight:700;outline:none;background:#fff;font-family:'Nunito',sans-serif;color:#606770;">
-                      <option value="n">📰 Notícias</option><option value="e">🎉 Eventos</option><option value="j">💼 Empregos</option><option value="s">🔧 Serviços</option><option value="d">❓ Dúvidas</option><option value="review">⭐ Resenha</option>
+                      <option value="g">💬 Geral</option><option value="n">📰 Notícias</option><option value="e">🎉 Eventos</option><option value="j">💼 Empregos</option><option value="s">🔧 Serviços</option><option value="d">❓ Dúvidas</option><option value="review">⭐ Resenha</option>
                     </select>
                   </div>
                   <button id="prof-pub-btn" class="btn-fb" onclick="submitProfPost()" disabled style="width:auto;padding:9px 24px;font-size:15px;border-radius:8px;">Publicar</button>
@@ -1813,6 +1795,7 @@ Object.defineProperty(window, 'posts', {
 });
 
 const TAGS={
+  g:{l:'💬 Geral',c:'tag-g'},
   n:{l:'📰 Notícias',c:'tag-n'},
   e:{l:'🎉 Eventos',c:'tag-e'},
   j:{l:'💼 Empregos',c:'tag-j'},
@@ -1879,6 +1862,8 @@ async function doLogin(){
     var rawPhoto = perfil.photo || perfil.avatar_url || '';
     U.id=user.id; U.email=email; U.clr=clr;
     U.job=perfil.job||''; U.rel=perfil.rel||'';
+    U.bio=perfil.bio||''; U.phone=perfil.phone||'';
+    U.actype=perfil.actype||'personal'; U.segment=perfil.segment||'';
     U.verificado=perfil.verificado||false;
     U.joined=perfil.joined||new Date().toLocaleDateString('pt-BR');
     if(rawPhoto){ U.photo=_fotoUrl(rawPhoto); U.photo_url=U.photo; }
@@ -2169,6 +2154,8 @@ async function _launchFromSession(session){
     U.id=user.id; U.email=user.email; U.clr=clr;
     U.joined=perfil.joined||''; U.verificado=perfil.verificado||false;
     U.job=perfil.job||''; U.rel=perfil.rel||'';
+    U.bio=perfil.bio||''; U.phone=perfil.phone||'';
+    U.actype=perfil.actype||'personal'; U.segment=perfil.segment||'';
     var rawPhoto = perfil.photo || perfil.avatar_url || '';
     // Fallback 1: localStorage
     if(!rawPhoto){ try{ rawPhoto = localStorage.getItem('evocity_photo_' + user.id) || ''; }catch(e){} }
@@ -2902,6 +2889,9 @@ function _cmtReactCount(c){
 }
 function _buildCmtHTML(c,idx,postId,isPerf){
   const isMe=c.name===U.name||c.autor_id===U.id;
+  const post=posts.find(x=>x.id===postId);
+  const isPostOwner=post&&(post.own||(post.autor_id&&post.autor_id===U.id));
+  const canDelete=isMe||isPostOwner;
   const photo=isMe?(getUserAvatar()||(c.photo||'')):(c.photo||'');
   const avStyle=photo?'background:'+c.clr+';background-image:url(\''+photo.replace(/'/g,'%27')+'\');background-size:cover;background-position:center;':'background:'+c.clr+';';
   const myReact=c.myReaction||'';
@@ -2909,8 +2899,8 @@ function _buildCmtHTML(c,idx,postId,isPerf){
   const reactColor=myReact?'#ef4444':'#9ca3af';
   const reactCount=_cmtReactCount(c);
   const picker=REACT_EMOJIS.map((em,i)=>'<button class="cmt-react-opt" title="'+REACT_LABELS[i]+'" onclick="pickReactCmt('+postId+','+idx+',\''+em+'\','+(isPerf?1:0)+')" style="font-size:20px;background:none;border:none;cursor:pointer;padding:2px 3px;border-radius:50%;transition:transform .15s;line-height:1;" onmouseover="this.style.transform=\'scale(1.4)\'" onmouseout="this.style.transform=\'\'">'+em+'</button>').join('');
-  const editBtn=isMe?'<button onclick="startEditCmt('+postId+','+idx+','+(isPerf?1:0)+')" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:12px;font-weight:700;padding:0 4px;font-family:Nunito,sans-serif;">✏️ Editar</button>':'';
-  const delBtn=isMe?'<button onclick="deleteCmt('+postId+','+idx+','+(isPerf?1:0)+')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;font-weight:700;padding:0 4px;font-family:Nunito,sans-serif;">🗑</button>':'';
+  const editBtn=isMe?'<button onclick="startEditCmt('+postId+','+idx+','+(isPerf?1:0)+')" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:12px;font-weight:700;padding:2px 6px;border-radius:4px;font-family:Nunito,sans-serif;display:inline-flex;align-items:center;gap:3px;transition:.15s;" onmouseover="this.style.background=\'#f0f2f5\'" onmouseout="this.style.background=\'none\'">✏️ Editar</button>':'';
+  const delBtn=canDelete?'<button onclick="confirmDeleteCmt('+postId+','+idx+','+(isPerf?1:0)+')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:12px;font-weight:700;padding:2px 6px;border-radius:4px;font-family:Nunito,sans-serif;display:inline-flex;align-items:center;gap:3px;transition:.15s;" onmouseover="this.style.background=\'#fff1f1\'" onmouseout="this.style.background=\'none\'">🗑️ Remover</button>':'';
   const editedMark=c.edited?'<span style="font-size:10px;color:#9ca3af;margin-left:4px;">(editado)</span>':'';
   return '<div id="cmt-item-'+postId+'-'+idx+'" style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">'
     +'<div class="post-av" style="width:32px;height:32px;font-size:11px;flex-shrink:0;'+avStyle+'">'+(photo?'':c.ini)+'</div>'
@@ -3256,7 +3246,7 @@ function pickReactCmt(postId, idx, emoji, isPerf){
     c.reactions[emoji]=(c.reactions[emoji]||0)+1;
   }
   document.querySelectorAll('[id^="react-picker-"]').forEach(function(el){el.style.display='none';});
-  if(isPerf){ var prf=posts.find(x=>x.id===postId); if(prf){ var pid=postId; renderCommentsPerfil(pid,postId); } }
+  if(isPerf){ var prf=posts.find(x=>x.id===postId); if(prf){ var pid='p-'+postId; renderCommentsPerfil(pid,postId); } }
   else { renderComments(postId); }
 }
 
@@ -3299,22 +3289,40 @@ function saveCmt(postId, idx, isPerf){
   if(window._sb && c.supabase_id){
     window._sb.from('comentarios').update({texto:newText}).eq('id',c.supabase_id).then(function(){});
   }
-  if(isPerf){ renderCommentsPerfil(postId,postId); }
+  if(isPerf){ var pid='p-'+postId; renderCommentsPerfil(pid,postId); }
   else { renderComments(postId); }
   showToast('✏️ Comentário editado!');
+}
+
+function confirmDeleteCmt(postId, idx, isPerf){
+  var old = document.getElementById('del-cmt-modal');
+  if(old) old.remove();
+  var modal = document.createElement('div');
+  modal.id = 'del-cmt-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = '<div style="background:#fff;border-radius:14px;padding:24px 20px;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:center;">'
+    +'<div style="font-size:36px;margin-bottom:10px;">🗑️</div>'
+    +'<p style="font-size:16px;font-weight:800;color:#1c1e21;margin:0 0 6px;">Remover comentário?</p>'
+    +'<p style="font-size:13px;color:#65676b;margin:0 0 20px;">Esta ação não pode ser desfeita.</p>'
+    +'<div style="display:flex;gap:10px;">'
+    +'<button onclick="document.getElementById(\'del-cmt-modal\').remove()" style="flex:1;padding:11px;border:1px solid #dddfe2;border-radius:8px;font-size:14px;font-weight:700;color:#606770;background:#fff;cursor:pointer;font-family:Nunito,sans-serif;">Cancelar</button>'
+    +'<button onclick="document.getElementById(\'del-cmt-modal\').remove();deleteCmt('+postId+','+idx+','+(isPerf?1:0)+')" style="flex:1;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(135deg,#ef4444,#dc2626);cursor:pointer;font-family:Nunito,sans-serif;">Remover</button>'
+    +'</div></div>';
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
 }
 
 function deleteCmt(postId, idx, isPerf){
   var p=posts.find(x=>x.id===postId); if(!p||!p.commentList) return;
   var c=p.commentList[idx]; if(!c) return;
-  if(c.name!==U.name && c.autor_id!==U.id){ showToast('Você só pode excluir seus próprios comentários.'); return; }
-  if(!confirm('Excluir este comentário?')) return;
+  const isPostOwner=p.own||(p.autor_id&&p.autor_id===U.id);
+  if(c.name!==U.name && c.autor_id!==U.id && !isPostOwner){ showToast('Você só pode excluir seus próprios comentários.'); return; }
   if(window._sb && c.supabase_id){
     window._sb.from('comentarios').delete().eq('id',c.supabase_id).then(function(){});
   }
   p.commentList.splice(idx,1);
   p.comments=Math.max(0,p.comments-1);
-  if(isPerf){ renderCommentsPerfil(postId,postId); } else { renderComments(postId); }
+  if(isPerf){ renderCommentsPerfil('p-'+postId,postId); } else { renderComments(postId); }
   _updateCmtCount(p);
   if(window._sb && p.supabase_id){
     window._sb.from('postagens').update({comentarios:p.comments}).eq('id',p.supabase_id).then(function(){});
@@ -3380,7 +3388,7 @@ function doShare(id){
   if(nm) nm.textContent = U.name;
 
   // build preview
-  const TAGS_L={n:'📰 Notícias',e:'🎉 Eventos',j:'💼 Empregos',s:'🔧 Serviços',d:'❓ Dúvidas',review:'⭐ Resenha'};
+  const TAGS_L={g:'💬 Geral',n:'📰 Notícias',e:'🎉 Eventos',j:'💼 Empregos',s:'🔧 Serviços',d:'❓ Dúvidas',review:'⭐ Resenha'};
   const preview = document.getElementById('share-preview');
   const comLabel = p.comunidade_nome ? `<span style="color:#2563EB;font-weight:700;">🏘️ ${esc(p.comunidade_nome)} · </span>` : '';
   preview.innerHTML=`
@@ -4509,10 +4517,10 @@ function nowTime(){
 
 /* ==== EDIT PROFILE ==== */
 function openEditProfile(){
-  document.getElementById('edit-name').value = (U.name && U.name !== 'Visitante') ? U.name : '';
-  document.getElementById('edit-bio').value = '';
-  document.getElementById('edit-phone').value = '';
-  document.getElementById('edit-job').value = '';
+  document.getElementById('edit-name').value  = (U.name && U.name !== 'Visitante') ? U.name : '';
+  document.getElementById('edit-bio').value   = U.bio   || '';
+  document.getElementById('edit-phone').value = U.phone || '';
+  document.getElementById('edit-job').value   = U.job   || '';
 
   // match bairro
   const bairroRaw = U.bairro ? U.bairro.split(',')[0].trim() : '';
@@ -4522,13 +4530,24 @@ function openEditProfile(){
     if(sel.options[i].text === bairroRaw){ sel.selectedIndex = i; break; }
   }
 
-  // mirror avatar preview
-  const curAv = document.getElementById('prof-big-av');
-  const prev  = document.getElementById('edit-av-preview');
-  if(curAv && prev){
-    prev.style.backgroundImage = curAv.style.backgroundImage || '';
-    prev.style.backgroundSize  = 'cover';
-    prev.textContent = curAv.style.backgroundImage ? '' : curAv.textContent;
+  // mirror avatar preview — suporta tanto <img> quanto backgroundImage
+  const prev = document.getElementById('edit-av-preview');
+  if(prev){
+    prev.innerHTML = '';
+    prev.style.backgroundImage = '';
+    prev.classList.add('g');
+    const photoSrc = U.photo || U.photo_url || '';
+    if(photoSrc){
+      prev.classList.remove('g');
+      prev.style.overflow = 'hidden';
+      var img = document.createElement('img');
+      img.src = photoSrc;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;';
+      img.onerror = function(){ prev.innerHTML=''; prev.classList.add('g'); prev.textContent=U.ini||'EU'; };
+      prev.appendChild(img);
+    } else {
+      prev.textContent = U.ini || 'EU';
+    }
   }
 
   // pre-fill relationship and account type
@@ -4695,6 +4714,8 @@ async function saveProfile(){
   U.bairro  = bairro ? bairro + ', Petrópolis' : U.bairro;
   U.rel     = rel;
   U.job     = job;
+  U.bio     = bio;
+  U.phone   = phone;
   U.actype  = actype;
   U.segment = segment;
   const ini = name.split(' ').filter(Boolean).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase() || U.ini;
@@ -6146,7 +6167,7 @@ function abrirComunidade(id, nome, bg, emoji){
       return '<div style="text-align:center;padding:40px 20px;color:#65676b"><div style="font-size:40px;margin-bottom:12px">📭</div><p style="font-weight:700;font-size:15px">Nenhum post ainda</p><p style="font-size:13px;margin-top:4px">Seja o primeiro a publicar nesta comunidade!</p></div>';
     }
     return pList.map(function(p){
-      var t = (window.TAGS && window.TAGS[p.cat]) || {l:'📰',c:'tag-n'};
+      var t = (window.TAGS && window.TAGS[p.cat]) || {l:'💬',c:'tag-g'};
       // Usa supabase_id se disponível, senão id numérico — chave usada nos handlers
       var pid = p.supabase_id || p.id;
       var displayName = p.own ? U.name : (p.author||'Usuário');
