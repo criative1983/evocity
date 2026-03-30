@@ -85,6 +85,14 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .scr{display:none;}
 .scr.on{display:flex;flex-direction:column;min-height:100vh;}
 
+/* ══════════════ SUBCONTAS ══════════════ */
+.subconta-item{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;transition:.15s;border:none;background:none;width:100%;text-align:left;font-family:'Nunito',sans-serif;}
+.subconta-item:hover{background:#f2f2f2;}
+.subconta-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;flex-shrink:0;position:relative;}
+.subconta-av .verif-dot{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:#1d9bf0;border:2px solid #fff;display:flex;align-items:center;justify-content:center;}
+.subconta-ativa{background:#eff6ff!important;}
+.subconta-ativa .subconta-nome{color:#2563EB!important;}
+.subconta-badge-oficial{display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#2563EB,#7C3AED);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:4px;}
 /* ══════════════ LOGIN ══════════════ */
 #pg-login{background:#fff;min-height:100vh;}
 .ln-nav{height:56px;background:#fff;border-bottom:1px solid #dddfe2;display:flex;align-items:center;padding:0 20px;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 4px rgba(0,0,0,.1);}
@@ -1238,17 +1246,17 @@ img.av-foto[data-ini]{display:block;}
         <span>Perfil</span>
       </button>
     </div>
-    <div class="tb-right">
+    <div class="tb-right" style="position:relative;">
       <!-- sino de notificações -->
-      <button class="tb-icon" id="notif-btn" onclick="toggleNotifPanel()" title="Notificações">
+      <button class="tb-icon" id="notif-btn" onclick="toggleNotifPanel()" title="Notificações" style="position:relative;z-index:210;">
         <svg fill="none" viewBox="0 0 24 24" stroke="#050505" stroke-width="2" width="20" height="20">
           <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
         </svg>
         <span class="notif-dot" id="notif-count" style="display:none;">0</span>
       </button>
-      <!-- painel de notificações -->
+      <!-- painel de notificações — fora do fluxo, ancorado à topbar -->
       <div id="notif-panel" style="
-        display:none;position:absolute;top:60px;right:16px;width:360px;
+        display:none;position:fixed;top:64px;right:16px;width:360px;
         background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.18);
         z-index:500;border:1px solid #e5e7eb;overflow:hidden;
         animation:popIn .2s ease;
@@ -1264,24 +1272,40 @@ img.av-foto[data-ini]{display:block;}
           <p style="font-size:13px;color:#9ca3af;margin-top:4px;">Você está em dia com tudo!</p>
         </div>
       </div>
-      <div id="tb-av" class="tb-av g" style="font-size:14px;cursor:pointer;position:relative;" onclick="toggleAvatarMenu(event)">EU
-        <!-- Menu do avatar -->
-        <div id="avatar-menu" style="display:none;position:absolute;top:48px;right:0;background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.18);z-index:600;min-width:200px;padding:8px 0;border:1px solid #e5e7eb;animation:popIn .15s ease;">
-          <div id="avatar-menu-header" style="padding:12px 16px;border-bottom:1px solid #f3f4f6;margin-bottom:4px;">
-            <div id="avatar-menu-name" style="font-size:15px;font-weight:800;color:#050505;">Carregando...</div>
-            <div id="avatar-menu-email" style="font-size:12px;color:#65676b;margin-top:2px;"></div>
+      <div id="tb-av" class="tb-av g" style="font-size:14px;cursor:pointer;position:relative;z-index:210;flex-shrink:0;" onclick="toggleAvatarMenu(event)">EU</div>
+      <!-- Menu do avatar — fora do tb-av para não ser destruído pelo applyAvatar -->
+      <div id="avatar-menu" style="display:none;position:fixed;top:64px;right:12px;background:#fff;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.18);z-index:600;min-width:240px;padding:8px 0;border:1px solid #e5e7eb;animation:popIn .15s ease;">
+        <!-- Cabeçalho conta atual -->
+        <div id="avatar-menu-header" style="padding:12px 16px;border-bottom:1px solid #f3f4f6;margin-bottom:4px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="avatar-menu-av" class="tb-av g" style="width:38px;height:38px;font-size:13px;flex-shrink:0;">EU</div>
+            <div style="min-width:0;">
+              <div id="avatar-menu-name" style="font-size:15px;font-weight:800;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Carregando...</div>
+              <div id="avatar-menu-email" style="font-size:12px;color:#65676b;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+            </div>
           </div>
-          <button onclick="closeAvatarMenu();goTab('profile')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 16px;border:none;background:none;font-size:14px;font-weight:700;color:#1c1e21;cursor:pointer;font-family:'Nunito',sans-serif;text-align:left;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background=''">
-            👤 Ver meu perfil
-          </button>
-          <button onclick="closeAvatarMenu();openEditProfile()" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 16px;border:none;background:none;font-size:14px;font-weight:700;color:#1c1e21;cursor:pointer;font-family:'Nunito',sans-serif;text-align:left;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background=''">
-            ✏️ Editar perfil
-          </button>
+        </div>
+        <!-- Ações da conta -->
+        <button onclick="closeAvatarMenu();goTab('profile')" class="subconta-item" style="font-size:14px;font-weight:700;color:#1c1e21;">
+          👤 Ver meu perfil
+        </button>
+        <button onclick="closeAvatarMenu();openEditProfile()" class="subconta-item" style="font-size:14px;font-weight:700;color:#1c1e21;">
+          ✏️ Editar perfil
+        </button>
+        <!-- Seção subcontas — só aparece para contas verificadas -->
+        <div id="avatar-menu-subcontas-wrap" style="display:none;">
           <div style="height:1px;background:#f3f4f6;margin:4px 0;"></div>
-          <button onclick="closeAvatarMenu();logout()" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 16px;border:none;background:none;font-size:14px;font-weight:700;color:#ef4444;cursor:pointer;font-family:'Nunito',sans-serif;text-align:left;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background=''">
-            🚪 Sair da conta
+          <div style="padding:8px 16px 4px;font-size:11px;font-weight:800;color:#65676b;letter-spacing:.5px;text-transform:uppercase;">Suas páginas</div>
+          <div id="avatar-menu-subcontas-list"></div>
+          <button id="btn-criar-subconta" onclick="closeAvatarMenu();abrirCriarSubconta()" class="subconta-item" style="font-size:13px;font-weight:700;color:#2563EB;">
+            <div style="width:34px;height:34px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">＋</div>
+            <span>Criar nova página</span>
           </button>
         </div>
+        <div style="height:1px;background:#f3f4f6;margin:4px 0;"></div>
+        <button onclick="closeAvatarMenu();logout()" class="subconta-item" style="font-size:14px;font-weight:700;color:#ef4444;">
+          🚪 Sair da conta
+        </button>
       </div>
     </div>
   </div>
@@ -2134,6 +2158,8 @@ function launch(u){
     _iniciarNotificacoesRealtime();
     _carregarComunidadesSite();
     if(window._sb && U.id) _carregarConversasSB();
+    // Carregar subcontas se conta verificada
+    if(U.verificado) _carregarSubcontas();
 
   }, 800);
 }
@@ -2895,7 +2921,7 @@ function card(p,i){
       ${avHTML}
       <div style="min-width:0;flex:1;">
         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-          <span class="post-name" style="cursor:pointer;" onclick="verPerfil('${esc(displayName)}','${displayIni}','${displayClr}',null)">${esc(displayName)}</span>${p.verificado||(_social&&_social.verificados&&_social.verificados[displayName])?'<svg width="16" height="16" viewBox="0 0 24 24" fill="#1d9bf0" style="margin-left:3px;vertical-align:middle;flex-shrink:0"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.26 3.91.8c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.36 14.67 22.25 13.43 22.25 12zm-6.07-1.92L10.5 15.76l-2.68-2.68a.75.75 0 00-1.06 1.06l3.21 3.22a.75.75 0 001.06 0l6.22-6.22a.75.75 0 10-1.06-1.06z"/></svg>':''}
+          <span class="post-name" style="cursor:pointer;" onclick="verPerfil('${esc(displayName)}','${displayIni}','${displayClr}','${p.own ? U.id : (p.autor_id||'')}')">${esc(displayName)}</span>${p.verificado||(_social&&_social.verificados&&_social.verificados[displayName])?'<svg width="16" height="16" viewBox="0 0 24 24" fill="#1d9bf0" style="margin-left:3px;vertical-align:middle;flex-shrink:0"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.26 3.91.8c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.36 14.67 22.25 13.43 22.25 12zm-6.07-1.92L10.5 15.76l-2.68-2.68a.75.75 0 00-1.06 1.06l3.21 3.22a.75.75 0 001.06 0l6.22-6.22a.75.75 0 10-1.06-1.06z"/></svg>':''}
           <span class="cat-pill ${t.c}">${t.l}</span>
         </div>
         ${p.comunidade_nome?`<div style="display:flex;align-items:center;gap:3px;font-size:12px;color:#65676b;font-weight:600;margin-top:2px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg><span style="color:#2563EB;font-weight:700;">🏘️ ${esc(p.comunidade_nome)}</span></div>`:''}
@@ -2903,7 +2929,7 @@ function card(p,i){
       </div>
     </div>
     <div style="position:relative;flex-shrink:0;">
-      <button class="msg-btn-post" title="Opções" onclick="togglePostMenu(event,'${p.id}','${esc(displayName)}','${displayIni}','${displayClr}',${p.own})">
+      <button class="msg-btn-post" title="Opções" onclick="togglePostMenu(event,'${p.id}','${esc(displayName)}','${displayIni}','${displayClr}',${p.own},'${p.own ? U.id : (p.autor_id||'')}')">
         <svg width="16" height="16" fill="#65676b" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
       </button>
     </div>
@@ -3489,6 +3515,11 @@ function applyAvatar(src){
   ids.forEach(function(id){
     var el = document.getElementById(id);
     if(!el) return;
+    // Salva filhos que não são imagem (ex: menu do avatar dentro do tb-av)
+    var savedChildren = [];
+    Array.from(el.children).forEach(function(child){
+      if(child.tagName !== 'IMG') savedChildren.push(child);
+    });
     // Remove qualquer background CSS que bloqueie a foto
     el.style.backgroundImage = '';
     el.style.backgroundSize  = '';
@@ -3507,13 +3538,19 @@ function applyAvatar(src){
         el.innerHTML = '';
         el.classList.add('g');
         el.textContent = U.ini || 'EU';
+        // Restaura filhos salvos
+        savedChildren.forEach(function(c){ el.appendChild(c); });
       };
       el.appendChild(img);
+      // Restaura filhos salvos (menu do avatar, etc.)
+      savedChildren.forEach(function(c){ el.appendChild(c); });
     } else {
       el.innerHTML = '';
       // Restaura gradiente padrão
       el.classList.add('g');
       el.textContent = U.ini || 'EU';
+      // Restaura filhos salvos
+      savedChildren.forEach(function(c){ el.appendChild(c); });
     }
   });
 
@@ -4924,12 +4961,227 @@ document.addEventListener('keydown',e=>{
 // ══════════════════════════════════════
 // MENU DO AVATAR (topbar)
 // ══════════════════════════════════════
+// ══════════════════════════════════════
+// SISTEMA DE SUBCONTAS (Páginas)
+// ══════════════════════════════════════
+var _subcontas = [];          // lista de subcontas do usuário verificado
+var _subcontaAtiva = null;    // null = conta principal ativa
+var LIMITE_SUBCONTAS = 5;
+
+// Carrega subcontas do Supabase para o usuário verificado
+async function _carregarSubcontas(){
+  if(!window._sb || !U.id || !U.verificado) return;
+  try{
+    var {data} = await window._sb.from('subcontas')
+      .select('*').eq('owner_id', U.id).order('criado_em',{ascending:true});
+    _subcontas = data || [];
+    _renderSubcontasMenu();
+  }catch(e){ console.warn('subcontas load:', e); }
+}
+
+// Renderiza a lista de subcontas no menu do avatar
+function _renderSubcontasMenu(){
+  var wrap = document.getElementById('avatar-menu-subcontas-wrap');
+  var list = document.getElementById('avatar-menu-subcontas-list');
+  var btnCriar = document.getElementById('btn-criar-subconta');
+  if(!wrap || !list) return;
+
+  // Só exibe para conta verificada (oficial)
+  if(!U.verificado){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+
+  // Monta lista
+  list.innerHTML = '';
+
+  // Item: conta principal
+  var isPrincipal = !_subcontaAtiva;
+  var ini = (U.ini || (U.name||'').slice(0,2)).toUpperCase();
+  var principalHTML = '<button onclick="closeAvatarMenu();alternarSubconta(null)" class="subconta-item'+(isPrincipal?' subconta-ativa':'')+'" style="font-size:13px;font-weight:700;color:#1c1e21;">'
+    + '<div class="subconta-av" style="background:'+U.clr+';">'+ ini
+    + '<div class="verif-dot"><svg width="8" height="8" viewBox="0 0 24 24" fill="#fff"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div></div>'
+    + '<div style="min-width:0;flex:1;"><div class="subconta-nome" style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(U.name||'Conta principal')+'</div>'
+    + '<div style="font-size:11px;color:#65676b;">Conta oficial ✓</div></div>'
+    + (isPrincipal?'<svg width="16" height="16" viewBox="0 0 24 24" fill="#2563EB"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>':'')
+    +'</button>';
+  list.innerHTML += principalHTML;
+
+  // Subcontas
+  _subcontas.forEach(function(sc){
+    var isAtiva = _subcontaAtiva && _subcontaAtiva.id === sc.id;
+    var scIni = (sc.ini || sc.nome.slice(0,2)).toUpperCase();
+    list.innerHTML += '<button onclick="closeAvatarMenu();alternarSubconta(\''+sc.id+'\')" class="subconta-item'+(isAtiva?' subconta-ativa':'')+'" style="font-size:13px;font-weight:700;color:#1c1e21;">'
+      + '<div class="subconta-av" style="background:'+sc.clr+';"><span>'+scIni+'</span></div>'
+      + '<div style="min-width:0;flex:1;"><div class="subconta-nome" style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+sc.nome+'</div>'
+      + '<div style="font-size:11px;color:#65676b;">Página</div></div>'
+      + (isAtiva?'<svg width="16" height="16" viewBox="0 0 24 24" fill="#2563EB"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>':'')
+      + '</button>';
+  });
+
+  // Esconde botão de criar se já atingiu o limite
+  if(btnCriar) btnCriar.style.display = _subcontas.length >= LIMITE_SUBCONTAS ? 'none' : 'flex';
+}
+
+// Troca para subconta ou volta para a conta principal (null)
+function alternarSubconta(subcontaId){
+  if(!subcontaId){
+    // Volta para conta principal
+    _subcontaAtiva = null;
+    _aplicarContaAtiva();
+    showToast('✅ Você está na conta principal.');
+    return;
+  }
+  var sc = _subcontas.find(function(s){ return s.id === subcontaId; });
+  if(!sc){ showToast('❌ Página não encontrada.'); return; }
+  _subcontaAtiva = sc;
+  _aplicarContaAtiva();
+  showToast('🔄 Alternado para: '+sc.nome);
+}
+
+// Aplica visualmente a conta/subconta ativa no avatar e topbar
+function _aplicarContaAtiva(){
+  var conta = _subcontaAtiva || { nome: U.name, ini: U.ini, clr: U.clr, verificado: true };
+  var ini = (conta.ini || conta.nome.slice(0,2)).toUpperCase();
+  var clr = conta.clr || U.clr;
+
+  var tbAv = document.getElementById('tb-av');
+  var menu = document.getElementById('avatar-menu');
+  if(tbAv){
+    if(U.photo && !_subcontaAtiva){
+      // Conta principal com foto — injeta img sem destruir o menu
+      var imgExist = tbAv.querySelector('img');
+      if(!imgExist){
+        // Remove só nós de texto, mantém elementos filhos
+        Array.from(tbAv.childNodes).forEach(function(n){ if(n.nodeType===3) n.remove(); });
+        var img = document.createElement('img');
+        img.src = U.photo;
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;';
+        img.onerror = function(){ this.remove(); tbAv.classList.add('g'); tbAv.insertBefore(document.createTextNode(U.ini||'EU'), tbAv.firstChild); };
+        tbAv.insertBefore(img, tbAv.firstChild);
+      }
+      tbAv.classList.remove('g');
+    } else {
+      // Subconta ou sem foto — mostra iniciais
+      tbAv.querySelector('img') && tbAv.querySelector('img').remove();
+      Array.from(tbAv.childNodes).forEach(function(n){ if(n.nodeType===3) n.remove(); });
+      tbAv.style.background = clr;
+      tbAv.classList.add('g');
+      tbAv.insertBefore(document.createTextNode(ini), tbAv.firstChild);
+    }
+    // Garante que o menu está sempre dentro do tb-av
+    if(menu && !tbAv.contains(menu)) tbAv.appendChild(menu);
+  }
+
+  if(tbAv) tbAv.style.outline = _subcontaAtiva ? '3px solid #ea580c' : '';
+  if(tbAv) tbAv.title = _subcontaAtiva ? 'Página: '+_subcontaAtiva.nome+' (clique para trocar)' : '';
+
+  _renderSubcontasMenu();
+}
+
+// Modal para criar nova subconta
+function abrirCriarSubconta(){
+  if(!U.verificado){ showToast('❌ Apenas contas oficiais podem criar páginas.'); return; }
+  if(_subcontas.length >= LIMITE_SUBCONTAS){ showToast('❌ Limite de '+LIMITE_SUBCONTAS+' páginas atingido.'); return; }
+
+  var overlay = document.createElement('div');
+  overlay.id = 'overlay-subconta';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9500;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;width:100%;max-width:420px;padding:28px;font-family:'Nunito',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <h3 style="font-size:20px;font-weight:900;margin:0;">📄 Nova Página</h3>
+          <p style="font-size:13px;color:#65676b;margin:4px 0 0;">${_subcontas.length}/${LIMITE_SUBCONTAS} páginas criadas</p>
+        </div>
+        <button onclick="document.getElementById('overlay-subconta').remove()" style="width:32px;height:32px;border-radius:50%;border:none;background:#f0f2f5;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <label style="font-size:12px;font-weight:800;color:#606770;display:block;margin-bottom:6px;">NOME DA PÁGINA</label>
+      <input id="sc-nome" type="text" placeholder="Ex: Minha Loja Centro, Filial Itaipava..." maxlength="60"
+        style="width:100%;border:1.5px solid #ced0d4;border-radius:8px;padding:12px 16px;font-size:16px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:14px;box-sizing:border-box;"
+        oninput="atualizarPreviewSubconta()" onkeydown="if(event.key==='Enter')criarSubconta()"/>
+      <label style="font-size:12px;font-weight:800;color:#606770;display:block;margin-bottom:6px;">DESCRIÇÃO (opcional)</label>
+      <input id="sc-bio" type="text" placeholder="Ex: Produtos artesanais de Petrópolis" maxlength="120"
+        style="width:100%;border:1.5px solid #ced0d4;border-radius:8px;padding:12px 16px;font-size:16px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:16px;box-sizing:border-box;"/>
+      <label style="font-size:12px;font-weight:800;color:#606770;display:block;margin-bottom:8px;">PRÉVIA</label>
+      <div style="display:flex;align-items:center;gap:12px;background:#f0f2f5;border-radius:10px;padding:12px 16px;margin-bottom:20px;">
+        <div id="sc-prev-av" style="width:44px;height:44px;border-radius:50%;background:#7C3AED;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;">?</div>
+        <div><div id="sc-prev-nome" style="font-size:15px;font-weight:800;color:#050505;">Nome da página</div>
+        <div style="font-size:12px;color:#65676b;margin-top:2px;">Página vinculada a <strong>${U.name||'sua conta'}</strong></div></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('overlay-subconta').remove()" style="flex:1;padding:12px;border:1.5px solid #ced0d4;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:#fff;font-family:'Nunito',sans-serif;">Cancelar</button>
+        <button id="btn-confirmar-sc" onclick="criarSubconta()" style="flex:2;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#2563EB,#7C3AED);color:#fff;font-family:'Nunito',sans-serif;">✅ Criar página</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) overlay.remove(); });
+  setTimeout(function(){ var el=document.getElementById('sc-nome'); if(el)el.focus(); },100);
+}
+
+function atualizarPreviewSubconta(){
+  var nome = (document.getElementById('sc-nome').value||'').trim();
+  var palavras = nome.split(' ').filter(Boolean);
+  var ini = palavras.length >= 2
+    ? (palavras[0][0]+palavras[palavras.length-1][0]).toUpperCase()
+    : (nome.slice(0,2)||'??').toUpperCase();
+  var cores = ['#1d4ed8','#7c3aed','#059669','#dc2626','#d97706','#db2777','#0891b2','#ea580c'];
+  var clr = cores[nome.length % cores.length] || '#7C3AED';
+  var av = document.getElementById('sc-prev-av');
+  var nm = document.getElementById('sc-prev-nome');
+  if(av){ av.textContent = ini||'?'; av.style.background = clr; }
+  if(nm) nm.textContent = nome || 'Nome da página';
+}
+
+async function criarSubconta(){
+  var nome = (document.getElementById('sc-nome')?.value||'').trim();
+  var bio  = (document.getElementById('sc-bio')?.value||'').trim();
+  if(!nome){ showToast('❌ Digite o nome da página.'); return; }
+  if(nome.length < 3){ showToast('❌ Nome muito curto. Mínimo 3 caracteres.'); return; }
+  if(_subcontas.length >= LIMITE_SUBCONTAS){ showToast('❌ Limite de '+LIMITE_SUBCONTAS+' páginas atingido.'); return; }
+  if(!window._sb || !U.id){ showToast('❌ Erro de conexão.'); return; }
+
+  var btn = document.getElementById('btn-confirmar-sc');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Criando...'; }
+
+  var palavras = nome.split(' ').filter(Boolean);
+  var ini = palavras.length >= 2
+    ? (palavras[0][0]+palavras[palavras.length-1][0]).toUpperCase()
+    : nome.slice(0,2).toUpperCase();
+  var cores = ['#1d4ed8','#7c3aed','#059669','#dc2626','#d97706','#db2777','#0891b2','#ea580c'];
+  var clr = cores[nome.length % cores.length];
+
+  var novaSc = {
+    owner_id: U.id,
+    nome: nome,
+    bio: bio,
+    ini: ini,
+    clr: clr,
+    criado_em: new Date().toISOString()
+  };
+
+  try{
+    var {data, error} = await window._sb.from('subcontas').insert([novaSc]).select().single();
+    if(error) throw error;
+    _subcontas.push(data || novaSc);
+    document.getElementById('overlay-subconta')?.remove();
+    showToast('✅ Página "'+nome+'" criada! Alterne pelo menu do avatar.');
+    _renderSubcontasMenu();
+  }catch(e){
+    console.error('criar subconta:', e);
+    // Fallback local se a tabela não existir ainda
+    var scLocal = Object.assign({id: 'local_'+Date.now()}, novaSc);
+    _subcontas.push(scLocal);
+    document.getElementById('overlay-subconta')?.remove();
+    showToast('✅ Página "'+nome+'" criada localmente.');
+    _renderSubcontasMenu();
+  }
+  if(btn){ btn.disabled=false; btn.textContent='✅ Criar página'; }
+}
+
 function toggleAvatarMenu(e){
   e.stopPropagation();
   const menu = document.getElementById('avatar-menu');
   if(!menu) return;
   const aberto = menu.style.display !== 'none';
-  // Fechar outros menus
   closePostMenu();
   if(aberto){
     menu.style.display = 'none';
@@ -4937,9 +5189,17 @@ function toggleAvatarMenu(e){
     // Atualizar info do usuário
     const nameEl = document.getElementById('avatar-menu-name');
     const emailEl = document.getElementById('avatar-menu-email');
-    if(nameEl) nameEl.textContent = U.name || 'Usuário';
-    if(emailEl) emailEl.textContent = U.email || '';
-    // Atualizar foto no avatar menu se tiver
+    const avEl = document.getElementById('avatar-menu-av');
+    var contaAtual = _subcontaAtiva || null;
+    var nome = contaAtual ? contaAtual.nome : (U.name||'Usuário');
+    var ini  = contaAtual ? (contaAtual.ini||contaAtual.nome.slice(0,2)).toUpperCase() : (U.ini||'EU');
+    var clr  = contaAtual ? contaAtual.clr : U.clr;
+    if(nameEl) nameEl.textContent = nome;
+    if(emailEl) emailEl.textContent = contaAtual ? '📄 Página' : (U.email||'');
+    if(avEl){ avEl.textContent=ini; avEl.style.background=clr; }
+    // Carregar subcontas se verificado e ainda não carregou
+    if(U.verificado && _subcontas.length === 0) _carregarSubcontas();
+    else _renderSubcontasMenu();
     menu.style.display = 'block';
     setTimeout(function(){
       document.addEventListener('click', closeAvatarMenu, {once:true});
@@ -5097,27 +5357,27 @@ var _social = {
 };
 
 // ── Menu dropdown do post ──
-function togglePostMenu(e, postId, nome, ini, clr, isOwn){
+function togglePostMenu(e, postId, nome, ini, clr, isOwn, autorId){
   e.stopPropagation();
-  // Fechar menus abertos
   document.querySelectorAll('.post-menu').forEach(m=>m.remove());
   const btn = e.currentTarget;
   const wrap = btn.parentElement;
   const menu = document.createElement('div');
   menu.className = 'post-menu';
+  var uid = autorId || '';
 
   if(isOwn){
     menu.innerHTML = `
       <button class="post-menu-item" onclick="closePostMenu();delPost(${postId})">🗑️ Apagar post</button>
     `;
   } else {
-    const jaSegue = _social.seguindo[nome];
+    const jaSegue = _social.seguindo[uid] || _social.seguindo[nome];
     const statusAmiz = _social.amizades[nome];
     menu.innerHTML = `
-      <button class="post-menu-item" onclick="closePostMenu();verPerfil('${nome}','${ini}','${clr}',null)">👤 Ver perfil</button>
-      <button class="post-menu-item" onclick="closePostMenu();startChat('${nome}','${ini}','${clr}')">💬 Enviar mensagem</button>
+      <button class="post-menu-item" onclick="closePostMenu();verPerfil('${nome}','${ini}','${clr}','${uid}')">👤 Ver perfil</button>
+      <button class="post-menu-item" onclick="closePostMenu();startChat('${nome}','${ini}','${clr}','${uid}')">💬 Enviar mensagem</button>
       <div class="post-menu-sep"></div>
-      <button class="post-menu-item" onclick="closePostMenu();toggleSeguir('${nome}','${ini}','${clr}')">
+      <button class="post-menu-item" onclick="closePostMenu();toggleSeguir('${nome}','${ini}','${clr}','${uid}')">
         ${jaSegue ? '✅ Deixar de seguir' : '➕ Seguir'}
       </button>
       <button class="post-menu-item" onclick="closePostMenu();acaoAmizade('${nome}','${ini}','${clr}')">
@@ -5130,7 +5390,6 @@ function togglePostMenu(e, postId, nome, ini, clr, isOwn){
   }
 
   wrap.appendChild(menu);
-  // Fechar ao clicar fora
   setTimeout(function(){
     document.addEventListener('click', closePostMenu, {once:true});
   },10);
@@ -5141,32 +5400,55 @@ function closePostMenu(){
 }
 
 // ── Seguir / Deixar de seguir ──
-async function toggleSeguir(nome, ini, clr){
-  var jaSegue = _social.seguindo[nome];
+async function toggleSeguir(nome, ini, clr, userId){
+  // Chave sempre por userId (uuid), fallback por nome se não tiver uid
+  var chave = userId || nome;
+  var jaSegue = _social.seguindo[chave];
   if(!window._sb || !U.id){
-    // Fallback local
-    _social.seguindo[nome] = !jaSegue;
+    _social.seguindo[chave] = !jaSegue;
     showToast(jaSegue ? 'Você deixou de seguir '+nome : '✓ Seguindo '+nome+'!');
     updateFollowCount(jaSegue ? -1 : 1);
     if(!jaSegue) addNotif('follow', nome, ini, clr, '');
     renderSuggestions();
     return;
   }
+  if(!userId){
+    // Tentar buscar o userId pelo nome na tabela membros
+    try{
+      var {data:m} = await window._sb.from('membros').select('user_id').eq('nome', nome).single();
+      if(m && m.user_id) userId = m.user_id;
+    }catch(_){}
+  }
+  if(!userId){ showToast('❌ Não foi possível identificar o usuário.'); return; }
+  chave = userId;
+  jaSegue = _social.seguindo[chave];
   try{
     if(jaSegue){
-      await window._sb.from('seguidores').delete().eq('seguidor_id', U.id).eq('seguido_id', nome);
-      _social.seguindo[nome] = false;
+      var {error} = await window._sb.from('seguidores').delete().eq('seguidor_id', U.id).eq('seguido_id', userId);
+      if(error) throw error;
+      _social.seguindo[chave] = false;
       updateFollowCount(-1);
       showToast('Você deixou de seguir '+nome);
     } else {
-      await window._sb.from('seguidores').insert([{seguidor_id: U.id, seguido_id: nome}]);
-      _social.seguindo[nome] = true;
+      var {error} = await window._sb.from('seguidores').insert([{seguidor_id: U.id, seguido_id: userId}]);
+      if(error) throw error;
+      _social.seguindo[chave] = true;
       updateFollowCount(1);
       showToast('✓ Agora você segue '+nome+'!');
       addNotif('follow', nome, ini, clr, '');
     }
     renderSuggestions();
-  }catch(e){ showToast('Erro: '+e.message); }
+  }catch(e){
+    var msg = e && e.message ? e.message : String(e);
+    if(msg.includes('duplicate') || msg.includes('unique')){
+      // Já seguia — sincroniza o estado local
+      _social.seguindo[chave] = true;
+      showToast('✓ Você já segue '+nome);
+    } else {
+      showToast('❌ Erro ao seguir: '+msg);
+      console.error('[EvoCity] toggleSeguir:', msg);
+    }
+  }
 }
 
 // ── Amizade ──
@@ -5357,11 +5639,17 @@ function _abrirPerfilDaLista(el){
   verPerfil(el.dataset.nome, el.dataset.ini, el.dataset.clr, el.dataset.uid);
 }
 function _seguirDaLista(btn){
-  toggleSeguir(btn.dataset.nome, btn.dataset.ini, btn.dataset.clr, btn.dataset.uid);
-  var jaSegue = _social.seguindo[btn.dataset.uid]||false;
-  btn.textContent = jaSegue ? '✓ Seguindo' : '+ Seguir';
-  btn.style.background = jaSegue ? '#e4e6ea' : '#2563EB';
-  btn.style.color = jaSegue ? '#050505' : '#fff';
+  var uid = btn.dataset.uid;
+  var nome = btn.dataset.nome;
+  var ini = btn.dataset.ini;
+  var clr = btn.dataset.clr;
+  toggleSeguir(nome, ini, clr, uid);
+  // Atualiza visual otimisticamente
+  var jaSegue = _social.seguindo[uid]||false;
+  var novoEstado = !jaSegue;
+  btn.textContent = novoEstado ? '✓ Seguindo' : '+ Seguir';
+  btn.style.background = novoEstado ? '#e4e6ea' : '#2563EB';
+  btn.style.color = novoEstado ? '#050505' : '#fff';
 }
 // ── Busca de pessoas ──
 async function buscarPessoas(q){
@@ -6087,6 +6375,7 @@ async function _carregarPostsSupabase(){
         // push preserva a ordem do Supabase (descending = mais novo primeiro)
         _novos.push({
           id: row.id, supabase_id: row.id,
+          autor_id: row.autor_id || '',
           author: row.autor||'📣 Admin EvoCity',
           ini: ini, clr: clr,
           cat: row.categoria||'n',
