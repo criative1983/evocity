@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -94,37 +94,137 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .subconta-ativa .subconta-nome{color:#9333EA!important;}
 .subconta-badge-oficial{display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#9333EA,#C026D3);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:4px;}
 /* ══════════════ LOGIN ══════════════ */
-#pg-login{background:#fff;min-height:100vh;}
-.ln-nav{height:70px;background:#fff;border-bottom:1px solid #dddfe2;display:flex;align-items:center;padding:0 20px;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 4px rgba(0,0,0,.1);}
-.ln-body{flex:1;display:flex;align-items:flex-start;justify-content:center;gap:40px;padding:60px 20px 40px;flex-wrap:wrap;}
-.ln-pitch{max-width:400px;padding-top:20px;}
-.ln-card{width:396px;background:#fff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1),0 8px 16px rgba(0,0,0,.1);padding:20px;}
-.ln-tabs{display:flex;border-bottom:1px solid #dddfe2;margin-bottom:16px;}
-.ln-tab{flex:1;padding:10px;border:none;background:none;font-size:14px;font-weight:700;color:#65676b;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;transition:.2s;font-family:'Nunito',sans-serif;}
-.ln-tab.on{color:var(--purple);border-bottom-color:var(--purple);}
-.ln-input{width:100%;border:1px solid #ccd0d5;border-radius:6px;padding:14px 16px;font-size:17px;font-weight:400;color:#1c1e21;outline:none;margin-bottom:12px;background:#fff;transition:.2s;}
-.ln-input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(147,51,234,.2);}
-.ln-input::placeholder{color:#90949c;}
-.ln-input option{color:#1c1e21;background:#fff;}
-.ln-lbl{font-size:12px;font-weight:700;color:#606770;display:block;margin-bottom:6px;}
-.btn-fb{width:100%;padding:14px;border:none;border-radius:6px;font-size:17px;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--blue),var(--purple));transition:.15s;font-family:'Nunito',sans-serif;position:relative;z-index:9999!important;pointer-events:auto!important;}
+/* ── LOGIN REFINADO ── */
+#pg-login{
+  background: linear-gradient(145deg,#0d0520 0%,#1a0840 35%,#2d1a4a 65%,#1a0535 100%);
+  min-height:100vh;
+  position:relative;
+  overflow:hidden;
+}
+/* partículas decorativas de fundo */
+#pg-login::before{
+  content:'';
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 30%, rgba(147,51,234,.18) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 350px at 80% 70%, rgba(192,38,211,.15) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 200px at 50% 10%, rgba(167,139,250,.12) 0%, transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+.ln-nav{
+  min-height:72px;
+  background:rgba(13,5,32,.75);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(147,51,234,.25);
+  display:flex;align-items:center;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 28px 12px;
+  justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+  box-shadow:0 2px 20px rgba(0,0,0,.4);
+}
+.ln-body{
+  flex:1;display:flex;align-items:flex-start;justify-content:center;
+  gap:48px;padding:64px 20px 48px;flex-wrap:wrap;
+  position:relative;z-index:1;
+}
+.ln-pitch{max-width:420px;padding-top:16px;}
+.ln-pitch h1{
+  font-size:30px;font-weight:800;
+  color:#f3e8ff;
+  line-height:1.3;margin-bottom:14px;
+  text-shadow:0 2px 12px rgba(0,0,0,.3);
+}
+/* pills do pitch */
+.ln-pitch .ln-pill{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(167,139,250,.25);
+  backdrop-filter:blur(8px);
+  border-radius:24px;padding:9px 16px;
+  font-size:14px;font-weight:700;
+  color:#e9d5ff;
+  transition:.2s;
+}
+.ln-pill:hover{background:rgba(147,51,234,.2);border-color:rgba(167,139,250,.5);}
+
+/* card glassmorphism */
+.ln-card{
+  width:400px;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border-radius:20px;
+  border:1px solid rgba(167,139,250,.2);
+  box-shadow:0 8px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
+  padding:28px 24px;
+}
+.ln-tabs{
+  display:flex;
+  border-bottom:1px solid rgba(147,51,234,.25);
+  margin-bottom:20px;
+}
+.ln-tab{
+  flex:1;padding:10px;border:none;background:none;
+  font-size:15px;font-weight:700;
+  color:rgba(233,213,255,.5);
+  cursor:pointer;border-bottom:3px solid transparent;
+  margin-bottom:-1px;transition:.2s;font-family:'Nunito',sans-serif;
+}
+.ln-tab.on{color:#e9d5ff;border-bottom-color:#9333EA;}
+.ln-input{
+  width:100%;
+  border:1px solid rgba(147,51,234,.3);
+  border-radius:10px;padding:13px 16px;
+  font-size:16px;font-weight:500;
+  color:#f3e8ff;outline:none;
+  margin-bottom:12px;
+  background:rgba(255,255,255,.07);
+  transition:.2s;font-family:'Nunito',sans-serif;
+}
+.ln-input:focus{
+  border-color:#9333EA;
+  background:rgba(147,51,234,.12);
+  box-shadow:0 0 0 3px rgba(147,51,234,.2);
+}
+.ln-input::placeholder{color:rgba(167,139,250,.6);}
+.ln-input option{color:#1c1e21;background:#2d1a4a;}
+.ln-lbl{font-size:12px;font-weight:700;color:rgba(167,139,250,.8);display:block;margin-bottom:6px;}
+.btn-fb{
+  width:100%;padding:14px;border:none;
+  border-radius:10px;font-size:17px;font-weight:800;
+  color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#9333EA,#C026D3);
+  box-shadow:0 4px 20px rgba(147,51,234,.45);
+  transition:.2s;font-family:'Nunito',sans-serif;
+  position:relative;z-index:9999!important;pointer-events:auto!important;
+  letter-spacing:.3px;
+}
 .btn-fb::before,.btn-fb::after{display:none!important;pointer-events:none!important;}
-.btn-fb:hover{opacity:.9;}
+.btn-fb:hover{opacity:.92;box-shadow:0 6px 28px rgba(147,51,234,.6);transform:translateY(-1px);}
 .btn-fb:active{transform:scale(.98);}
-.btn-outline{width:100%;padding:12px;border:1px solid #dddfe2;border-radius:6px;font-size:15px;font-weight:700;color:#606770;cursor:pointer;background:#fff;transition:.2s;font-family:'Nunito',sans-serif;}
-.btn-outline:hover{background:#f5f6f7;}
+.btn-outline{
+  width:100%;padding:12px;
+  border:1px solid rgba(147,51,234,.35);
+  border-radius:10px;font-size:15px;font-weight:700;
+  color:#e9d5ff;cursor:pointer;
+  background:rgba(255,255,255,.05);
+  transition:.2s;font-family:'Nunito',sans-serif;
+}
+.btn-outline:hover{background:rgba(147,51,234,.15);border-color:rgba(147,51,234,.6);}
 .div-sep{display:flex;align-items:center;gap:10px;margin:14px 0;}
-.div-sep::before,.div-sep::after{content:'';flex:1;height:1px;background:#dddfe2;}
-.div-sep span{font-size:13px;color:#90949c;font-weight:600;}
+.div-sep::before,.div-sep::after{content:'';flex:1;height:1px;background:rgba(147,51,234,.25);}
+.div-sep span{font-size:13px;color:rgba(167,139,250,.6);font-weight:600;}
 
 /* ══════════════ APP ══════════════ */
-#pg-app{background:var(--bg);}
+#pg-app{background:#EEEAF5;}
 
 /* topbar — totalmente alinhado */
 .topbar{
-  height:60px;
-  background:#06020f;
-  border-bottom:1px solid #2d1a4a;
+  height:62px;
+  background:linear-gradient(90deg,#0d0520 0%,#1a0840 50%,#0d0520 100%);
+  border-bottom:1px solid rgba(147,51,234,.35);
   display:flex;
   align-items:stretch;
   padding:0 12px;
@@ -132,12 +232,13 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
   position:sticky;
   top:0;
   z-index:200;
-  box-shadow:0 2px 16px rgba(147,51,234,.3);
+  box-shadow:0 2px 20px rgba(80,0,160,.5);
 }
 .tb-logo{display:flex;align-items:center;gap:6px;flex-shrink:0;text-decoration:none;padding:0 4px;}
-.tb-search{display:flex;align-items:center;gap:6px;background:rgba(147,51,234,.15);border:1px solid rgba(147,51,234,.3);border-radius:50px;padding:8px 16px;cursor:text;flex-shrink:0;align-self:center;}
+.tb-search{display:flex;align-items:center;gap:6px;background:rgba(147,51,234,.18);border:1px solid rgba(167,139,250,.3);border-radius:50px;padding:8px 16px;cursor:text;flex-shrink:0;align-self:center;transition:.2s;}
+.tb-search:hover{background:rgba(147,51,234,.28);border-color:rgba(167,139,250,.5);}
 .tb-search input{border:none;background:transparent;font-size:15px;color:#e9d5ff;outline:none;width:180px;}
-.tb-search input::placeholder{color:#7c3aed;}
+.tb-search input::placeholder{color:rgba(167,139,250,.55);}
 
 /* center nav — cada aba com cor própria */
 .tb-center{flex:1;display:flex;justify-content:center;align-items:stretch;gap:0;}
@@ -188,7 +289,7 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 #li-promo.on{background:#fff7ed;color:#dc6803;}
 #li-promo .li-ico{background:#fed7aa;}
 /* promo cards */
-.promo-card{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.1);transition:.2s;cursor:pointer;}
+.promo-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(100,0,180,.08);transition:.2s;cursor:pointer;border:1px solid rgba(147,51,234,.07);}
 .promo-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.14);transform:translateY(-2px);}
 .promo-thumb{width:100%;aspect-ratio:1/1;overflow:hidden;background:#f0f2f5;position:relative;}
 .promo-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s;}
@@ -244,7 +345,7 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .col-right::-webkit-scrollbar{display:none;}
 
 /* left sidebar */
-.side-card{background:#fff;border-radius:8px;padding:12px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+.side-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(100,0,180,.08);border:1px solid rgba(147,51,234,.07);}
 .side-av-row{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;cursor:pointer;margin-bottom:4px;}
 .side-av-row:hover{background:#f2f2f2;}
 .left-item{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:600;color:#1c1e21;border:none;background:none;width:100%;text-align:left;font-family:'Nunito',sans-serif;transition:.15s;}
@@ -265,7 +366,7 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .side-section-title{font-size:17px;font-weight:700;color:#606770;padding:8px;margin-bottom:4px;}
 
 /* ─── PUBLISH BOX (Facebook scale) ─── */
-.pub-card{background:#fff;border-radius:8px;padding:12px 16px;box-shadow:0 1px 2px rgba(0,0,0,.1);margin-bottom:16px;}
+.pub-card{background:#fff;border-radius:12px;padding:12px 16px;box-shadow:0 2px 8px rgba(100,0,180,.08);margin-bottom:14px;border:1px solid rgba(147,51,234,.08);}
 .pub-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .pub-fake{flex:1;background:#f0f2f5;border:1px solid #ced0d4;border-radius:50px;padding:10px 16px;font-size:15px;color:#65676b;cursor:pointer;font-weight:500;transition:.2s;}
 .pub-fake:hover{background:#e4e6e9;}
@@ -275,7 +376,7 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .pub-act:hover{background:#f2f2f2;}
 
 /* ─── POST CARD (Facebook scale) ─── */
-.post-card{background:#fff;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.1);margin-bottom:16px;overflow:hidden;}
+.post-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(100,0,180,.08),0 1px 2px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden;border:1px solid rgba(147,51,234,.07);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .post-header{display:flex;align-items:flex-start;justify-content:space-between;padding:12px 16px 0;}
 .post-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0;}
@@ -370,11 +471,11 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .cls-stab{padding:12px 20px;border:none;background:none;font-size:15px;font-weight:700;color:#65676b;cursor:pointer;font-family:'Nunito',sans-serif;border-bottom:3px solid transparent;margin-bottom:-2px;transition:.15s;}
 .cls-stab.on{color:var(--purple);border-bottom-color:var(--purple);}
 .cls-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
-.cls-card{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.1);transition:.2s;cursor:pointer;}
+.cls-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(100,0,180,.08);transition:.2s;cursor:pointer;border:1px solid rgba(147,51,234,.07);}
 .cls-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.15);transform:translateY(-2px);}
 .cls-thumb{height:160px;display:flex;align-items:center;justify-content:center;font-size:56px;}
 .price-tag{display:inline-block;background:linear-gradient(135deg,#9333EA,#C026D3);color:#fff;font-size:13px;font-weight:800;padding:4px 12px;border-radius:6px;}
-.job-row{background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);display:flex;gap:14px;transition:.15s;}
+.job-row{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(100,0,180,.08);display:flex;gap:14px;transition:.15s;border:1px solid rgba(147,51,234,.07);}
 .job-row:hover{box-shadow:0 4px 20px rgba(0,0,0,.12);}
 
 /* ══════════════ SERVICES ══════════════ */
@@ -391,7 +492,7 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .svc-drop-txt:last-child{border-bottom:none;}
 .svc-drop-txt:hover{background:#f0fdf4;color:#059669;font-weight:700;}
 .svc-drop-txt.on{background:#f0fdf4;color:#059669;font-weight:800;}
-.svc-row{background:#fff;border-radius:8px;padding:16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.1);display:flex;gap:14px;transition:.15s;}
+.svc-row{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(100,0,180,.08);display:flex;gap:14px;transition:.15s;border:1px solid rgba(147,51,234,.07);}
 .svc-row:hover{box-shadow:0 4px 20px rgba(0,0,0,.12);}
 
 /* ══════════════ MESSAGES ══════════════ */
@@ -1161,20 +1262,20 @@ img.av-foto[data-ini]{display:block;}
 
 <!-- ════ LOGIN SCREEN (não mexer) ════ -->
 <div id="pg-login" class="scr" style="display:none;">
-  <div class="ln-nav" style="background:#fff;border-bottom:1px solid #dddfe2;">
-    <svg width="220" height="70" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lnng" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C026D3"/><stop offset="50%" stop-color="#9333EA"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient><linearGradient id="lntg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#D946EF"/><stop offset="55%" stop-color="#9333EA"/><stop offset="100%" stop-color="#60A5FA"/></linearGradient><linearGradient id="lnsg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#7DD3FC"/></linearGradient><linearGradient id="lnsky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#08031a"/><stop offset="100%" stop-color="#0d0520"/></linearGradient><linearGradient id="lnglw" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#7C3AED" stop-opacity="0.6"/><stop offset="100%" stop-color="#C026D3" stop-opacity="0"/></linearGradient><filter id="lngg"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="lngs"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="lnec"><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z"/></clipPath></defs><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="url(#lnsky)"/><g clip-path="url(#lnec)"><rect x="20" y="0" width="168" height="242" fill="url(#lnsky)"/><rect x="20" y="185" width="168" height="57" fill="url(#lnglw)"/><rect x="30" y="190" width="13" height="52" fill="#1a0d45"/><rect x="50" y="178" width="9" height="64" fill="#150a35"/><rect x="66" y="168" width="9" height="74" fill="#120835"/><rect x="82" y="184" width="10" height="58" fill="#160940"/><rect x="100" y="195" width="12" height="47" fill="#1a0d45"/><rect x="118" y="185" width="9" height="57" fill="#130835"/><rect x="134" y="198" width="16" height="44" fill="#1a0a3a"/><rect x="158" y="188" width="10" height="54" fill="#150a35"/><rect x="32" y="162" width="3" height="2" fill="#D946EF" opacity="0.95"/><rect x="38" y="168" width="3" height="2" fill="#60A5FA" opacity="0.85"/><rect x="32" y="174" width="3" height="2" fill="#9333EA" opacity="0.8"/><rect x="84" y="148" width="3" height="3" fill="#C026D3" opacity="0.95"/><rect x="90" y="154" width="3" height="3" fill="#A78BFA" opacity="0.8"/><rect x="84" y="160" width="3" height="3" fill="#60A5FA" opacity="0.85"/><rect x="102" y="151" width="3" height="3" fill="#D946EF" opacity="0.9"/><rect x="108" y="157" width="3" height="3" fill="#9333EA" opacity="0.75"/><rect x="120" y="149" width="4" height="3" fill="#7C3AED" opacity="0.95"/><rect x="127" y="155" width="4" height="3" fill="#C026D3" opacity="0.75"/><rect x="120" y="161" width="4" height="3" fill="#A78BFA" opacity="0.85"/><rect x="140" y="152" width="3" height="2" fill="#60A5FA" opacity="0.9"/><rect x="146" y="157" width="3" height="2" fill="#D946EF" opacity="0.75"/><circle cx="154" cy="22" r="11" fill="#1a0d45"/><circle cx="154" cy="22" r="7" fill="#08031a"/><circle cx="157" cy="19" r="4" fill="#281160"/><circle cx="158" cy="19" r="2.5" fill="#A78BFA" opacity="0.55"/><circle cx="30" cy="14" r="0.8" fill="white" opacity="0.8"/><circle cx="54" cy="10" r="0.6" fill="white" opacity="0.6"/><circle cx="80" cy="16" r="0.7" fill="white" opacity="0.75"/><circle cx="108" cy="8" r="0.6" fill="white" opacity="0.6"/><circle cx="130" cy="14" r="0.5" fill="white" opacity="0.5"/><ellipse cx="104" cy="210" rx="80" ry="14" fill="#7C3AED" opacity="0.09"/></g><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lnng)" stroke-width="22" stroke-linejoin="miter" opacity="0.18" filter="url(#lngg)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lnng)" stroke-width="5" stroke-linejoin="miter" filter="url(#lngs)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lnng)" stroke-width="2" stroke-linejoin="miter" opacity="1"/><path d="M29,27 L29,233 L179,233 L179,191 L97,191 L97,158 L165,158 L165,112 L97,112 L97,71 L179,71 L179,27 L161,9 L49,9 Z" fill="none" stroke="url(#lntg)" stroke-width="1" stroke-linejoin="miter" opacity="0.4"/><text x="228" y="150" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-size="88" font-weight="900" fill="url(#lntg)" letter-spacing="-2">Evo</text><text x="395" y="150" font-family="'Helvetica Neue',Arial,sans-serif" font-size="88" font-weight="300" fill="url(#lntg)" letter-spacing="-2">City</text><text x="231" y="192" font-family="'Helvetica Neue',Arial,sans-serif" font-size="15" font-weight="400" fill="url(#lnsg)" letter-spacing="4">CONECTANDO PETRÓPOLIS</text></svg>
-    <p style="font-size:13px;font-weight:700;color:#90949c;">Petrópolis · RJ</p>
+  <div class="ln-nav" style="background:#fff;border-bottom:1px solid #dddfe2;padding-top:calc(env(safe-area-inset-top, 0px) + 12px);">
+    <svg width="220" height="70" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lnng" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C026D3"/><stop offset="50%" stop-color="#9333EA"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient><linearGradient id="lntg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#D946EF"/><stop offset="55%" stop-color="#9333EA"/><stop offset="100%" stop-color="#60A5FA"/></linearGradient><linearGradient id="lnsg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#7DD3FC"/></linearGradient><linearGradient id="lnsky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#08031a"/><stop offset="100%" stop-color="#0d0520"/></linearGradient><linearGradient id="lnglw" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#7C3AED" stop-opacity="0.6"/><stop offset="100%" stop-color="#C026D3" stop-opacity="0"/></linearGradient><filter id="lngg"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="lngs"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="lnec"><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z"/></clipPath></defs><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="url(#lnsky)"/><g clip-path="url(#lnec)"><rect x="20" y="0" width="168" height="242" fill="url(#lnsky)"/><rect x="20" y="185" width="168" height="57" fill="url(#lnglw)"/><rect x="30" y="190" width="13" height="52" fill="#1a0d45"/><rect x="50" y="178" width="9" height="64" fill="#150a35"/><rect x="66" y="168" width="9" height="74" fill="#120835"/><rect x="82" y="184" width="10" height="58" fill="#160940"/><rect x="100" y="195" width="12" height="47" fill="#1a0d45"/><rect x="118" y="185" width="9" height="57" fill="#130835"/><rect x="134" y="198" width="16" height="44" fill="#1a0a3a"/><rect x="158" y="188" width="10" height="54" fill="#150a35"/><rect x="32" y="162" width="3" height="2" fill="#D946EF" opacity="0.95"/><rect x="38" y="168" width="3" height="2" fill="#60A5FA" opacity="0.85"/><rect x="32" y="174" width="3" height="2" fill="#9333EA" opacity="0.8"/><rect x="84" y="148" width="3" height="3" fill="#C026D3" opacity="0.95"/><rect x="90" y="154" width="3" height="3" fill="#A78BFA" opacity="0.8"/><rect x="84" y="160" width="3" height="3" fill="#60A5FA" opacity="0.85"/><rect x="102" y="151" width="3" height="3" fill="#D946EF" opacity="0.9"/><rect x="108" y="157" width="3" height="3" fill="#9333EA" opacity="0.75"/><rect x="120" y="149" width="4" height="3" fill="#7C3AED" opacity="0.95"/><rect x="127" y="155" width="4" height="3" fill="#C026D3" opacity="0.75"/><rect x="120" y="161" width="4" height="3" fill="#A78BFA" opacity="0.85"/><rect x="140" y="152" width="3" height="2" fill="#60A5FA" opacity="0.9"/><rect x="146" y="157" width="3" height="2" fill="#D946EF" opacity="0.75"/><circle cx="154" cy="22" r="11" fill="#1a0d45"/><circle cx="154" cy="22" r="7" fill="#08031a"/><circle cx="157" cy="19" r="4" fill="#281160"/><circle cx="158" cy="19" r="2.5" fill="#A78BFA" opacity="0.55"/><circle cx="30" cy="14" r="0.8" fill="white" opacity="0.8"/><circle cx="54" cy="10" r="0.6" fill="white" opacity="0.6"/><circle cx="80" cy="16" r="0.7" fill="white" opacity="0.75"/><circle cx="108" cy="8" r="0.6" fill="white" opacity="0.6"/><circle cx="130" cy="14" r="0.5" fill="white" opacity="0.5"/><ellipse cx="104" cy="210" rx="80" ry="14" fill="#7C3AED" opacity="0.09"/></g><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lnng)" stroke-width="22" stroke-linejoin="miter" opacity="0.18" filter="url(#lngg)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lnng)" stroke-width="5" stroke-linejoin="miter" filter="url(#lngs)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lnng)" stroke-width="2" stroke-linejoin="miter" opacity="1"/><path d="M29,27 L29,233 L179,233 L179,191 L97,191 L97,158 L165,158 L165,112 L97,112 L97,71 L179,71 L179,27 L161,9 L49,9 Z" fill="none" stroke="url(#lntg)" stroke-width="1" stroke-linejoin="miter" opacity="0.4"/><text x="228" y="150" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-size="88" fill="url(#lntg)" letter-spacing="-2"><tspan font-weight="900">Evo</tspan><tspan font-weight="300">City</tspan></text><text x="231" y="192" font-family="'Helvetica Neue',Arial,sans-serif" font-size="15" font-weight="400" fill="url(#lnsg)" letter-spacing="4">CONECTANDO PETRÓPOLIS</text></svg>
+    <p style="font-size:13px;font-weight:700;color:rgba(167,139,250,.7);">Petrópolis · RJ</p>
   </div>
   <div class="ln-body">
     <!-- pitch -->
     <div class="ln-pitch">
-      <svg width="360" height="140" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lpng" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C026D3"/><stop offset="50%" stop-color="#9333EA"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient><linearGradient id="lptg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#D946EF"/><stop offset="55%" stop-color="#9333EA"/><stop offset="100%" stop-color="#60A5FA"/></linearGradient><linearGradient id="lpsg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#7DD3FC"/></linearGradient><linearGradient id="lpsky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#08031a"/><stop offset="100%" stop-color="#0d0520"/></linearGradient><linearGradient id="lpglw" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#7C3AED" stop-opacity="0.6"/><stop offset="100%" stop-color="#C026D3" stop-opacity="0"/></linearGradient><filter id="lpgg"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="lpgs"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="lpec"><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z"/></clipPath></defs><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="url(#lpsky)"/><g clip-path="url(#lpec)"><rect x="20" y="0" width="168" height="242" fill="url(#lpsky)"/><rect x="20" y="185" width="168" height="57" fill="url(#lpglw)"/><rect x="30" y="190" width="13" height="52" fill="#1a0d45"/><rect x="50" y="178" width="9" height="64" fill="#150a35"/><rect x="66" y="168" width="9" height="74" fill="#120835"/><rect x="82" y="184" width="10" height="58" fill="#160940"/><rect x="100" y="195" width="12" height="47" fill="#1a0d45"/><rect x="118" y="185" width="9" height="57" fill="#130835"/><rect x="134" y="198" width="16" height="44" fill="#1a0a3a"/><rect x="158" y="188" width="10" height="54" fill="#150a35"/><rect x="32" y="162" width="3" height="2" fill="#D946EF" opacity="0.95"/><rect x="38" y="168" width="3" height="2" fill="#60A5FA" opacity="0.85"/><rect x="32" y="174" width="3" height="2" fill="#9333EA" opacity="0.8"/><rect x="84" y="148" width="3" height="3" fill="#C026D3" opacity="0.95"/><rect x="90" y="154" width="3" height="3" fill="#A78BFA" opacity="0.8"/><rect x="84" y="160" width="3" height="3" fill="#60A5FA" opacity="0.85"/><rect x="102" y="151" width="3" height="3" fill="#D946EF" opacity="0.9"/><rect x="108" y="157" width="3" height="3" fill="#9333EA" opacity="0.75"/><rect x="120" y="149" width="4" height="3" fill="#7C3AED" opacity="0.95"/><rect x="127" y="155" width="4" height="3" fill="#C026D3" opacity="0.75"/><rect x="120" y="161" width="4" height="3" fill="#A78BFA" opacity="0.85"/><rect x="140" y="152" width="3" height="2" fill="#60A5FA" opacity="0.9"/><rect x="146" y="157" width="3" height="2" fill="#D946EF" opacity="0.75"/><circle cx="154" cy="22" r="11" fill="#1a0d45"/><circle cx="154" cy="22" r="7" fill="#08031a"/><circle cx="157" cy="19" r="4" fill="#281160"/><circle cx="158" cy="19" r="2.5" fill="#A78BFA" opacity="0.55"/><circle cx="30" cy="14" r="0.8" fill="white" opacity="0.8"/><circle cx="54" cy="10" r="0.6" fill="white" opacity="0.6"/><circle cx="80" cy="16" r="0.7" fill="white" opacity="0.75"/><circle cx="108" cy="8" r="0.6" fill="white" opacity="0.6"/><circle cx="130" cy="14" r="0.5" fill="white" opacity="0.5"/><ellipse cx="104" cy="210" rx="80" ry="14" fill="#7C3AED" opacity="0.09"/></g><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lpng)" stroke-width="22" stroke-linejoin="miter" opacity="0.18" filter="url(#lpgg)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lpng)" stroke-width="5" stroke-linejoin="miter" filter="url(#lpgs)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lpng)" stroke-width="2" stroke-linejoin="miter" opacity="1"/><path d="M29,27 L29,233 L179,233 L179,191 L97,191 L97,158 L165,158 L165,112 L97,112 L97,71 L179,71 L179,27 L161,9 L49,9 Z" fill="none" stroke="url(#lptg)" stroke-width="1" stroke-linejoin="miter" opacity="0.4"/><text x="228" y="150" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-size="88" font-weight="900" fill="url(#lptg)" letter-spacing="-2">Evo</text><text x="395" y="150" font-family="'Helvetica Neue',Arial,sans-serif" font-size="88" font-weight="300" fill="url(#lptg)" letter-spacing="-2">City</text><text x="231" y="192" font-family="'Helvetica Neue',Arial,sans-serif" font-size="15" font-weight="400" fill="url(#lpsg)" letter-spacing="4">CONECTANDO PETRÓPOLIS</text></svg>
-      <h1 style="font-size:28px;font-weight:700;color:#1c1e21;line-height:1.3;margin-bottom:12px;">O mural que conecta Petrópolis</h1>
+      <svg width="360" height="140" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lpng" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C026D3"/><stop offset="50%" stop-color="#9333EA"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient><linearGradient id="lptg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#D946EF"/><stop offset="55%" stop-color="#9333EA"/><stop offset="100%" stop-color="#60A5FA"/></linearGradient><linearGradient id="lpsg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#7DD3FC"/></linearGradient><linearGradient id="lpsky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#08031a"/><stop offset="100%" stop-color="#0d0520"/></linearGradient><linearGradient id="lpglw" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#7C3AED" stop-opacity="0.6"/><stop offset="100%" stop-color="#C026D3" stop-opacity="0"/></linearGradient><filter id="lpgg"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="lpgs"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="lpec"><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z"/></clipPath></defs><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="url(#lpsky)"/><g clip-path="url(#lpec)"><rect x="20" y="0" width="168" height="242" fill="url(#lpsky)"/><rect x="20" y="185" width="168" height="57" fill="url(#lpglw)"/><rect x="30" y="190" width="13" height="52" fill="#1a0d45"/><rect x="50" y="178" width="9" height="64" fill="#150a35"/><rect x="66" y="168" width="9" height="74" fill="#120835"/><rect x="82" y="184" width="10" height="58" fill="#160940"/><rect x="100" y="195" width="12" height="47" fill="#1a0d45"/><rect x="118" y="185" width="9" height="57" fill="#130835"/><rect x="134" y="198" width="16" height="44" fill="#1a0a3a"/><rect x="158" y="188" width="10" height="54" fill="#150a35"/><rect x="32" y="162" width="3" height="2" fill="#D946EF" opacity="0.95"/><rect x="38" y="168" width="3" height="2" fill="#60A5FA" opacity="0.85"/><rect x="32" y="174" width="3" height="2" fill="#9333EA" opacity="0.8"/><rect x="84" y="148" width="3" height="3" fill="#C026D3" opacity="0.95"/><rect x="90" y="154" width="3" height="3" fill="#A78BFA" opacity="0.8"/><rect x="84" y="160" width="3" height="3" fill="#60A5FA" opacity="0.85"/><rect x="102" y="151" width="3" height="3" fill="#D946EF" opacity="0.9"/><rect x="108" y="157" width="3" height="3" fill="#9333EA" opacity="0.75"/><rect x="120" y="149" width="4" height="3" fill="#7C3AED" opacity="0.95"/><rect x="127" y="155" width="4" height="3" fill="#C026D3" opacity="0.75"/><rect x="120" y="161" width="4" height="3" fill="#A78BFA" opacity="0.85"/><rect x="140" y="152" width="3" height="2" fill="#60A5FA" opacity="0.9"/><rect x="146" y="157" width="3" height="2" fill="#D946EF" opacity="0.75"/><circle cx="154" cy="22" r="11" fill="#1a0d45"/><circle cx="154" cy="22" r="7" fill="#08031a"/><circle cx="157" cy="19" r="4" fill="#281160"/><circle cx="158" cy="19" r="2.5" fill="#A78BFA" opacity="0.55"/><circle cx="30" cy="14" r="0.8" fill="white" opacity="0.8"/><circle cx="54" cy="10" r="0.6" fill="white" opacity="0.6"/><circle cx="80" cy="16" r="0.7" fill="white" opacity="0.75"/><circle cx="108" cy="8" r="0.6" fill="white" opacity="0.6"/><circle cx="130" cy="14" r="0.5" fill="white" opacity="0.5"/><ellipse cx="104" cy="210" rx="80" ry="14" fill="#7C3AED" opacity="0.09"/></g><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lpng)" stroke-width="22" stroke-linejoin="miter" opacity="0.18" filter="url(#lpgg)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lpng)" stroke-width="5" stroke-linejoin="miter" filter="url(#lpgs)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#lpng)" stroke-width="2" stroke-linejoin="miter" opacity="1"/><path d="M29,27 L29,233 L179,233 L179,191 L97,191 L97,158 L165,158 L165,112 L97,112 L97,71 L179,71 L179,27 L161,9 L49,9 Z" fill="none" stroke="url(#lptg)" stroke-width="1" stroke-linejoin="miter" opacity="0.4"/><text x="228" y="150" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-size="88" fill="url(#lptg)" letter-spacing="-2"><tspan font-weight="900">Evo</tspan><tspan font-weight="300">City</tspan></text><text x="231" y="192" font-family="'Helvetica Neue',Arial,sans-serif" font-size="15" font-weight="400" fill="url(#lpsg)" letter-spacing="4">CONECTANDO PETRÓPOLIS</text></svg>
+      <h1 style="font-size:30px;font-weight:800;color:#f3e8ff;line-height:1.3;margin-bottom:14px;text-shadow:0 2px 12px rgba(0,0,0,.3);">O mural que conecta Petrópolis</h1>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
-        <div style="display:flex;align-items:center;gap:6px;background:#f0f2f5;border-radius:20px;padding:8px 14px;font-size:14px;font-weight:700;color:#1c1e21;"><span>📰</span> Feed Local</div>
-        <div style="display:flex;align-items:center;gap:6px;background:#f0f2f5;border-radius:20px;padding:8px 14px;font-size:14px;font-weight:700;color:#1c1e21;"><span>🛒</span> Classificados</div>
-        <div style="display:flex;align-items:center;gap:6px;background:#f0f2f5;border-radius:20px;padding:8px 14px;font-size:14px;font-weight:700;color:#1c1e21;"><span>🔧</span> Serviços</div>
-        <div style="display:flex;align-items:center;gap:6px;background:#f0f2f5;border-radius:20px;padding:8px 14px;font-size:14px;font-weight:700;color:#1c1e21;"><span>💬</span> Mensagens</div>
+        <div class="ln-pill"><span>📰</span> Feed Local</div>
+        <div class="ln-pill"><span>🛒</span> Classificados</div>
+        <div class="ln-pill"><span>🔧</span> Serviços</div>
+        <div class="ln-pill"><span>💬</span> Mensagens</div>
       </div>
     </div>
     <!-- card -->
@@ -1189,9 +1290,9 @@ img.av-foto[data-ini]{display:block;}
         <input id="l-pass" class="ln-input" type="password" placeholder="Senha" style="font-size:17px;margin-bottom:6px;" onkeydown="if(event.key==='Enter')doLogin()"/>
         <button id="btn-login" class="btn-fb" onclick="doLogin()" style="cursor:pointer;position:relative;z-index:9999;">Entrar</button>
         <div style="text-align:center;margin-top:12px;">
-          <a href="#" onclick="abrirEsqueciSenha();return false;" style="font-size:14px;font-weight:700;color:var(--blue);">Esqueceu a senha?</a>
+          <a href="#" onclick="abrirEsqueciSenha();return false;" style="font-size:14px;font-weight:700;color:#c084fc;">Esqueceu a senha?</a>
         </div>
-        <p style="font-size:12px;color:#90949c;text-align:center;margin-top:8px;font-weight:600;">Ao entrar você concorda com os Termos de Uso da EvoCity.</p>
+        <p style="font-size:12px;color:rgba(167,139,250,.5);text-align:center;margin-top:8px;font-weight:600;">Ao entrar você concorda com os Termos de Uso da EvoCity.</p>
       </div>
       <!-- register -->
       <div id="fr" style="display:none;">
@@ -1218,7 +1319,7 @@ img.av-foto[data-ini]{display:block;}
 
   <!-- TOPBAR -->
   <div class="topbar">
-    <div class="tb-logo" onclick="goTab('feed')" title="Página inicial" style="cursor:pointer;"><svg width="130" height="50" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tbng" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C026D3"/><stop offset="50%" stop-color="#9333EA"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient><linearGradient id="tbtg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#D946EF"/><stop offset="55%" stop-color="#9333EA"/><stop offset="100%" stop-color="#60A5FA"/></linearGradient><linearGradient id="tbsg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#7DD3FC"/></linearGradient><linearGradient id="tbsky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#08031a"/><stop offset="100%" stop-color="#0d0520"/></linearGradient><linearGradient id="tbglw" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#7C3AED" stop-opacity="0.6"/><stop offset="100%" stop-color="#C026D3" stop-opacity="0"/></linearGradient><filter id="tbgg"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="tbgs"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="tbec"><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z"/></clipPath></defs><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="url(#tbsky)"/><g clip-path="url(#tbec)"><rect x="20" y="0" width="168" height="242" fill="url(#tbsky)"/><rect x="20" y="185" width="168" height="57" fill="url(#tbglw)"/><rect x="30" y="190" width="13" height="52" fill="#1a0d45"/><rect x="50" y="178" width="9" height="64" fill="#150a35"/><rect x="66" y="168" width="9" height="74" fill="#120835"/><rect x="82" y="184" width="10" height="58" fill="#160940"/><rect x="100" y="195" width="12" height="47" fill="#1a0d45"/><rect x="118" y="185" width="9" height="57" fill="#130835"/><rect x="134" y="198" width="16" height="44" fill="#1a0a3a"/><rect x="158" y="188" width="10" height="54" fill="#150a35"/><rect x="32" y="162" width="3" height="2" fill="#D946EF" opacity="0.95"/><rect x="38" y="168" width="3" height="2" fill="#60A5FA" opacity="0.85"/><rect x="32" y="174" width="3" height="2" fill="#9333EA" opacity="0.8"/><rect x="84" y="148" width="3" height="3" fill="#C026D3" opacity="0.95"/><rect x="90" y="154" width="3" height="3" fill="#A78BFA" opacity="0.8"/><rect x="84" y="160" width="3" height="3" fill="#60A5FA" opacity="0.85"/><rect x="102" y="151" width="3" height="3" fill="#D946EF" opacity="0.9"/><rect x="108" y="157" width="3" height="3" fill="#9333EA" opacity="0.75"/><rect x="120" y="149" width="4" height="3" fill="#7C3AED" opacity="0.95"/><rect x="127" y="155" width="4" height="3" fill="#C026D3" opacity="0.75"/><rect x="120" y="161" width="4" height="3" fill="#A78BFA" opacity="0.85"/><rect x="140" y="152" width="3" height="2" fill="#60A5FA" opacity="0.9"/><rect x="146" y="157" width="3" height="2" fill="#D946EF" opacity="0.75"/><circle cx="154" cy="22" r="11" fill="#1a0d45"/><circle cx="154" cy="22" r="7" fill="#08031a"/><circle cx="157" cy="19" r="4" fill="#281160"/><circle cx="158" cy="19" r="2.5" fill="#A78BFA" opacity="0.55"/><circle cx="30" cy="14" r="0.8" fill="white" opacity="0.8"/><circle cx="54" cy="10" r="0.6" fill="white" opacity="0.6"/><circle cx="80" cy="16" r="0.7" fill="white" opacity="0.75"/><circle cx="108" cy="8" r="0.6" fill="white" opacity="0.6"/><circle cx="130" cy="14" r="0.5" fill="white" opacity="0.5"/><ellipse cx="104" cy="210" rx="80" ry="14" fill="#7C3AED" opacity="0.09"/></g><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#tbng)" stroke-width="22" stroke-linejoin="miter" opacity="0.18" filter="url(#tbgg)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#tbng)" stroke-width="5" stroke-linejoin="miter" filter="url(#tbgs)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#tbng)" stroke-width="2" stroke-linejoin="miter" opacity="1"/><path d="M29,27 L29,233 L179,233 L179,191 L97,191 L97,158 L165,158 L165,112 L97,112 L97,71 L179,71 L179,27 L161,9 L49,9 Z" fill="none" stroke="url(#tbtg)" stroke-width="1" stroke-linejoin="miter" opacity="0.4"/><text x="228" y="150" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-size="88" font-weight="900" fill="url(#tbtg)" letter-spacing="-2">Evo</text><text x="395" y="150" font-family="'Helvetica Neue',Arial,sans-serif" font-size="88" font-weight="300" fill="url(#tbtg)" letter-spacing="-2">City</text><text x="231" y="192" font-family="'Helvetica Neue',Arial,sans-serif" font-size="15" font-weight="400" fill="url(#tbsg)" letter-spacing="4">CONECTANDO PETRÓPOLIS</text></svg></div>
+    <div class="tb-logo" onclick="goTab('feed')" title="Página inicial" style="cursor:pointer;"><svg width="130" height="50" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tbng" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C026D3"/><stop offset="50%" stop-color="#9333EA"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient><linearGradient id="tbtg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#D946EF"/><stop offset="55%" stop-color="#9333EA"/><stop offset="100%" stop-color="#60A5FA"/></linearGradient><linearGradient id="tbsg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#7DD3FC"/></linearGradient><linearGradient id="tbsky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#08031a"/><stop offset="100%" stop-color="#0d0520"/></linearGradient><linearGradient id="tbglw" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="#7C3AED" stop-opacity="0.6"/><stop offset="100%" stop-color="#C026D3" stop-opacity="0"/></linearGradient><filter id="tbgg"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="tbgs"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="tbec"><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z"/></clipPath></defs><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="url(#tbsky)"/><g clip-path="url(#tbec)"><rect x="20" y="0" width="168" height="242" fill="url(#tbsky)"/><rect x="20" y="185" width="168" height="57" fill="url(#tbglw)"/><rect x="30" y="190" width="13" height="52" fill="#1a0d45"/><rect x="50" y="178" width="9" height="64" fill="#150a35"/><rect x="66" y="168" width="9" height="74" fill="#120835"/><rect x="82" y="184" width="10" height="58" fill="#160940"/><rect x="100" y="195" width="12" height="47" fill="#1a0d45"/><rect x="118" y="185" width="9" height="57" fill="#130835"/><rect x="134" y="198" width="16" height="44" fill="#1a0a3a"/><rect x="158" y="188" width="10" height="54" fill="#150a35"/><rect x="32" y="162" width="3" height="2" fill="#D946EF" opacity="0.95"/><rect x="38" y="168" width="3" height="2" fill="#60A5FA" opacity="0.85"/><rect x="32" y="174" width="3" height="2" fill="#9333EA" opacity="0.8"/><rect x="84" y="148" width="3" height="3" fill="#C026D3" opacity="0.95"/><rect x="90" y="154" width="3" height="3" fill="#A78BFA" opacity="0.8"/><rect x="84" y="160" width="3" height="3" fill="#60A5FA" opacity="0.85"/><rect x="102" y="151" width="3" height="3" fill="#D946EF" opacity="0.9"/><rect x="108" y="157" width="3" height="3" fill="#9333EA" opacity="0.75"/><rect x="120" y="149" width="4" height="3" fill="#7C3AED" opacity="0.95"/><rect x="127" y="155" width="4" height="3" fill="#C026D3" opacity="0.75"/><rect x="120" y="161" width="4" height="3" fill="#A78BFA" opacity="0.85"/><rect x="140" y="152" width="3" height="2" fill="#60A5FA" opacity="0.9"/><rect x="146" y="157" width="3" height="2" fill="#D946EF" opacity="0.75"/><circle cx="154" cy="22" r="11" fill="#1a0d45"/><circle cx="154" cy="22" r="7" fill="#08031a"/><circle cx="157" cy="19" r="4" fill="#281160"/><circle cx="158" cy="19" r="2.5" fill="#A78BFA" opacity="0.55"/><circle cx="30" cy="14" r="0.8" fill="white" opacity="0.8"/><circle cx="54" cy="10" r="0.6" fill="white" opacity="0.6"/><circle cx="80" cy="16" r="0.7" fill="white" opacity="0.75"/><circle cx="108" cy="8" r="0.6" fill="white" opacity="0.6"/><circle cx="130" cy="14" r="0.5" fill="white" opacity="0.5"/><ellipse cx="104" cy="210" rx="80" ry="14" fill="#7C3AED" opacity="0.09"/></g><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#tbng)" stroke-width="22" stroke-linejoin="miter" opacity="0.18" filter="url(#tbgg)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#tbng)" stroke-width="5" stroke-linejoin="miter" filter="url(#tbgs)"/><path d="M20,18 L20,242 L188,242 L188,198 L88,198 L88,152 L174,152 L174,118 L88,118 L88,62 L188,62 L188,18 L166,0 L40,0 Z" fill="none" stroke="url(#tbng)" stroke-width="2" stroke-linejoin="miter" opacity="1"/><path d="M29,27 L29,233 L179,233 L179,191 L97,191 L97,158 L165,158 L165,112 L97,112 L97,71 L179,71 L179,27 L161,9 L49,9 Z" fill="none" stroke="url(#tbtg)" stroke-width="1" stroke-linejoin="miter" opacity="0.4"/><text x="228" y="150" font-family="'Helvetica Neue','Arial Black',Arial,sans-serif" font-size="88" fill="url(#tbtg)" letter-spacing="-2"><tspan font-weight="900">Evo</tspan><tspan font-weight="300">City</tspan></text><text x="231" y="192" font-family="'Helvetica Neue',Arial,sans-serif" font-size="15" font-weight="400" fill="url(#tbsg)" letter-spacing="4">CONECTANDO PETRÓPOLIS</text></svg></div>
     <div class="tb-search" style="position:relative;">
       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#65676b" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input type="text" placeholder="Buscar pessoas..." oninput="buscarPessoas(this.value)" onfocus="document.getElementById('busca-resultado').style.display='block'" id="busca-inp"/>
@@ -1239,7 +1340,7 @@ img.av-foto[data-ini]{display:block;}
       </button>
       <button class="tb-tab" id="nt-promo" onclick="goTab('promo')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-        <span>Para Empresas</span>
+        <span>Promoções e Ofertas</span>
       </button>
       <button class="tb-tab" id="nt-msg" onclick="goTab('msg')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
@@ -1328,7 +1429,7 @@ img.av-foto[data-ini]{display:block;}
         <button class="left-item on" id="li-feed" onclick="goTab('feed')"><div class="li-ico">🏠</div>Feed</button>
         <button class="left-item" id="li-cls" onclick="goTab('cls')"><div class="li-ico">🛒</div>Classificados</button>
         <button class="left-item" id="li-svc" onclick="goTab('svc')"><div class="li-ico">🔧</div>Serviços Locais</button>
-        <button class="left-item" id="li-promo" onclick="goTab('promo')"><div class="li-ico"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#dc6803" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>Para Empresas</button>
+        <button class="left-item" id="li-promo" onclick="goTab('promo')"><div class="li-ico"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#dc6803" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>Promoções e Ofertas</button>
         <button class="left-item" id="li-msg" onclick="goTab('msg')"><div class="li-ico">💬</div>Mensagens<span id="msg-left-badge" style="margin-left:auto;background:#ef4444;color:#fff;font-size:11px;font-weight:800;border-radius:9px;padding:1px 7px;">2</span></button>
         <button class="left-item" id="li-profile" onclick="goTab('profile')"><div class="li-ico">👤</div>Meu Perfil</button>
         <div style="height:1px;background:#e4e6ea;margin:8px 0;"></div>
@@ -1465,13 +1566,23 @@ img.av-foto[data-ini]{display:block;}
       <div id="tab-promo" style="display:none;">
 
         <!-- HERO -->
-        <div style="background:linear-gradient(135deg,#06020f 0%,#2d1a4a 50%,##C026D3 100%);border-radius:12px;padding:22px 28px;margin-bottom:16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
-          <div>
-            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:10px;">🏷️ EXCLUSIVO PARA EMPRESAS E EMPREENDEDORES</div>
-            <h2 style="font-size:22px;font-weight:900;margin:0 0 4px;">Promoções &amp; Ofertas</h2>
-            <p style="font-size:14px;opacity:.8;margin:0;">Descontos e ofertas das lojas e empreendedores de Petrópolis</p>
+        <div style="background:linear-gradient(135deg,#FFD600 0%,#FFC000 60%,#FFB300 100%);border-radius:14px;padding:0;margin-bottom:16px;overflow:hidden;box-shadow:0 4px 18px rgba(255,180,0,.35);border:2px solid #E6A800;">
+          <!-- faixa topo vermelha -->
+          <div style="background:#CC0000;padding:5px 20px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;font-weight:900;color:#fff;letter-spacing:2px;text-transform:uppercase;">🏷️ EXCLUSIVO PARA EMPRESAS E EMPREENDEDORES DE PETRÓPOLIS</span>
           </div>
-          <button onclick="openNewPromo()" style="background:#fff;color:#2d1a4a;border:none;border-radius:8px;padding:12px 22px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;">🏷️ Publicar Promoção</button>
+          <!-- corpo amarelo -->
+          <div style="padding:18px 22px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+            <div>
+              <h2 style="font-size:26px;font-weight:900;margin:0 0 4px;color:#1a1a1a;line-height:1.1;">📣 Promoções <span style="color:#CC0000;">&amp;</span> Ofertas</h2>
+              <p style="font-size:14px;font-weight:700;color:#333;margin:0;">Descontos e ofertas das lojas e empreendedores de Petrópolis</p>
+            </div>
+            <button onclick="openNewPromo()" style="background:#CC0000;color:#fff;border:none;border-radius:8px;padding:12px 22px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;box-shadow:0 2px 8px rgba(180,0,0,.3);transition:.2s;" onmouseover="this.style.background='#a80000'" onmouseout="this.style.background='#CC0000'">🏷️ Publicar Promoção</button>
+          </div>
+          <!-- faixa rodapé preta -->
+          <div style="background:#1a1a1a;padding:4px 20px;">
+            <span style="font-size:11px;font-weight:700;color:#FFD600;letter-spacing:1px;">⚡ VISIBILIDADE MÁXIMA · ALCANCE LOCAL · RESULTADOS REAIS</span>
+          </div>
         </div>
 
         <!-- filtros -->
@@ -1480,7 +1591,7 @@ img.av-foto[data-ini]{display:block;}
           <button class="pil" data-tipo="produto"    onclick="filterPromo('produto',this)">🛍️ Produtos</button>
           <button class="pil" data-tipo="servico"    onclick="filterPromo('servico',this)">🔧 Serviços</button>
           <button class="pil" data-tipo="evento"     onclick="filterPromo('evento',this)">🎉 Eventos</button>
-          <button class="pil" data-tipo="vaga"       onclick="filterPromo('vaga',this)">💼 Vagas</button>
+
         </div>
 
         <!-- grid -->
