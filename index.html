@@ -4651,9 +4651,10 @@ function renderSvcList(list){
         s.userReviews.slice(-2).map(r=>
           '<div style="margin-bottom:6px;padding-bottom:6px;">'+
           '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'+
-          '<div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#9333EA,#C026D3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;">'+(r.ini||'EU')+'</div>'+
+          (r.photo?'<div style="width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0;"><img src="'+r.photo+'" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>':'<div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#9333EA,#C026D3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;">'+(r.ini||'EU')+'</div>')+
           '<span style="font-size:13px;font-weight:700;color:#050505;">'+esc(r.name)+'</span>'+
           '<span style="color:#f59e0b;font-size:13px;">'+'★'.repeat(r.stars)+'<span style="color:#d1d5db;">'+'★'.repeat(5-r.stars)+'</span></span>'+
+          (r.autor_id&&r.autor_id===U.id?'<button onclick="deleteReview(\''+s.id+'\',\''+r.id+'\')" style="margin-left:auto;background:none;border:none;color:#ef4444;font-size:11px;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1;" title="Remover avaliação">✕ Remover</button>':'')+
           '</div>'+
           (r.comment?'<p style="font-size:13px;color:#65676b;margin:0;padding-left:30px;line-height:1.5;">"'+esc(r.comment)+'"</p>':'')+
           '</div>'
@@ -4729,25 +4730,45 @@ async function submitRating(){
   const s=svc_items.find(x=>x.id===rating_target_id); if(!s) return;
   const comment=document.getElementById('rating-comment').value.trim();
   const svcSupabaseId = s.supabase_id || s.id;
+  let newReviewId = null;
   if(window._sb && U.id){
     try{
-      const {error} = await window._sb.from('avaliacoes_svc').insert([{
+      const {data,error} = await window._sb.from('avaliacoes_svc').insert([{
         svc_id: svcSupabaseId, autor_id: U.id,
-        autor_nome: U.name, autor_ini: U.ini,
+        autor_nome: U.name, autor_ini: U.ini, autor_photo: U.photo_url||U.photo||'',
         estrelas: picked_stars, comentario: comment,
         criado_em: new Date().toISOString()
-      }]);
+      }]).select();
       if(error){ showToast('❌ Erro ao salvar avaliação. Tente novamente.'); return; }
+      if(data && data[0]) newReviewId = data[0].id;
     }catch(e){ showToast('❌ Erro ao salvar avaliação.'); return; }
   }
   if(!s.userReviews) s.userReviews=[];
-  s.userReviews.push({name:U.name,ini:U.ini,stars:picked_stars,comment});
+  s.userReviews.push({id:newReviewId, autor_id:U.id, name:U.name,ini:U.ini,stars:picked_stars,comment,photo:U.photo||''});
   const allStars=s.userReviews.map(r=>r.stars);
   s.rating=(allStars.reduce((a,b)=>a+b,0)/allStars.length).toFixed(1);
   s.reviews=s.userReviews.length;
   closeRatingModal(); renderSvc();
   showToast('✓ '+STAR_LABELS[picked_stars]+' — Avaliação enviada!');
-  addNotif('rating', U.name, U.ini, '#f59e0b', '★'.repeat(picked_stars)+' em '+s.nome);
+  addNotif('rating', U.name, U.ini, '#f59e0b', '★'.repeat(picked_stars)+' em '+s.nome, U.photo||'');
+}
+
+async function deleteReview(svcId, reviewId){
+  const s=svc_items.find(x=>String(x.id)===String(svcId));
+  if(!s){ showToast('❌ Serviço não encontrado.'); return; }
+  showToast('🗑️ Removendo avaliação...');
+  if(window._sb && reviewId && reviewId!=='undefined'){
+    try{
+      const {error}=await window._sb.from('avaliacoes_svc').delete().eq('id',reviewId);
+      if(error){ showToast('❌ Erro Supabase: '+error.message); return; }
+    }catch(e){ showToast('❌ Erro: '+e.message); return; }
+  }
+  s.userReviews=(s.userReviews||[]).filter(r=>String(r.id)!==String(reviewId));
+  const allStars=s.userReviews.map(r=>r.stars);
+  s.rating=allStars.length?(allStars.reduce((a,b)=>a+b,0)/allStars.length).toFixed(1):'Novo';
+  s.reviews=s.userReviews.length;
+  renderSvc();
+  showToast('✓ Avaliação removida!');
 }
 
 async function submitSvc(){
@@ -5390,14 +5411,14 @@ const NOTIF_TYPES = {
   promo:   { icon:'🏷', color:'#dc6803', label:'publicou uma nova promoção' },
 };
 
-function addNotif(type, fromName, fromIni, fromClr, extra){
+function addNotif(type, fromName, fromIni, fromClr, extra, fromPhoto){
   const t = NOTIF_TYPES[type];
   if(!t) return;
   const now = new Date();
   const time = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   notifications.unshift({
     id: ++notif_id,
-    type, fromName, fromIni, fromClr,
+    type, fromName, fromIni, fromClr, fromPhoto: fromPhoto||'',
     label: t.label,
     extra: extra||'',
     time,
@@ -5446,8 +5467,8 @@ function renderNotifList(){
   empty.style.display = 'none';
   list.innerHTML = notifications.map(n=>`
     <div class="notif-item ${n.unread?'unread':''}" onclick="clickNotif(${n.id})">
-      <div class="notif-av" style="background:${n.fromClr};">
-        ${n.fromIni}
+      <div class="notif-av" style="background:${n.fromClr};${n.fromPhoto?'background-image:url('+JSON.stringify(n.fromPhoto)+');background-size:cover;background-position:center;':''}">
+        ${n.fromPhoto?'':n.fromIni}
         <div class="notif-type-dot" style="background:${n.color};">${n.icon}</div>
       </div>
       <div style="flex:1;min-width:0;">
@@ -7362,7 +7383,7 @@ async function _carregarSvcSupabase(){
       if(av.data && av.data.length){
         av.data.forEach(function(a){
           if(!avalMap[a.svc_id]) avalMap[a.svc_id] = [];
-          avalMap[a.svc_id].push({name:a.autor_nome||'',ini:a.autor_ini||'?',stars:a.estrelas||0,comment:a.comentario||''});
+          avalMap[a.svc_id].push({id:a.id,autor_id:a.autor_id||'',name:a.autor_nome||'',ini:a.autor_ini||'?',stars:a.estrelas||0,comment:a.comentario||'',photo:a.autor_photo?_fotoUrl(a.autor_photo):''});
         });
       }
     }catch(e){ console.warn('[EvoCity] avaliacoes_svc load erro:', e.message||e); }
