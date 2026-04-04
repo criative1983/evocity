@@ -376,6 +376,26 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .pub-actions{display:flex;gap:2px;}
 .pub-act{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 4px;border-radius:8px;border:none;background:none;font-size:15px;font-weight:700;color:#606770;cursor:pointer;font-family:'Nunito',sans-serif;transition:.15s;}
 .pub-act:hover{background:#f2f2f2;}
+/* ─── QUICK STATUS CHIPS ─── */
+#quick-status-bar::-webkit-scrollbar{display:none;}
+.qs-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:20px;border:none;cursor:pointer;
+  font-size:13px;font-weight:800;white-space:nowrap;
+  font-family:'Nunito',sans-serif;
+  background:rgba(147,51,234,.10);
+  color:#7c3aed;
+  border:1.5px solid rgba(147,51,234,.22);
+  backdrop-filter:blur(6px);
+  transition:.18s;
+  flex-shrink:0;
+}
+.qs-chip:hover{
+  background:linear-gradient(135deg,#9333EA,#C026D3);
+  color:#fff;border-color:transparent;
+  box-shadow:0 3px 14px rgba(147,51,234,.35);
+  transform:translateY(-1px);
+}
 
 /* ─── POST CARD (Facebook scale) ─── */
 .post-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(100,0,180,.08),0 1px 2px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden;border:1px solid rgba(147,51,234,.07);}
@@ -632,78 +652,10 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .right-card{background:#fff;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.1);margin-bottom:12px;}
 .right-title{font-size:17px;font-weight:700;color:#606770;margin-bottom:10px;}
 
-/* chip de clima na topbar — só aparece quando col-right está oculta */
-#tb-clima-chip{
-  display:none;
-  align-items:center;
-  gap:4px;
-  background:rgba(147,51,234,.18);
-  border:1px solid rgba(167,139,250,.3);
-  border-radius:50px;
-  padding:5px 10px;
-  cursor:default;
-  flex-shrink:0;
-  white-space:nowrap;
-  position:relative;
-  transition:background .2s,border-color .2s;
-}
-#tb-clima-chip.alerta-ativo{
-  background:rgba(220,38,38,.18);
-  border-color:rgba(220,38,38,.5);
-  cursor:pointer;
-  animation:chipPulse 2s infinite;
-}
-#tb-clima-chip.alerta-moderado{
-  background:rgba(234,88,12,.18);
-  border-color:rgba(234,88,12,.5);
-  cursor:pointer;
-  animation:chipPulse 2s infinite;
-}
-@keyframes chipPulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4);}
-  50%{box-shadow:0 0 0 5px rgba(220,38,38,0);}
-}
-#tb-clima-chip span.chip-icon{font-size:16px;line-height:1;}
-#tb-clima-chip span.chip-temp{font-size:14px;font-weight:800;color:#e9d5ff;font-family:'Nunito',sans-serif;}
-#tb-clima-dot{
-  display:none;position:absolute;top:-3px;right:-3px;
-  width:10px;height:10px;border-radius:50%;
-  background:#dc2626;border:2px solid #1a0340;
-}
-#tb-clima-dot.visivel{display:block;}
-/* painel de alertas mobile (bottom sheet) */
-#mb-alerta-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
-  z-index:9500;align-items:flex-end;justify-content:center;
-}
-#mb-alerta-overlay.open{display:flex;}
-#mb-alerta-sheet{
-  background:#fff;border-radius:20px 20px 0 0;
-  width:100%;max-width:600px;padding:0 0 32px;
-  max-height:80vh;overflow-y:auto;
-  animation:slideUp .25s ease;
-}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-#mb-alerta-sheet .sheet-handle{
-  width:40px;height:4px;background:#e5e7eb;
-  border-radius:4px;margin:12px auto 16px;
-}
-#mb-alerta-sheet .sheet-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 18px 12px;border-bottom:1px solid #f3f4f6;
-}
-#mb-alerta-sheet .sheet-head span{font-size:17px;font-weight:800;color:#050505;font-family:'Nunito',sans-serif;}
-#mb-alerta-sheet .sheet-close{
-  background:none;border:none;font-size:22px;color:#9ca3af;
-  cursor:pointer;padding:0 4px;line-height:1;
-}
-#mb-alerta-items{display:flex;flex-direction:column;gap:10px;padding:16px 18px 0;}
-
 /* responsive */
 @media(max-width:1100px){
   .page-wrap{grid-template-columns:240px minmax(0,1fr);padding:12px 12px 40px;}
   .col-right{display:none;}
-  #tb-clima-chip{display:flex;}
 }
 @media(max-width:860px){
   .page-wrap{grid-template-columns:1fr;padding:8px 0 40px;max-width:100%;overflow-x:hidden;}
@@ -1440,12 +1392,6 @@ img.av-foto[data-ini]{display:block;}
       </button>
     </div>
     <div class="tb-right" style="position:relative;">
-      <!-- chip de clima (visível só no mobile) -->
-      <div id="tb-clima-chip" title="Temperatura em Petrópolis" onclick="abrirAlertaMobile()">
-        <span class="chip-icon" id="tb-clima-icon">⛅</span>
-        <span class="chip-temp" id="tb-clima-temp">--°</span>
-        <span id="tb-clima-dot"></span>
-      </div>
       <!-- sino de notificações -->
       <button class="tb-icon" id="notif-btn" onclick="toggleNotifPanel()" title="Notificações" style="position:relative;z-index:210;">
         <svg fill="none" viewBox="0 0 24 24" stroke="#c4b5fd" stroke-width="2" width="20" height="20">
@@ -1549,6 +1495,13 @@ img.av-foto[data-ini]{display:block;}
 
       <!-- ── FEED ── -->
       <div id="tab-feed">
+        <!-- quick-status chips -->
+        <div id="quick-status-bar" style="display:flex;gap:8px;padding:10px 0 2px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+          <button class="qs-chip" onclick="quickStatus('#Tr&#226;nsito')">&#x1F697; Tr&#226;nsito</button>
+          <button class="qs-chip" onclick="quickStatus('#Clima')">&#x2600;&#xFE0F; Clima</button>
+          <button class="qs-chip" onclick="quickStatus('#Aten&#231;&#227;o')">&#x26A0;&#xFE0F; Aten&#231;&#227;o</button>
+          <button class="qs-chip" onclick="quickStatus('#Oferta')">&#x1F4B0; Promo&#231;&#227;o</button>
+        </div>
         <!-- publish box -->
         <div class="pub-card">
           <div class="pub-top">
@@ -3285,9 +3238,9 @@ function card(p,i){
       </button>
     </div>
   </div>
-  ${p.text?`<p class="post-text">${esc(p.text)}</p>`:''}
+  ${(!p.sharedFrom && p.img)?`<div class="post-img-wrap" style="margin-bottom:0;"><img src="${p.img}" alt="foto" onerror="this.closest('.post-img-wrap').style.display='none'"/></div>`:''}
   ${buildSharedFrom(p)}
-  ${(!p.sharedFrom && p.img)?`<div class="post-img-wrap"><img src="${p.img}" alt="foto" onerror="this.closest('.post-img-wrap').style.display='none'"/></div>`:''}
+  ${p.text?`<p class="post-text" style="padding-top:${(!p.sharedFrom && p.img)?'10px':'12px'};">${esc(p.text)}</p>`:''}
   <div class="post-stats">
     <span>${p.likes>0?p.likes+' 👍':''}</span>
     <span id="cmt-count-${p.id}" style="cursor:pointer;" onclick="toggleComments(${p.id},this)">${p.comments>0?p.comments+' comentários':''}</span>
@@ -5325,9 +5278,6 @@ async function renderClima(){
     set('clima-min',   Math.round(daily.temperature_2m_min[0]) + '°');
     set('clima-max',   Math.round(daily.temperature_2m_max[0]) + '°');
     set('clima-hora',  'Atualizado às ' + hora);
-    // chip mobile
-    set('tb-clima-icon', wmo.icon);
-    set('tb-clima-temp', Math.round(cur.temperature_2m) + '°');
 
     // ── SISTEMA DE ALERTAS ──
     _verificarAlertas(cur, daily);
@@ -5408,7 +5358,7 @@ function _verificarAlertas(cur, daily){
     });
   }
 
-  // ── Renderiza card de alertas (desktop)
+  // ── Renderiza card de alertas
   const card  = document.getElementById('alerta-card');
   const lista = document.getElementById('alerta-lista');
   const horaEl= document.getElementById('alerta-hora');
@@ -5416,31 +5366,13 @@ function _verificarAlertas(cur, daily){
 
   if(!alertas.length){
     card.style.display = 'none';
-    // chip mobile — sem alerta
-    var chip = document.getElementById('tb-clima-chip');
-    var dot  = document.getElementById('tb-clima-dot');
-    if(chip){ chip.classList.remove('alerta-ativo','alerta-moderado'); }
-    if(dot)  { dot.classList.remove('visivel'); }
     return;
   }
 
   const hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   if(horaEl) horaEl.textContent = hora;
   card.style.display = 'block';
-  const temAlto = alertas.some(a=>a.nivel==='ALTO');
-  card.style.borderLeftColor = temAlto ? '#dc2626' : '#ea580c';
-
-  // chip mobile — estado de alerta
-  var chipEl = document.getElementById('tb-clima-chip');
-  var dotEl  = document.getElementById('tb-clima-dot');
-  if(chipEl){
-    chipEl.classList.remove('alerta-ativo','alerta-moderado');
-    chipEl.classList.add(temAlto ? 'alerta-ativo' : 'alerta-moderado');
-  }
-  if(dotEl) dotEl.classList.add('visivel');
-
-  // armazena alertas para o bottom sheet
-  window._mbAlertas = alertas;
+  card.style.borderLeftColor = alertas.some(a=>a.nivel==='ALTO') ? '#dc2626' : '#ea580c';
 
   lista.innerHTML = alertas.map(function(a){
     return '<div style="background:'+_hexToLight(a.cor)+';border-radius:8px;padding:10px 12px;border-left:3px solid '+a.cor+';">'
@@ -5458,31 +5390,6 @@ function _hexToLight(hex){
   // Retorna versão bem clara da cor para fundo do card
   var map = {'#dc2626':'#fef2f2','#ea580c':'#fff7ed','#d97706':'#fffbeb'};
   return map[hex] || '#fef2f2';
-}
-
-function abrirAlertaMobile(){
-  var alertas = window._mbAlertas;
-  if(!alertas || !alertas.length) return;
-  var items = document.getElementById('mb-alerta-items');
-  if(items){
-    items.innerHTML = alertas.map(function(a){
-      return '<div style="background:'+_hexToLight(a.cor)+';border-radius:10px;padding:12px 14px;border-left:3px solid '+a.cor+';">'
-        + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
-        + '<span style="font-size:20px;">'+a.icon+'</span>'
-        + '<span style="font-size:15px;font-weight:800;color:'+a.cor+';font-family:\'Nunito\',sans-serif;">'+a.titulo+'</span>'
-        + '<span style="margin-left:auto;font-size:10px;font-weight:900;background:'+a.cor+';color:#fff;padding:2px 8px;border-radius:20px;font-family:\'Nunito\',sans-serif;">'+a.nivel+'</span>'
-        + '</div>'
-        + '<p style="font-size:13px;color:#374151;margin:0;line-height:1.5;font-family:\'Nunito\',sans-serif;">'+a.desc+'</p>'
-        + '</div>';
-    }).join('');
-  }
-  var ov = document.getElementById('mb-alerta-overlay');
-  if(ov) ov.classList.add('open');
-}
-function fecharAlertaMobile(e){
-  if(e && e.target !== document.getElementById('mb-alerta-overlay')) return;
-  var ov = document.getElementById('mb-alerta-overlay');
-  if(ov) ov.classList.remove('open');
 }
 
 /* ==== PROFISSIONAL EM DESTAQUE ==== */
@@ -8342,6 +8249,21 @@ function abrirGuia(){
 function fecharGuia(){
   document.getElementById('guia-overlay').style.display = 'none';
 }
+/* ── Quick Status Chips ── */
+function quickStatus(hashtag){
+  openCompose();
+  setTimeout(function(){
+    var ta = document.getElementById('c-text');
+    if(!ta) return;
+    var cur = ta.value.trim();
+    ta.value = cur ? cur + ' ' + hashtag + ' ' : hashtag + ' ';
+    ta.focus();
+    // put cursor at end
+    ta.selectionStart = ta.selectionEnd = ta.value.length;
+    // trigger oninput so submit button enables
+    ta.dispatchEvent(new Event('input'));
+  }, 150);
+}
 function trocarGuiaTab(idx){
   // painéis
   document.querySelectorAll('.guia-panel').forEach(function(p){ p.style.display='none'; });
@@ -8356,17 +8278,6 @@ function trocarGuiaTab(idx){
   });
 }
 </script>
-<!-- Bottom sheet de alertas mobile -->
-<div id="mb-alerta-overlay" onclick="fecharAlertaMobile(event)">
-  <div id="mb-alerta-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-head">
-      <span>⚠️ Alertas Climáticos</span>
-      <button class="sheet-close" onclick="fecharAlertaMobile()">×</button>
-    </div>
-    <div id="mb-alerta-items"></div>
-  </div>
-</div>
 
 </body>
 </html>
