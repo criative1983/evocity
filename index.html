@@ -632,10 +632,78 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .right-card{background:#fff;border-radius:8px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.1);margin-bottom:12px;}
 .right-title{font-size:17px;font-weight:700;color:#606770;margin-bottom:10px;}
 
+/* chip de clima na topbar — só aparece quando col-right está oculta */
+#tb-clima-chip{
+  display:none;
+  align-items:center;
+  gap:4px;
+  background:rgba(147,51,234,.18);
+  border:1px solid rgba(167,139,250,.3);
+  border-radius:50px;
+  padding:5px 10px;
+  cursor:default;
+  flex-shrink:0;
+  white-space:nowrap;
+  position:relative;
+  transition:background .2s,border-color .2s;
+}
+#tb-clima-chip.alerta-ativo{
+  background:rgba(220,38,38,.18);
+  border-color:rgba(220,38,38,.5);
+  cursor:pointer;
+  animation:chipPulse 2s infinite;
+}
+#tb-clima-chip.alerta-moderado{
+  background:rgba(234,88,12,.18);
+  border-color:rgba(234,88,12,.5);
+  cursor:pointer;
+  animation:chipPulse 2s infinite;
+}
+@keyframes chipPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4);}
+  50%{box-shadow:0 0 0 5px rgba(220,38,38,0);}
+}
+#tb-clima-chip span.chip-icon{font-size:16px;line-height:1;}
+#tb-clima-chip span.chip-temp{font-size:14px;font-weight:800;color:#e9d5ff;font-family:'Nunito',sans-serif;}
+#tb-clima-dot{
+  display:none;position:absolute;top:-3px;right:-3px;
+  width:10px;height:10px;border-radius:50%;
+  background:#dc2626;border:2px solid #1a0340;
+}
+#tb-clima-dot.visivel{display:block;}
+/* painel de alertas mobile (bottom sheet) */
+#mb-alerta-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:9500;align-items:flex-end;justify-content:center;
+}
+#mb-alerta-overlay.open{display:flex;}
+#mb-alerta-sheet{
+  background:#fff;border-radius:20px 20px 0 0;
+  width:100%;max-width:600px;padding:0 0 32px;
+  max-height:80vh;overflow-y:auto;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#mb-alerta-sheet .sheet-handle{
+  width:40px;height:4px;background:#e5e7eb;
+  border-radius:4px;margin:12px auto 16px;
+}
+#mb-alerta-sheet .sheet-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px 12px;border-bottom:1px solid #f3f4f6;
+}
+#mb-alerta-sheet .sheet-head span{font-size:17px;font-weight:800;color:#050505;font-family:'Nunito',sans-serif;}
+#mb-alerta-sheet .sheet-close{
+  background:none;border:none;font-size:22px;color:#9ca3af;
+  cursor:pointer;padding:0 4px;line-height:1;
+}
+#mb-alerta-items{display:flex;flex-direction:column;gap:10px;padding:16px 18px 0;}
+
 /* responsive */
 @media(max-width:1100px){
   .page-wrap{grid-template-columns:240px minmax(0,1fr);padding:12px 12px 40px;}
   .col-right{display:none;}
+  #tb-clima-chip{display:flex;}
 }
 @media(max-width:860px){
   .page-wrap{grid-template-columns:1fr;padding:8px 0 40px;max-width:100%;overflow-x:hidden;}
@@ -1372,6 +1440,12 @@ img.av-foto[data-ini]{display:block;}
       </button>
     </div>
     <div class="tb-right" style="position:relative;">
+      <!-- chip de clima (visível só no mobile) -->
+      <div id="tb-clima-chip" title="Temperatura em Petrópolis" onclick="abrirAlertaMobile()">
+        <span class="chip-icon" id="tb-clima-icon">⛅</span>
+        <span class="chip-temp" id="tb-clima-temp">--°</span>
+        <span id="tb-clima-dot"></span>
+      </div>
       <!-- sino de notificações -->
       <button class="tb-icon" id="notif-btn" onclick="toggleNotifPanel()" title="Notificações" style="position:relative;z-index:210;">
         <svg fill="none" viewBox="0 0 24 24" stroke="#c4b5fd" stroke-width="2" width="20" height="20">
@@ -3269,7 +3343,7 @@ function doLike(id){
   });
   if(p.liked && !p.own){
     // Envia notificação apenas para o dono do post via Supabase (não aparece para quem curtiu)
-    if(window._sb && U.id && p.autor_id && p.autor_id !== U.id && p.supabase_id){
+    if(window._sb && U.id && p.autor_id && p.autor_id !== U.id){
       window._sb.from('notificacoes').insert([{
         destinatario_id: p.autor_id,
         autor_id: U.id,
@@ -5251,6 +5325,9 @@ async function renderClima(){
     set('clima-min',   Math.round(daily.temperature_2m_min[0]) + '°');
     set('clima-max',   Math.round(daily.temperature_2m_max[0]) + '°');
     set('clima-hora',  'Atualizado às ' + hora);
+    // chip mobile
+    set('tb-clima-icon', wmo.icon);
+    set('tb-clima-temp', Math.round(cur.temperature_2m) + '°');
 
     // ── SISTEMA DE ALERTAS ──
     _verificarAlertas(cur, daily);
@@ -5331,7 +5408,7 @@ function _verificarAlertas(cur, daily){
     });
   }
 
-  // ── Renderiza card de alertas
+  // ── Renderiza card de alertas (desktop)
   const card  = document.getElementById('alerta-card');
   const lista = document.getElementById('alerta-lista');
   const horaEl= document.getElementById('alerta-hora');
@@ -5339,13 +5416,31 @@ function _verificarAlertas(cur, daily){
 
   if(!alertas.length){
     card.style.display = 'none';
+    // chip mobile — sem alerta
+    var chip = document.getElementById('tb-clima-chip');
+    var dot  = document.getElementById('tb-clima-dot');
+    if(chip){ chip.classList.remove('alerta-ativo','alerta-moderado'); }
+    if(dot)  { dot.classList.remove('visivel'); }
     return;
   }
 
   const hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   if(horaEl) horaEl.textContent = hora;
   card.style.display = 'block';
-  card.style.borderLeftColor = alertas.some(a=>a.nivel==='ALTO') ? '#dc2626' : '#ea580c';
+  const temAlto = alertas.some(a=>a.nivel==='ALTO');
+  card.style.borderLeftColor = temAlto ? '#dc2626' : '#ea580c';
+
+  // chip mobile — estado de alerta
+  var chipEl = document.getElementById('tb-clima-chip');
+  var dotEl  = document.getElementById('tb-clima-dot');
+  if(chipEl){
+    chipEl.classList.remove('alerta-ativo','alerta-moderado');
+    chipEl.classList.add(temAlto ? 'alerta-ativo' : 'alerta-moderado');
+  }
+  if(dotEl) dotEl.classList.add('visivel');
+
+  // armazena alertas para o bottom sheet
+  window._mbAlertas = alertas;
 
   lista.innerHTML = alertas.map(function(a){
     return '<div style="background:'+_hexToLight(a.cor)+';border-radius:8px;padding:10px 12px;border-left:3px solid '+a.cor+';">'
@@ -5363,6 +5458,31 @@ function _hexToLight(hex){
   // Retorna versão bem clara da cor para fundo do card
   var map = {'#dc2626':'#fef2f2','#ea580c':'#fff7ed','#d97706':'#fffbeb'};
   return map[hex] || '#fef2f2';
+}
+
+function abrirAlertaMobile(){
+  var alertas = window._mbAlertas;
+  if(!alertas || !alertas.length) return;
+  var items = document.getElementById('mb-alerta-items');
+  if(items){
+    items.innerHTML = alertas.map(function(a){
+      return '<div style="background:'+_hexToLight(a.cor)+';border-radius:10px;padding:12px 14px;border-left:3px solid '+a.cor+';">'
+        + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
+        + '<span style="font-size:20px;">'+a.icon+'</span>'
+        + '<span style="font-size:15px;font-weight:800;color:'+a.cor+';font-family:\'Nunito\',sans-serif;">'+a.titulo+'</span>'
+        + '<span style="margin-left:auto;font-size:10px;font-weight:900;background:'+a.cor+';color:#fff;padding:2px 8px;border-radius:20px;font-family:\'Nunito\',sans-serif;">'+a.nivel+'</span>'
+        + '</div>'
+        + '<p style="font-size:13px;color:#374151;margin:0;line-height:1.5;font-family:\'Nunito\',sans-serif;">'+a.desc+'</p>'
+        + '</div>';
+    }).join('');
+  }
+  var ov = document.getElementById('mb-alerta-overlay');
+  if(ov) ov.classList.add('open');
+}
+function fecharAlertaMobile(e){
+  if(e && e.target !== document.getElementById('mb-alerta-overlay')) return;
+  var ov = document.getElementById('mb-alerta-overlay');
+  if(ov) ov.classList.remove('open');
 }
 
 /* ==== PROFISSIONAL EM DESTAQUE ==== */
@@ -6035,6 +6155,20 @@ async function _salvarMensagemSB(convId, texto){
       texto: texto,
       criado_em: new Date().toISOString()
     }]);
+    // Insere notificacao para o destinatario
+    const conv = convs.find(c=>c.supabase_id===convId);
+    const destId = conv && conv.person && conv.person.userId;
+    if(destId && destId !== U.id){
+      await window._sb.from('notificacoes').insert([{
+        destinatario_id: destId,
+        autor_id: U.id,
+        autor_nome: U.name,
+        tipo: 'message',
+        texto: texto.slice(0,40)+(texto.length>40?'...':''),
+        lida: false,
+        criado_em: new Date().toISOString()
+      }]);
+    }
   }catch(e){ console.warn('[EvoCity] Salvar msg erro: ' + String(e&&e.message?e.message:e)); }
 }
 
@@ -6056,26 +6190,110 @@ function _horaAgora(){
 // ══════════════════════════════════════
 // NOTIFICAÇÕES EM TEMPO REAL — Supabase
 // ══════════════════════════════════════
+
+// ── ultima notif_id visto — para polling de fallback ──
+var _notifUltimoId = null;
+var _notifPollingTimer = null;
+
 function _iniciarNotificacoesRealtime(){
   if(!window._sb || !U.id) return;
+
+  var COR = {like:'#ef4444',comment:'#9333EA',follow:'#7C3AED',message:'#059669',rating:'#f59e0b',post:'#0891b2',promo:'#dc6803'};
+  var LABELS = {like:'curtiu seu post',comment:'comentou no seu post',follow:'começou a te seguir',message:'enviou uma mensagem',rating:'avaliou um serviço',post:'fez uma nova publicação',promo:'publicou uma promoção'};
+
+  function _processarNotif(n){
+    var tipo = n.tipo||'post';
+    var cor  = COR[tipo]||'#9333EA';
+    var ini  = (n.autor_nome||'?').slice(0,2).toUpperCase();
+    addNotif(tipo, n.autor_nome||'?', ini, cor, n.texto||'', n.autor_photo||'');
+    showToast('?? '+(n.autor_nome||'Alguém')+' '+(LABELS[tipo]||'interagiu com você'));
+  }
+
+  // Carrega notifs nao lidas ao iniciar (nao depende de realtime)
+  async function _carregarNotifsPendentes(){
+    try{
+      var q = window._sb.from('notificacoes')
+        .select('*')
+        .eq('destinatario_id', U.id)
+        .eq('lida', false)
+        .order('criado_em',{ascending:false})
+        .limit(20);
+      if(_notifUltimoId) q = q.gt('id', _notifUltimoId);
+      var res = await q;
+      var rows = (res.data||[]).reverse(); // mais antigas primeiro
+      rows.forEach(function(n){
+        _notifUltimoId = n.id;
+        _processarNotif(n);
+      });
+    }catch(e){ console.warn('[EvoCity] Polling notif erro:', e&&e.message||e); }
+  }
+
+  // Inicia polling a cada 10s (fallback caso realtime falhe)
+  function _iniciarPolling(){
+    if(_notifPollingTimer) clearInterval(_notifPollingTimer);
+    _notifPollingTimer = setInterval(_carregarNotifsPendentes, 10000);
+  }
+
+  // Tenta realtime primeiro
   try{
+    var _rtConectado = false;
     window._sb.channel('notif-'+U.id)
       .on('postgres_changes',{
         event:'INSERT', schema:'public', table:'notificacoes',
         filter:'destinatario_id=eq.'+U.id
       }, function(payload){
-        const n = payload.new;
+        var n = payload.new;
         if(!n) return;
-        addNotif(n.tipo||'post', n.autor_nome||'?', (n.autor_nome||'?').slice(0,2).toUpperCase(), '#9333EA', n.texto||'');
-        showToast('🔔 '+( n.autor_nome||'Alguém')+' '+_labelNotif(n.tipo));
+        _notifUltimoId = n.id;
+        _processarNotif(n);
       })
-      .subscribe();
-    console.log('[EvoCity] Notificações realtime ativas!');
-  }catch(e){ console.warn('[EvoCity] Notif realtime erro: ' + String(e&&e.message?e.message:e)); }
+      .on('postgres_changes',{
+        event:'INSERT', schema:'public', table:'conversas',
+        filter:'user2_id=eq.'+U.id
+      }, function(payload){
+        var row = payload.new;
+        if(!row) return;
+        var jatem = convs.find(function(c){ return c.supabase_id===row.id; });
+        if(!jatem){
+          var c = {id:++conv_id, supabase_id:row.id,
+            person:{name:row.user1_nome, ini:(row.user1_ini||'?'), clr:row.user1_clr||'#9333EA', photo:'', userId:row.user1_id},
+            msgs:[], unread:0};
+          convs.push(c);
+          renderConvs(); renderRecentMsgs();
+        }
+        _inscreverCanalChat(row.id, row.user1_nome);
+      })
+      .subscribe(function(status){
+        console.log('[EvoCity] Canal notif status:', status);
+        if(status === 'SUBSCRIBED'){
+          _rtConectado = true;
+          // Se realtime OK, busca notifs perdidas desde o inicio
+          _carregarNotifsPendentes();
+        } else if(!_rtConectado && (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED')){
+          console.warn('[EvoCity] Realtime notif falhou ('+status+') — ativando polling');
+          _iniciarPolling();
+        }
+      });
+
+    // Garante polling depois de 5s se realtime nao confirmar
+    setTimeout(function(){
+      if(!_rtConectado){
+        console.warn('[EvoCity] Realtime notif nao confirmou — ativando polling');
+        _iniciarPolling();
+      }
+    }, 5000);
+
+    // Sempre busca notifs pendentes ao iniciar (independente de realtime)
+    _carregarNotifsPendentes();
+    console.log('[EvoCity] Notificações realtime + polling prontos!');
+  }catch(e){
+    console.warn('[EvoCity] Notif realtime erro: ' + String(e&&e.message?e.message:e));
+    _iniciarPolling();
+  }
 }
 
 function _labelNotif(tipo){
-  const l = {like:'curtiu seu post',comment:'comentou no seu post',follow:'começou a te seguir',message:'enviou uma mensagem'};
+  var l = {like:'curtiu seu post',comment:'comentou no seu post',follow:'começou a te seguir',message:'enviou uma mensagem'};
   return l[tipo]||'interagiu com você';
 }
 
@@ -7566,7 +7784,7 @@ function openNewSvc(){
 }
 
 function openEditSvc(id){
-  const s = svc_items.find(x=>x.id===id); if(!s) return;
+  const s = svc_items.find(x=>x.id==id); if(!s) return;
   // Preenche modal
   const catSel = document.getElementById('svc-cat');
   // Tenta selecionar a categoria correspondente
@@ -7588,7 +7806,7 @@ function openEditSvc(id){
     ph.style.display='none'; rm.style.display='flex';
     box.style.borderColor='#059669'; box.style.borderStyle='solid';
   }
-  const btn=document.querySelector('#overlay-svc .btn-fb[onclick="submitSvc()"]');
+  const btn=document.querySelector('#overlay-svc .btn-fb');
   if(btn){ btn.textContent='💾 Salvar alterações'; btn.setAttribute('onclick','saveEditSvc('+id+')'); }
   const hd=document.querySelector('#overlay-svc .modal-hd h2');
   if(hd) hd.textContent='Editar Serviço';
@@ -7599,7 +7817,7 @@ async function saveEditSvc(id){
   const nome=document.getElementById('svc-nome').value.trim();
   if(!nome){alert('Informe seu nome.');return;}
   const catFull=document.getElementById('svc-cat').value;
-  const idx=svc_items.findIndex(x=>x.id===id); if(idx<0) return;
+  const idx=svc_items.findIndex(x=>x.id==id); if(idx<0) return;
   svc_items[idx]=Object.assign(svc_items[idx],{
     cat:catFull.replace(/^\S+\s/,''), nome,
     desc:document.getElementById('svc-desc').value.trim(),
@@ -8138,6 +8356,17 @@ function trocarGuiaTab(idx){
   });
 }
 </script>
+<!-- Bottom sheet de alertas mobile -->
+<div id="mb-alerta-overlay" onclick="fecharAlertaMobile(event)">
+  <div id="mb-alerta-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <span>⚠️ Alertas Climáticos</span>
+      <button class="sheet-close" onclick="fecharAlertaMobile()">×</button>
+    </div>
+    <div id="mb-alerta-items"></div>
+  </div>
+</div>
 
 </body>
 </html>
