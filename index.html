@@ -979,11 +979,17 @@ img.av-foto[data-ini]{display:block;}
         <option>🎨 Pintura</option>
         <option>🌿 Jardinagem</option>
         <option>🧹 Limpeza</option>
+        <option>🧴 Higienização</option>
+        <option>🏠 Construção</option>
+        <option>🏚️ Calhas</option>
         <option>❄️ Ar-condicionado</option>
         <option>📱 Informática</option>
         <option>🚗 Mecânica</option>
         <option>💇 Beleza</option>
         <option>🚛 Frete e Mudança</option>
+        <option>🔵 Disk Gás</option>
+        <option>🎨 Designer Gráfico</option>
+        <option>📲 Social Media</option>
         <option>⚖️ Advocacia</option>
         <option>📊 Contabilidade</option>
         <option>🏥 Saúde e Bem-estar</option>
@@ -993,6 +999,7 @@ img.av-foto[data-ini]{display:block;}
         <option>🏫 Aulas Particulares</option>
         <option>🔒 Segurança</option>
         <option>🏠 Imóveis</option>
+        <option>🔹 Outros</option>
       </select></div>
       <div><label class="form-lbl">Nome / Empresa</label><input id="svc-nome" class="form-inp" placeholder="Seu nome ou empresa"/></div>
 
@@ -1006,7 +1013,7 @@ img.av-foto[data-ini]{display:block;}
             onclick="document.getElementById('svc-photo-inp').click()"
             onmouseover="this.style.borderColor='#059669'"
             onmouseout="this.style.borderColor=document.getElementById('svc-photo-inp').files&&document.getElementById('svc-photo-inp').files[0]?'#059669':'#ced0d4'">
-            <img id="svc-photo-prev" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;"/>
+            <img id="svc-photo-prev" src="" alt="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;"/>
             <div id="svc-photo-ph" style="display:flex;flex-direction:column;align-items:center;gap:4px;">
               <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#90949c" stroke-width="1.5"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
               <span style="font-size:10px;font-weight:700;color:#90949c;text-align:center;line-height:1.3;">Adicionar<br/>foto</span>
@@ -1268,6 +1275,12 @@ img.av-foto[data-ini]{display:block;}
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#374151" stroke-width="2"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
         </div>
         <div><p style="font-size:15px;font-weight:700;color:#050505;margin:0;">Copiar link</p><p style="font-size:13px;color:#65676b;margin:0;">Cole em qualquer lugar</p></div>
+      </button>
+      <button id="btn-share-nativo" onclick="shareNativo()" class="share-opt" style="display:none" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#6366f1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        </div>
+        <div><p style="font-size:15px;font-weight:700;color:#050505;margin:0;">Compartilhar com imagem</p><p style="font-size:13px;color:#65676b;margin:0;">Abre o menu de apps do celular</p></div>
       </button>
       <div style="height:1px;background:#f3f4f6;margin:6px 0;"></div>
       <button onclick="shareWhatsApp()" class="share-opt" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
@@ -1722,6 +1735,13 @@ img.av-foto[data-ini]{display:block;}
               <button class="svc-drop-txt" data-cat="Aulas"          onclick="pickSvcCat('Aulas','Aulas Particulares',this)">Aulas Particulares</button>
               <button class="svc-drop-txt" data-cat="Segurança"      onclick="pickSvcCat('Segurança','Segurança',this)">Segurança</button>
               <button class="svc-drop-txt" data-cat="Imóveis"        onclick="pickSvcCat('Imóveis','Imóveis',this)">Imóveis</button>
+              <button class="svc-drop-txt" data-cat="Higienização"   onclick="pickSvcCat('Higienização','Higienização',this)">Higienização</button>
+              <button class="svc-drop-txt" data-cat="Construção"     onclick="pickSvcCat('Construção','Construção',this)">Construção</button>
+              <button class="svc-drop-txt" data-cat="Calhas"         onclick="pickSvcCat('Calhas','Calhas',this)">Calhas</button>
+              <button class="svc-drop-txt" data-cat="Disk Gás"       onclick="pickSvcCat('Disk Gás','Disk Gás',this)">Disk Gás</button>
+              <button class="svc-drop-txt" data-cat="Designer"       onclick="pickSvcCat('Designer','Designer Gráfico',this)">Designer Gráfico</button>
+              <button class="svc-drop-txt" data-cat="Social Media"   onclick="pickSvcCat('Social Media','Social Media',this)">Social Media</button>
+              <button class="svc-drop-txt" data-cat="Outros"         onclick="pickSvcCat('Outros','Outros',this)">Outros</button>
             </div>
           </div>
         </div>
@@ -3715,6 +3735,18 @@ function doShare(id){
     ${p.img?`<img src="${p.img}" style="width:100%;max-height:180px;object-fit:cover;display:block;"/>`:'' }`;
 
   document.getElementById('overlay-share').classList.add('open');
+
+  // Mostra botão nativo só se o browser suportar Web Share API
+  const btnNativo = document.getElementById('btn-share-nativo');
+  if(btnNativo){
+    btnNativo.style.display = navigator.share ? 'flex' : 'none';
+    // Se o post não tiver imagem, ajusta o subtexto
+    if(navigator.share && !p.img){
+      btnNativo.querySelector('p:last-child').textContent = 'Abre o menu de apps do celular';
+    } else if(navigator.share && p.img){
+      btnNativo.querySelector('p:last-child').textContent = 'Envia o texto + imagem do post';
+    }
+  }
 }
 
 function closeShare(){
@@ -3807,6 +3839,31 @@ function sendShareMsg(name,ini,clr){
   goTab('msg');
   setTimeout(()=>openConv(c.id),60);
   showToast('✓ Enviado para '+name+'!');
+}
+
+async function shareNativo(){
+  const p = posts.find(x=>x.id===share_post_id); if(!p) return;
+  const title = 'EvoCity · Petrópolis';
+  const text  = p.author + ': ' + (p.text ? p.text.slice(0,300) : '');
+  // Tenta compartilhar com imagem se o post tiver uma
+  if(p.img && navigator.canShare){
+    try{
+      const resp = await fetch(p.img);
+      const blob = await resp.blob();
+      const ext  = blob.type.includes('png') ? 'png' : 'jpg';
+      const file = new File([blob], 'evocity.'+ext, {type: blob.type});
+      if(navigator.canShare({files:[file]})){
+        closeShare();
+        await navigator.share({files:[file], title, text});
+        return;
+      }
+    }catch(e){}
+  }
+  // Fallback: compartilha só texto
+  try{
+    closeShare();
+    await navigator.share({title, text, url: window.location.href});
+  }catch(e){}
 }
 
 function shareCopyLink(){
@@ -7652,6 +7709,12 @@ function _execCmdSB(cmd){
   if(cmd.tipo==='editar_comunidade'){
     _editarComunidadeMenu(cmd);
   }
+  if(cmd.tipo==='guia_conteudo' && cmd.conteudo){
+    try{
+      var novoGuia = JSON.parse(cmd.conteudo);
+      _aplicarConteudoGuia(novoGuia);
+    }catch(e){}
+  }
   if(cmd.tipo==='banir' && cmd.userId){
     var lista=JSON.parse(localStorage.getItem('evocity_global_users')||'[]');
     var idx=lista.findIndex(function(u){return u.id===cmd.userId;});
@@ -8459,6 +8522,68 @@ window.addEventListener('load', function(){
 </div>
 
 <script>
+// ── Aplica conteúdo do guia enviado pelo Painel ADM ──
+function _aplicarConteudoGuia(abas){
+  if(!abas || !Array.isArray(abas)) return;
+  var _e = function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var BG_CORES = ['#f8f0ff','#f0f9ff','#f0fff4','#fff8f0','#fdf4ff','#fff7ed'];
+  abas.forEach(function(aba){
+    var panel = document.getElementById('guia-panel-'+aba.id);
+    if(!panel) return;
+    var cardsHtml = (aba.cards||[]).map(function(c,ci){
+      var bg = BG_CORES[ci % BG_CORES.length];
+      return '<div style="display:flex;gap:12px;align-items:flex-start;background:'+bg+';border-radius:12px;padding:14px;">'+
+        '<span style="font-size:22px;flex-shrink:0;">'+_e(c.emoji)+'</span>'+
+        '<div><div style="font-weight:800;font-size:14px;color:#1c1e21;font-family:Nunito,sans-serif;">'+_e(c.titulo)+'</div>'+
+        '<div style="font-size:13px;color:#65676b;margin-top:3px;font-family:Nunito,sans-serif;">'+_e(c.texto)+'</div></div></div>';
+    }).join('');
+    panel.innerHTML =
+      '<div style="font-size:15px;font-weight:800;color:#1c1e21;margin-bottom:14px;font-family:Nunito,sans-serif;">'+_e(aba.titulo)+'</div>'+
+      '<p style="font-size:14px;color:#444;line-height:1.6;font-family:Nunito,sans-serif;margin-bottom:14px;">'+_e(aba.subtitulo)+'</p>'+
+      '<div style="display:flex;flex-direction:column;gap:10px;">'+cardsHtml+'</div>';
+  });
+  // Atualiza também os botões das abas
+  var tabBtns = document.querySelectorAll('.guia-tab');
+  tabBtns.forEach(function(btn){
+    var idx = parseInt(btn.dataset.tab);
+    if(!isNaN(idx) && abas[idx]){
+      btn.textContent = abas[idx].emoji + ' ' + abas[idx].label;
+    }
+  });
+}
+
+// ── Carrega guia customizado do Supabase ao iniciar ──
+async function _carregarGuiaSalvo(){
+  if(!window._sb) return;
+  try{
+    var r = await window._sb.from('configuracoes').select('valor').eq('chave','guia_conteudo').maybeSingle();
+    if(r.data && r.data.valor){
+      var abas = JSON.parse(r.data.valor);
+      _aplicarConteudoGuia(abas);
+    }
+  }catch(e){}
+}
+setTimeout(_carregarGuiaSalvo, 2000);
+
+// ── Escuta mudanças do guia em tempo real via tabela configuracoes ──
+function _escutarGuiaRealtime(){
+  if(!window._sb) return;
+  try{
+    window._sb.channel('guia_rt')
+      .on('postgres_changes',{event:'*',schema:'public',table:'configuracoes',filter:'chave=eq.guia_conteudo'},function(payload){
+        if(payload.eventType==='DELETE') return;
+        if(payload.new && payload.new.valor){
+          try{
+            var abas = JSON.parse(payload.new.valor);
+            _aplicarConteudoGuia(abas);
+          }catch(e){}
+        }
+      })
+      .subscribe();
+  }catch(e){}
+}
+setTimeout(_escutarGuiaRealtime, 2500);
+
 function abrirGuia(){
   var el = document.getElementById('guia-overlay');
   el.style.display = 'flex';
