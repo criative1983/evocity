@@ -1498,16 +1498,26 @@ async function _salvarGuia(abaIdx){
   const payload = JSON.stringify(_guiaAbas);
 
   try{
-    // Salva no Supabase como configuração persistente (upsert evita duplicatas)
+    // Salva em admin_config (persistência interna)
     if(db){
       const {error:errUpsert} = await db.from('admin_config').upsert(
         [{chave:'guia_conteudo', valor:payload}],
         {onConflict:'chave'}
       );
-      // Se upsert falhar (tabela sem constraint única), tenta delete+insert
       if(errUpsert){
         await db.from('admin_config').delete().eq('chave','guia_conteudo');
         await db.from('admin_config').insert([{chave:'guia_conteudo', valor:payload}]);
+      }
+    }
+    // Salva também em configuracoes (tabela pública — o site lê daqui)
+    if(db){
+      const {error:errCfg} = await db.from('configuracoes').upsert(
+        [{chave:'guia_conteudo', valor:payload}],
+        {onConflict:'chave'}
+      );
+      if(errCfg){
+        await db.from('configuracoes').delete().eq('chave','guia_conteudo');
+        await db.from('configuracoes').insert([{chave:'guia_conteudo', valor:payload}]);
       }
     }
     // Envia comando ao site para aplicar em tempo real
