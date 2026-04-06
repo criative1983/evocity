@@ -241,6 +241,7 @@ select.f-inp option{background:var(--bg3);}
     <a onclick="goPage('servicos')"><span class="ic">🔧</span> Serviços</a>
     <a onclick="goPage('comunidades')"><span class="ic">🏘️</span> Comunidades</a>
     <a onclick="goPage('emojis')"><span class="ic">😊</span> Banco de Emojis</a>
+    <a onclick="goPage('guia')"><span class="ic">📖</span> Guia do EvoCity</a>
     <div class="sb-sub">Gestão</div>
     <a onclick="goPage('relatorios')"><span class="ic">📈</span> Relatórios</a>
     <a onclick="goPage('config')"><span class="ic">⚙️</span> Configurações</a>
@@ -363,6 +364,7 @@ const PAGES = {
   servicos: pgServicos,
   comunidades: pgComunidades,
   emojis: pgEmojis,
+  guia: pgGuiaEditor,
   relatorios: pgRelatorios,
   config: pgConfig
 };
@@ -1261,6 +1263,266 @@ function copiarTexto(texto, card){
   }).catch(function(){
     showToast('Copie manualmente: '+texto.slice(0,30)+'...','i');
   });
+}
+
+// ══════════════════════════════════════
+// GUIA DO EVOCITY — EDITOR
+// ══════════════════════════════════════
+const GUIA_ABAS_DEFAULT = [
+  {
+    id:0, emoji:'🏠', label:'Feed',
+    titulo:'🏠 O Feed — o mural da cidade',
+    subtitulo:'O Feed é a página principal do EvoCity. É aqui que toda a comunidade de Petrópolis se conecta — veja o que está acontecendo na sua cidade em tempo real.',
+    cards:[
+      {emoji:'✍️', titulo:'Publicar no feed', texto:'Clique na caixa "O que você quer compartilhar?" para criar um post. Você pode adicionar texto, foto e escolher a categoria (Notícia, Evento, Dúvida, Resenha, etc.).'},
+      {emoji:'🏷️', titulo:'Filtrar por categoria', texto:'Use os filtros no topo do feed para ver só Notícias, Eventos, Dúvidas, Resenhas ou Serviços. Assim você encontra o que interessa mais rápido.'},
+      {emoji:'👍', titulo:'Curtir e comentar', texto:'Curta e comente os posts dos seus vizinhos. Clique em "Compartilhar" para levar um post para o chat de um amigo.'},
+      {emoji:'🏘️', titulo:'Comunidades', texto:'No menu lateral esquerdo você encontra as Comunidades. Entre em grupos do seu bairro ou interesse e publique lá — os posts aparecerão só para os membros.'},
+      {emoji:'👁️', titulo:'Ver perfil de alguém', texto:'Clique no nome ou na foto de qualquer usuário no feed para ver o perfil completo, adicionar como amigo ou enviar mensagem.'},
+    ]
+  },
+  {
+    id:1, emoji:'🛒', label:'Classificados',
+    titulo:'🛒 Classificados — compre e venda em Petrópolis',
+    subtitulo:'O Classificados é o espaço para anunciar produtos usados ou novos, vagas de emprego e muito mais — tudo de forma local e gratuita.',
+    cards:[
+      {emoji:'📦', titulo:'Criar um anúncio', texto:'Clique em "+ Novo anúncio", preencha o título, preço, descrição, bairro e adicione uma foto. Seu anúncio aparece na listagem na hora.'},
+      {emoji:'🔍', titulo:'Buscar e filtrar', texto:'Use a barra de busca ou os filtros por categoria (Produto, Vaga, Imóvel…) para encontrar o que precisa rapidamente.'},
+      {emoji:'💬', titulo:'Entrar em contato', texto:'Clique no anúncio para ver os detalhes e use o botão de mensagem para conversar direto com o anunciante pelo chat do EvoCity.'},
+      {emoji:'✏️', titulo:'Gerenciar seus anúncios', texto:'Seus anúncios aparecem no seu perfil. Você pode editar ou excluir a qualquer momento clicando nos 3 pontos do anúncio.'},
+    ]
+  },
+  {
+    id:2, emoji:'🔧', label:'Serviços',
+    titulo:'🔧 Serviços — encontre profissionais locais',
+    subtitulo:'Na aba Serviços você encontra profissionais e empresas de Petrópolis que oferecem serviços para casa, negócios e muito mais.',
+    cards:[
+      {emoji:'🔎', titulo:'Explorar categorias', texto:'Navegue pelas categorias (Reformas, Beleza, Tecnologia, Educação…) para descobrir os profissionais disponíveis na sua região.'},
+      {emoji:'📋', titulo:'Ver detalhes do serviço', texto:'Clique em qualquer serviço para ver descrição completa, bairro de atuação e formas de contato do profissional.'},
+      {emoji:'🏪', titulo:'Anunciar seu serviço', texto:'Clique em "+ Oferecer Serviço", escolha a categoria, descreva o que você faz, adicione contato e pronto — apareça para toda Petrópolis!'},
+    ]
+  },
+  {
+    id:3, emoji:'🏷️', label:'Promoções',
+    titulo:'🏷️ Promoções — ofertas exclusivas da cidade',
+    subtitulo:'Veja promoções e ofertas especiais de lojas e negócios locais de Petrópolis. Aproveite descontos exclusivos da sua comunidade.',
+    cards:[
+      {emoji:'🔥', titulo:'Ofertas em destaque', texto:'As promoções mais recentes ficam no topo da listagem. Fique de olho para não perder as melhores ofertas do dia.'},
+      {emoji:'🏪', titulo:'Publicar uma oferta', texto:'Clique em "+ Nova Promoção", preencha o título, descrição, validade e contato do seu negócio. Sua oferta aparece para toda a comunidade.'},
+      {emoji:'📲', titulo:'Entrar em contato', texto:'Cada promoção tem um botão de contato. Use para falar direto com o estabelecimento e confirmar os detalhes da oferta.'},
+    ]
+  },
+  {
+    id:4, emoji:'💬', label:'Mensagens',
+    titulo:'💬 Mensagens — converse em privado',
+    subtitulo:'O chat do EvoCity é direto e simples. Fale em particular com qualquer usuário da plataforma.',
+    cards:[
+      {emoji:'✉️', titulo:'Iniciar uma conversa', texto:'Clique no nome ou foto de qualquer usuário e toque em "Enviar mensagem". Você também pode clicar no ícone de mensagem diretamente em um post ou perfil.'},
+      {emoji:'🔔', titulo:'Notificações de mensagens', texto:'O número em vermelho na aba Mensagens mostra as conversas não lidas. Clique no sino no topo para ver todas as notificações.'},
+      {emoji:'📤', titulo:'Compartilhar posts', texto:'No feed, clique em "Compartilhar" em qualquer post e escolha um amigo — o post é enviado direto para o chat da pessoa.'},
+    ]
+  },
+  {
+    id:5, emoji:'👤', label:'Perfil',
+    titulo:'👤 Perfil — sua identidade no EvoCity',
+    subtitulo:'Seu perfil é como os outros te veem na plataforma. Mantenha-o atualizado para se conectar melhor com a comunidade.',
+    cards:[
+      {emoji:'🖼️', titulo:'Foto e informações', texto:'Clique nos 3 pontinhos no topo e escolha "Editar perfil" para atualizar seu nome, foto, bairro e bio. Uma boa foto aumenta sua credibilidade.'},
+      {emoji:'👥', titulo:'Amigos e seguidores', texto:'Adicione pessoas como amigos ou siga perfis de interesse. No seu perfil você vê a lista de amigos e pode gerenciá-la.'},
+      {emoji:'📸', titulo:'Galeria de fotos', texto:'Todas as fotos que você publicou no feed ficam salvas na aba Fotos do seu perfil — um álbum automático da sua atividade.'},
+      {emoji:'🏢', titulo:'Páginas e subcontas', texto:'Contas verificadas podem criar Páginas para negócios ou projetos. Alterne entre sua conta pessoal e suas páginas pelos 3 pontinhos no topo.'},
+      {emoji:'🔒', titulo:'Bloquear e denunciar', texto:'Nos 3 pontos de qualquer post você pode denunciar conteúdo impróprio ou bloquear usuários. Sua segurança é prioridade.'},
+    ]
+  }
+];
+
+let _guiaAbas = null; // cache
+
+async function pgGuiaEditor(){
+  document.getElementById('page-title').textContent = 'Guia do EvoCity';
+  document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando guia...</div>';
+
+  // Tenta carregar conteúdo salvo no Supabase
+  _guiaAbas = JSON.parse(JSON.stringify(GUIA_ABAS_DEFAULT)); // cópia
+  try{
+    if(db){
+      const {data} = await db.from('admin_config').select('valor').eq('chave','guia_conteudo').order('id',{ascending:false}).limit(1);
+      if(data && data.length && data[0].valor){
+        _guiaAbas = JSON.parse(data[0].valor);
+      }
+    }
+  }catch(e){}
+
+  _renderGuiaEditor(0);
+}
+
+function _renderGuiaEditor(abaAtiva){
+  const aba = _guiaAbas[abaAtiva];
+
+  const tabBtns = _guiaAbas.map((a,i)=>`
+    <button onclick="_renderGuiaEditor(${i})"
+      style="padding:7px 14px;border-radius:8px;border:1.5px solid ${i===abaAtiva?'rgba(124,58,237,.5)':'var(--border)'};background:${i===abaAtiva?'rgba(124,58,237,.15)':'var(--bg3)'};color:${i===abaAtiva?'#a78bfa':'var(--mt)'};font-size:13px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;transition:.15s;">
+      ${a.emoji} ${a.label}
+    </button>`).join('');
+
+  const cardsHtml = aba.cards.map((c,ci)=>`
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+      <div style="display:flex;gap:10px;margin-bottom:10px;align-items:center;">
+        <div class="f-row" style="margin:0;flex:0 0 80px">
+          <label class="f-lbl">Emoji</label>
+          <input class="f-inp" id="gc-emoji-${abaAtiva}-${ci}" value="${c.emoji}" style="font-size:20px;text-align:center;" maxlength="4"/>
+        </div>
+        <div class="f-row" style="margin:0;flex:1">
+          <label class="f-lbl">Título do card</label>
+          <input class="f-inp" id="gc-titulo-${abaAtiva}-${ci}" value="${c.titulo.replace(/"/g,'&quot;')}"/>
+        </div>
+        <button onclick="_removerCard(${abaAtiva},${ci})" class="btn btn-r btn-sm" style="flex-shrink:0;margin-top:16px;" title="Remover card">🗑️</button>
+      </div>
+      <div class="f-row" style="margin:0">
+        <label class="f-lbl">Texto explicativo</label>
+        <textarea class="f-inp" id="gc-texto-${abaAtiva}-${ci}" rows="3">${c.texto.replace(/</g,'&lt;')}</textarea>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('content').innerHTML = `
+    <div class="sec" style="margin-bottom:16px">
+      <div class="sec-h">
+        <h3>📖 Editor do Guia — Como usar o EvoCity</h3>
+        <span class="rt-badge">💡 Alterações aplicadas em tempo real no site</span>
+      </div>
+      <div class="sec-b">
+        <p style="font-size:13px;color:var(--mt);margin-bottom:16px;line-height:1.6;">
+          Edite o conteúdo do modal "Como usar o EvoCity" que aparece para os usuários. Selecione uma aba abaixo e edite os textos. Clique em <strong style="color:var(--green)">Salvar e Publicar</strong> para enviar ao site instantaneamente.
+        </p>
+        <!-- Seletor de abas -->
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+          ${tabBtns}
+        </div>
+
+        <!-- Campos da aba selecionada -->
+        <div style="background:var(--bg);border-radius:12px;padding:16px;border:1px solid var(--border);margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:800;color:var(--purple);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">✏️ Aba: ${aba.emoji} ${aba.label}</div>
+          <div class="f-row">
+            <label class="f-lbl">Título principal da aba</label>
+            <input class="f-inp" id="gc-abtitulo-${abaAtiva}" value="${aba.titulo.replace(/"/g,'&quot;')}"/>
+          </div>
+          <div class="f-row">
+            <label class="f-lbl">Subtítulo / descrição da aba</label>
+            <textarea class="f-inp" id="gc-absubtitulo-${abaAtiva}" rows="2">${aba.subtitulo.replace(/</g,'&lt;')}</textarea>
+          </div>
+        </div>
+
+        <!-- Cards de dicas -->
+        <div style="font-size:12px;font-weight:800;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">📋 Cards de dicas (${aba.cards.length})</div>
+        <div id="gc-cards-wrap">
+          ${cardsHtml}
+        </div>
+
+        <!-- Adicionar card -->
+        <button onclick="_adicionarCard(${abaAtiva})" class="btn btn-ghost" style="width:100%;margin-bottom:20px;border-style:dashed;">
+          ➕ Adicionar novo card de dica
+        </button>
+
+        <!-- Botão salvar -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <button onclick="_salvarGuia(${abaAtiva})" class="btn btn-p" style="min-width:200px;">
+            💾 Salvar e Publicar no Site
+          </button>
+          <button onclick="_resetarGuia(${abaAtiva})" class="btn btn-ghost btn-sm">
+            ↩ Restaurar padrão desta aba
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="sec">
+      <div class="sec-h"><h3>👁️ Pré-visualização</h3></div>
+      <div class="sec-b" style="padding:20px;">
+        <div style="background:linear-gradient(135deg,#0d0520,#1a0840);border-radius:14px;padding:20px 24px;">
+          <div style="font-size:13px;color:#c4b5fd;font-weight:600;">${aba.titulo}</div>
+          <div style="font-size:12px;color:#9d8ec0;margin-top:6px;">${aba.subtitulo}</div>
+        </div>
+        ${aba.cards.map(c=>`
+          <div style="display:flex;gap:12px;align-items:flex-start;background:#f8f0ff;border-radius:10px;padding:12px 14px;margin-top:10px;">
+            <span style="font-size:20px;flex-shrink:0;">${c.emoji}</span>
+            <div>
+              <div style="font-weight:800;font-size:13px;color:#1c1e21;">${c.titulo}</div>
+              <div style="font-size:12px;color:#65676b;margin-top:2px;">${c.texto}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function _coletarAbaDosInputs(abaIdx){
+  const aba = _guiaAbas[abaIdx];
+  aba.titulo = document.getElementById('gc-abtitulo-'+abaIdx)?.value || aba.titulo;
+  aba.subtitulo = document.getElementById('gc-absubtitulo-'+abaIdx)?.value || aba.subtitulo;
+  aba.cards.forEach(function(c, ci){
+    c.emoji  = document.getElementById('gc-emoji-'+abaIdx+'-'+ci)?.value || c.emoji;
+    c.titulo = document.getElementById('gc-titulo-'+abaIdx+'-'+ci)?.value || c.titulo;
+    c.texto  = document.getElementById('gc-texto-'+abaIdx+'-'+ci)?.value || c.texto;
+  });
+}
+
+function _adicionarCard(abaIdx){
+  _coletarAbaDosInputs(abaIdx);
+  _guiaAbas[abaIdx].cards.push({emoji:'💡', titulo:'Novo recurso', texto:'Descreva este recurso aqui.'});
+  _renderGuiaEditor(abaIdx);
+}
+
+function _removerCard(abaIdx, cardIdx){
+  _coletarAbaDosInputs(abaIdx);
+  _guiaAbas[abaIdx].cards.splice(cardIdx,1);
+  _renderGuiaEditor(abaIdx);
+}
+
+function _resetarGuia(abaIdx){
+  openModal('↩ Restaurar padrão',
+    '<p style="color:var(--mt);line-height:1.7">Isso vai restaurar o conteúdo padrão desta aba. Continue?</p>',
+    function(){
+      _guiaAbas[abaIdx] = JSON.parse(JSON.stringify(GUIA_ABAS_DEFAULT[abaIdx]));
+      _renderGuiaEditor(abaIdx);
+      showToast('↩ Aba restaurada para o padrão.','i');
+    },'Restaurar','btn-o');
+}
+
+async function _salvarGuia(abaIdx){
+  // Coleta os valores dos inputs antes de salvar
+  _coletarAbaDosInputs(abaIdx);
+
+  const payload = JSON.stringify(_guiaAbas);
+
+  try{
+    // Salva no Supabase como configuração persistente (upsert evita duplicatas)
+    if(db){
+      const {error:errUpsert} = await db.from('admin_config').upsert(
+        [{chave:'guia_conteudo', valor:payload}],
+        {onConflict:'chave'}
+      );
+      // Se upsert falhar (tabela sem constraint única), tenta delete+insert
+      if(errUpsert){
+        await db.from('admin_config').delete().eq('chave','guia_conteudo');
+        await db.from('admin_config').insert([{chave:'guia_conteudo', valor:payload}]);
+      }
+    }
+    // Envia comando ao site para aplicar em tempo real
+    if(db){
+      await db.from('comandos').insert([{
+        tipo:'guia_conteudo',
+        dados:{conteudo: payload, ts:Date.now()},
+        criado_em: new Date().toISOString()
+      }]);
+    }
+    showToast('✅ Guia publicado no site com sucesso!','s');
+    _renderGuiaEditor(abaIdx);
+  }catch(e){
+    showToast('Erro ao salvar: '+e.message,'e');
+  }
 }
 
 // ══════════════════════════════════════
