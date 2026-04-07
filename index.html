@@ -3699,6 +3699,7 @@ function doShare(id){
   const p = posts.find(x=>x.id == id); if(!p) return;
 
   // reset boxes
+  document.getElementById('share-options').style.display='flex';
   document.getElementById('share-feed-box').style.display='none';
   document.getElementById('share-msg-box').style.display='none';
   document.getElementById('share-feed-text').value='';
@@ -3828,7 +3829,7 @@ function openShareMsg(){
 }
 
 function sendShareMsg(name,ini,clr){
-  const p=posts.find(x=>x.id===share_post_id); if(!p) return;
+  const p=posts.find(x=>x.id==share_post_id); if(!p) return;
   // find or create conversation
   let c=convs.find(x=>x.person.name===name);
   if(!c){ c={id:++conv_id,person:{name,ini,clr},msgs:[],unread:0}; convs.unshift(c); }
