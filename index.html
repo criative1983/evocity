@@ -2360,7 +2360,16 @@ function logout(){
 // AUTH: Restaura sessão no F5
 // ══════════════════════════════════════
 window.addEventListener('DOMContentLoaded', function(){
-  if(!window._sb) return;
+  // Se Supabase falhou ao carregar, mostra login após 3s em vez de travar
+  if(!window._sb){
+    setTimeout(function(){
+      var el = document.getElementById('pg-loading');
+      if(el){ el.style.display='none'; }
+      var login = document.getElementById('pg-login');
+      if(login){ login.style.display='flex'; login.classList.add('on'); }
+    }, 3000);
+    return;
+  }
 
   var _sessaoRestaurada = false;
   var _loginTimestamp   = 0;   // momento em que doLogin() foi chamado
@@ -2369,10 +2378,10 @@ window.addEventListener('DOMContentLoaded', function(){
   // Expõe _loginTimestamp para doLogin() atualizar
   window._marcarLoginAgora = function(){ _loginTimestamp = Date.now(); };
 
-  // Timeout de segurança: se em 8s nada restaurar, mostra tela de login
+  // Timeout de segurança: se em 5s nada restaurar, mostra tela de login
   _authTimeout = setTimeout(function(){
     if(!_sessaoRestaurada){ _mostrarLogin(); }
-  }, 8000);
+  }, 5000);
 
   function _cancelarTimeout(){
     if(_authTimeout){ clearTimeout(_authTimeout); _authTimeout = null; }
@@ -3766,16 +3775,27 @@ function openShareFeed(){
   setTimeout(()=>document.getElementById('share-feed-text').focus(),50);
 }
 
-function confirmShareFeed(){
+async function confirmShareFeed(){
   if(share_post_id === null || share_post_id === undefined){
     showToast('Erro: nenhum post selecionado.'); return;
   }
-  // usa == para evitar problema de tipo (string vs number)
   const p = posts.find(x => x.id == share_post_id);
   if(!p){
     showToast('Erro: post não encontrado.'); closeShare(); return;
   }
   const note = document.getElementById('share-feed-text').value.trim();
+  const sharedFromData = {
+    id: p.supabase_id || p.id,
+    author: p.author,
+    ini: p.ini,
+    clr: p.clr,
+    avPhoto: p.avPhoto || '',
+    time: p.time,
+    cat: p.cat,
+    text: p.text,
+    img: p.img || '',
+    comunidade_nome: p.comunidade_nome || null
+  };
   const newPost = {
     id: ++pid,
     author: U.name,
@@ -3788,25 +3808,31 @@ function confirmShareFeed(){
     own: true, img: '',
     commentList: [],
     avPhoto: getUserAvatar(),
-    sharedFrom: {
-      id: p.id,
-      author: p.author,
-      ini: p.ini,
-      clr: p.clr,
-      avPhoto: p.avPhoto || '',
-      time: p.time,
-      cat: p.cat,
-      text: p.text,
-      img: p.img || '',
-      comunidade_nome: p.comunidade_nome || null
-    }
+    sharedFrom: sharedFromData
   };
   posts.unshift(newPost);
   closeShare();
   renderFeed(); renderProfileFeed(); updateCounts();
   showToast('✓ Compartilhado no seu feed!');
+  // Salva no Supabase
+  if(window._sb && U.id){
+    try{
+      const {data:row, error} = await window._sb.from('postagens').insert([{
+        autor_id: U.id, autor: U.name, ini: U.ini, clr: newPost.clr,
+        categoria: p.cat, texto: note, img: '',
+        shared_from: JSON.stringify(sharedFromData),
+        removido: false, criado_em: new Date().toISOString()
+      }]).select().single();
+      if(error){
+        console.error('[EvoCity] confirmShareFeed erro:', error.message);
+        showToast('⚠️ Compartilhamento salvo só localmente: ' + (error.message||''));
+      } else if(row){
+        newPost.supabase_id = row.id;
+        newPost.sharedFrom = sharedFromData; // garante sharedFrom mesmo após sync
+      }
+    }catch(e){ console.error('[EvoCity] confirmShareFeed excecao:', e.message||e); }
+  }
 }
-
 function openShareMsg(){
   document.getElementById('share-feed-box').style.display='none';
   document.getElementById('share-msg-box').style.display='block';
@@ -7203,7 +7229,8 @@ function abrirComunidade(id, nome, bg, emoji){
               comments: row.comentarios||0, commentList: [],
               own: !!(row.autor_id && U.id && String(row.autor_id)===String(U.id)),
               img: row.img||'', avPhoto:'',
-              comunidade_id: row.comunidade_id, comunidade_nome: row.comunidade_nome
+              comunidade_id: row.comunidade_id, comunidade_nome: row.comunidade_nome,
+              sharedFrom:(function(){ try{ return row.shared_from ? JSON.parse(row.shared_from) : null; }catch(e){ return null; } })()
             });
           } else {
             // Atualiza o supabase_id no post local existente (garante que esteja sincronizado)
@@ -7511,6 +7538,13 @@ async function _carregarPostsSupabase(){
       var existe = posts.some(function(p){ return String(p.supabase_id)===String(row.id); });
       if(!existe){
         var isOwn = row.autor_id && U.id && row.autor_id === U.id;
+        // Preserva sharedFrom de post local ainda sem supabase_id (recém-publicado)
+        var localMatch = isOwn ? posts.find(function(p){
+          return !p.supabase_id && p.own &&
+                 (p.text||'').trim() === (row.texto||'').trim() &&
+                 String(p.comunidade_id||'') === String(row.comunidade_id||'');
+        }) : null;
+        var sharedFromBanco = (function(){ try{ return row.shared_from ? JSON.parse(row.shared_from) : null; }catch(e){ return null; } })();
         _novos.push({
           id: row.id, supabase_id: row.id,
           autor_id: row.autor_id || '',
@@ -7528,8 +7562,17 @@ async function _carregarPostsSupabase(){
           rel_label: '',
           avPhoto: isOwn ? (U.photo||U.photo_url||'') : (row.autor_photo_url||row.autor_photo||''),
           comunidade_id: row.comunidade_id||null,
-          comunidade_nome: row.comunidade_nome||null
+          comunidade_nome: row.comunidade_nome||null,
+          sharedFrom: sharedFromBanco || (localMatch ? localMatch.sharedFrom : null)
         });
+        // Remove o rascunho local para evitar duplicata
+        if(localMatch){ posts = posts.filter(function(p){ return p !== localMatch; }); }
+      } else {
+        // Post já existe — garante que sharedFrom está preenchido caso estivesse faltando
+        var existing = posts.find(function(p){ return String(p.supabase_id)===String(row.id); });
+        if(existing && !existing.sharedFrom && row.shared_from){
+          try{ existing.sharedFrom = JSON.parse(row.shared_from); }catch(e){}
+        }
       }
     });
 
@@ -7628,7 +7671,8 @@ function _escutarSupabase(){
               text:row.texto||'',likes:0,liked:false,comments:0,commentList:[],
               own:!!(row.autor_id && U.id && String(row.autor_id)===String(U.id)),img:'',
               comunidade_id: row.comunidade_id||null,
-              comunidade_nome: row.comunidade_nome||null});
+              comunidade_nome: row.comunidade_nome||null,
+              sharedFrom:(function(){ try{ return row.shared_from ? JSON.parse(row.shared_from) : null; }catch(e){ return null; } })()});
             try{renderFeed();}catch(e){}
             if(!row.autor_id || !U.id || String(row.autor_id)!==String(U.id)){
               showToast('📣 Novo post do Admin!');
