@@ -175,8 +175,8 @@ select.f-inp option{background:var(--bg3);}
       <h2 style="font-size:18px;font-weight:800;margin-bottom:20px;text-align:center;">🔒 Entrar no Painel</h2>
 
       <div style="margin-bottom:14px;">
-        <label style="font-size:12px;font-weight:700;color:var(--mt);display:block;margin-bottom:6px;">Usuário Admin</label>
-        <input id="admin-user" type="text" placeholder="Digite o usuário"
+        <label style="font-size:12px;font-weight:700;color:var(--mt);display:block;margin-bottom:6px;">E-mail do Admin</label>
+        <input id="admin-user" type="email" placeholder="Digite o e-mail do admin"
           style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--tx);font-size:15px;font-family:'Nunito',sans-serif;outline:none;"
           onkeydown="if(event.key==='Enter')document.getElementById('admin-pass').focus()"
           onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'"/>
@@ -1583,7 +1583,7 @@ function pgConfig(){
       <div class="sec-h"><h3>🔑 Credenciais de Acesso ao Painel</h3></div>
       <div class="sec-b">
         <p style="font-size:13px;color:var(--mt);margin-bottom:16px;">Altere o usuário e senha de acesso ao painel admin.</p>
-        <div class="f-row"><label class="f-lbl">Novo usuário</label><input class="f-inp" id="novo-admin-user" placeholder="Ex: admin_evocity"/></div>
+        <p style="font-size:12px;color:var(--mt);margin-bottom:12px;line-height:1.6">Para trocar o e-mail do admin, faça isso direto no painel do Supabase (Authentication → Users). Aqui você só troca a senha da conta que já está logada.</p>
         <div class="f-row"><label class="f-lbl">Nova senha</label><input class="f-inp" type="password" id="novo-admin-pass" placeholder="Mínimo 6 caracteres"/></div>
         <div class="f-row"><label class="f-lbl">Confirmar nova senha</label><input class="f-inp" type="password" id="novo-admin-pass2" placeholder="Repita a senha"/></div>
         <button class="btn btn-p" onclick="salvarCredenciais()">🔑 Salvar Credenciais</button>
@@ -1632,27 +1632,27 @@ function pgConfig(){
 }
 
 async function salvarCredenciais(){
-  var user  = document.getElementById('novo-admin-user')?.value?.trim();
   var pass  = document.getElementById('novo-admin-pass')?.value;
   var pass2 = document.getElementById('novo-admin-pass2')?.value;
-  if(!user || !pass){ showToast('Preencha usuário e senha.','e'); return; }
+  if(!pass){ showToast('Preencha a nova senha.','e'); return; }
   if(pass !== pass2){ showToast('As senhas não coincidem.','e'); return; }
   if(pass.length < 6){ showToast('Senha deve ter no mínimo 6 caracteres.','e'); return; }
   try{
-    // Salvar no Supabase
-    await db.from('admin_config').upsert([{chave:'admin_user',valor:user}],{onConflict:'chave'});
-    await db.from('admin_config').upsert([{chave:'admin_pass',valor:pass}],{onConflict:'chave'});
-    showToast('✅ Credenciais atualizadas com sucesso!','s');
-    document.getElementById('novo-admin-user').value='';
+    // Atualiza a senha da conta admin autenticada via Supabase Auth
+    // (nunca mais fica senha em texto puro guardada numa tabela)
+    const {error} = await db.auth.updateUser({password: pass});
+    if(error) throw error;
+    showToast('✅ Senha atualizada com sucesso!','s');
     document.getElementById('novo-admin-pass').value='';
     document.getElementById('novo-admin-pass2').value='';
   }catch(e){
-    showToast('Erro ao salvar: execute o SQL de admin_config no Supabase.','e');
+    showToast('Erro ao salvar: '+e.message,'e');
   }
 }
 
-function sairDoPainel(){
+async function sairDoPainel(){
   sessionStorage.removeItem('evocity_admin_auth');
+  try{ if(db) await db.auth.signOut(); }catch(e){}
   var tela = document.getElementById('painel-login');
   if(tela){ tela.style.display='flex'; tela.style.opacity='1'; }
   document.getElementById('admin-user').value='';
@@ -2034,10 +2034,6 @@ async function publicarPostEditor(){
 // LOGIN DO PAINEL
 // ══════════════════════════════════════
 
-// Credenciais do admin — armazenadas de forma segura no Supabase
-// Padrão inicial: admin / evocity2024 (mude pelo painel após entrar)
-const ADMIN_PADRAO = { user: 'admin', pass: 'evocity2024' };
-
 function toggleSenhaAdmin(){
   var inp = document.getElementById('admin-pass');
   if(!inp) return;
@@ -2045,34 +2041,25 @@ function toggleSenhaAdmin(){
 }
 
 async function fazerLoginPainel(){
-  var user = document.getElementById('admin-user')?.value?.trim();
-  var pass = document.getElementById('admin-pass')?.value;
-  var btn  = document.getElementById('btn-login-painel');
-  var erro = document.getElementById('login-erro');
+  var email = document.getElementById('admin-user')?.value?.trim();
+  var pass  = document.getElementById('admin-pass')?.value;
+  var btn   = document.getElementById('btn-login-painel');
+  var erro  = document.getElementById('login-erro');
 
-  if(!user || !pass){ if(erro){erro.textContent='❌ Preencha usuário e senha.';erro.style.display='block';} return; }
+  if(!email || !pass){ if(erro){erro.textContent='❌ Preencha e-mail e senha.';erro.style.display='block';} return; }
 
   if(btn){ btn.disabled=true; btn.textContent='⏳ Verificando...'; }
   if(erro) erro.style.display='none';
 
-  // Verificar credenciais no Supabase
+  // Login real via Supabase Auth — nenhuma senha fica escrita ou lida no código/tabelas
   var autenticado = false;
   try{
     if(db){
-      const {data:r1} = await db.from('admin_config').select('valor').eq('chave','admin_user').order('id',{ascending:false}).limit(1);
-      const {data:r2} = await db.from('admin_config').select('valor').eq('chave','admin_pass').order('id',{ascending:false}).limit(1);
-      var data = r1 && r1.length ? r1[0] : null;
-      var d2   = r2 && r2.length ? r2[0] : null;
-      if(data && d2){
-        autenticado = (user === data.valor && pass === d2.valor);
-      } else {
-        // Tabela não existe ainda — usa padrão
-        autenticado = (user === ADMIN_PADRAO.user && pass === ADMIN_PADRAO.pass);
-      }
+      const {data, error} = await db.auth.signInWithPassword({email:email, password:pass});
+      autenticado = !error && !!(data && data.user);
     }
   }catch(e){
-    // Fallback para credenciais padrão
-    autenticado = (user === ADMIN_PADRAO.user && pass === ADMIN_PADRAO.pass);
+    autenticado = false;
   }
 
   if(autenticado){
@@ -2096,15 +2083,26 @@ async function fazerLoginPainel(){
 }
 
 // INIT
-initSupabase().then(()=>{
-  // Verificar se já estava logado na sessão
-  if(sessionStorage.getItem('evocity_admin_auth')==='1'){
+initSupabase().then(async ()=>{
+  // Verifica a sessão REAL no Supabase Auth (não confia em marca local,
+  // que qualquer um poderia forjar pelo console do navegador)
+  var sessaoValida = false;
+  try{
+    if(db){
+      const {data} = await db.auth.getSession();
+      sessaoValida = !!(data && data.session && data.session.user);
+    }
+  }catch(e){ sessaoValida = false; }
+
+  if(sessaoValida){
+    sessionStorage.setItem('evocity_admin_auth','1');
     var tela = document.getElementById('painel-login');
     if(tela) tela.style.display='none';
     goPage('dashboard');
     _updateBadges();
     setInterval(_updateBadges, 30000);
   } else {
+    sessionStorage.removeItem('evocity_admin_auth');
     // Mostrar tela de login
     setTimeout(function(){
       document.getElementById('admin-user')?.focus();
