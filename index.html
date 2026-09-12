@@ -2699,11 +2699,12 @@ function abrirEsqueciSenha(){
   overlay.innerHTML=`
     <div style="background:#fff;border-radius:12px;width:100%;max-width:400px;padding:28px;font-family:'Nunito',sans-serif;">
       <h3 style="font-size:20px;font-weight:800;margin-bottom:8px;">🔑 Recuperar Senha</h3>
-      <p style="font-size:14px;color:#65676b;margin-bottom:20px;line-height:1.5;">Digite seu email cadastrado e enviaremos um link para você criar uma nova senha.</p>
-      <input id="rec-email" type="email" placeholder="Seu email cadastrado" style="width:100%;border:1.5px solid #ced0d4;border-radius:8px;padding:12px 16px;font-size:16px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:16px;"/>
+      <p style="font-size:14px;color:#65676b;margin-bottom:20px;line-height:1.5;">Digite seu email cadastrado. Nossa equipe vai confirmar com você e liberar uma nova senha em breve.</p>
+      <input id="rec-email" type="email" placeholder="Seu email cadastrado" style="width:100%;border:1.5px solid #ced0d4;border-radius:8px;padding:12px 16px;font-size:16px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:12px;"/>
+      <input id="rec-whats" type="tel" placeholder="Seu WhatsApp (opcional, agiliza o contato)" style="width:100%;border:1.5px solid #ced0d4;border-radius:8px;padding:12px 16px;font-size:16px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:16px;"/>
       <div style="display:flex;gap:10px;">
         <button onclick="document.getElementById('overlay-senha').remove()" style="flex:1;padding:12px;border:1.5px solid #ced0d4;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:#fff;font-family:'Nunito',sans-serif;">Cancelar</button>
-        <button id="btn-rec-senha" onclick="enviarRecuperacao()" style="flex:2;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#9333EA,#C026D3);color:#fff;font-family:'Nunito',sans-serif;">📧 Enviar link</button>
+        <button id="btn-rec-senha" onclick="enviarRecuperacao()" style="flex:2;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#9333EA,#C026D3);color:#fff;font-family:'Nunito',sans-serif;">📩 Solicitar recuperação</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -2713,20 +2714,25 @@ function abrirEsqueciSenha(){
 
 async function enviarRecuperacao(){
   var email = document.getElementById('rec-email')?.value?.trim();
+  var whats = document.getElementById('rec-whats')?.value?.trim();
   if(!email){ showToast('Digite seu email.'); return; }
   if(!window._sb){ showToast('Erro de conexão.'); return; }
   var btn = document.getElementById('btn-rec-senha');
   if(btn){ btn.disabled=true; btn.textContent='⏳ Enviando...'; }
   try{
-    var {error} = await window._sb.auth.resetPasswordForEmail(email,{
-      redirectTo: window.location.origin
-    });
+    // Não usa mais o email do Supabase (dava erro "Error sending recovery email").
+    // Em vez disso, grava o pedido para o admin atender manualmente pelo painel.
+    var {error} = await window._sb.from('solicitacoes_senha').insert([{
+      email: email,
+      whatsapp: whats || null,
+      status: 'pendente'
+    }]);
     if(error) throw error;
     document.getElementById('overlay-senha').remove();
-    showToast('📧 Link de recuperação enviado para '+email+'!');
+    showToast('✅ Pedido enviado! Em breve entraremos em contato com sua nova senha.');
   }catch(e){
     showToast('❌ Erro: '+(e.message||'Tente novamente.'));
-    if(btn){ btn.disabled=false; btn.textContent='📧 Enviar link'; }
+    if(btn){ btn.disabled=false; btn.textContent='📩 Solicitar recuperação'; }
   }
 }
 
