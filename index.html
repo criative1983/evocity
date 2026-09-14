@@ -2699,12 +2699,11 @@ function abrirEsqueciSenha(){
   overlay.innerHTML=`
     <div style="background:#fff;border-radius:12px;width:100%;max-width:400px;padding:28px;font-family:'Nunito',sans-serif;">
       <h3 style="font-size:20px;font-weight:800;margin-bottom:8px;">🔑 Recuperar Senha</h3>
-      <p style="font-size:14px;color:#65676b;margin-bottom:20px;line-height:1.5;">Digite seu email cadastrado. Nossa equipe vai confirmar com você e liberar uma nova senha em breve.</p>
-      <input id="rec-email" type="email" placeholder="Seu email cadastrado" style="width:100%;border:1.5px solid #ced0d4;border-radius:8px;padding:12px 16px;font-size:16px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:12px;"/>
-      <input id="rec-whats" type="tel" placeholder="Seu WhatsApp (opcional, agiliza o contato)" style="width:100%;border:1.5px solid #ced0d4;border-radius:8px;padding:12px 16px;font-size:16px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:16px;"/>
+      <p style="font-size:14px;color:#65676b;margin-bottom:20px;line-height:1.5;">Digite seu email cadastrado e enviaremos um link para você criar uma nova senha.</p>
+      <input id="rec-email" type="email" placeholder="Seu email cadastrado" style="width:100%;border:1.5px solid #ced0d4;border-radius:8px;padding:12px 16px;font-size:16px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:16px;"/>
       <div style="display:flex;gap:10px;">
         <button onclick="document.getElementById('overlay-senha').remove()" style="flex:1;padding:12px;border:1.5px solid #ced0d4;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:#fff;font-family:'Nunito',sans-serif;">Cancelar</button>
-        <button id="btn-rec-senha" onclick="enviarRecuperacao()" style="flex:2;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#9333EA,#C026D3);color:#fff;font-family:'Nunito',sans-serif;">📩 Solicitar recuperação</button>
+        <button id="btn-rec-senha" onclick="enviarRecuperacao()" style="flex:2;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#9333EA,#C026D3);color:#fff;font-family:'Nunito',sans-serif;">📧 Enviar link</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -2714,25 +2713,20 @@ function abrirEsqueciSenha(){
 
 async function enviarRecuperacao(){
   var email = document.getElementById('rec-email')?.value?.trim();
-  var whats = document.getElementById('rec-whats')?.value?.trim();
   if(!email){ showToast('Digite seu email.'); return; }
   if(!window._sb){ showToast('Erro de conexão.'); return; }
   var btn = document.getElementById('btn-rec-senha');
   if(btn){ btn.disabled=true; btn.textContent='⏳ Enviando...'; }
   try{
-    // Não usa mais o email do Supabase (dava erro "Error sending recovery email").
-    // Em vez disso, grava o pedido para o admin atender manualmente pelo painel.
-    var {error} = await window._sb.from('solicitacoes_senha').insert([{
-      email: email,
-      whatsapp: whats || null,
-      status: 'pendente'
-    }]);
+    var {error} = await window._sb.auth.resetPasswordForEmail(email,{
+      redirectTo: window.location.origin
+    });
     if(error) throw error;
     document.getElementById('overlay-senha').remove();
-    showToast('✅ Pedido enviado! Em breve entraremos em contato com sua nova senha.');
+    showToast('📧 Link de recuperação enviado para '+email+'!');
   }catch(e){
     showToast('❌ Erro: '+(e.message||'Tente novamente.'));
-    if(btn){ btn.disabled=false; btn.textContent='📩 Solicitar recuperação'; }
+    if(btn){ btn.disabled=false; btn.textContent='📧 Enviar link'; }
   }
 }
 
@@ -5540,11 +5534,26 @@ async function deleteShop(id){
   });
 }
 
+// ── Diagnóstico central de erros de carga (RLS/permissão etc.) ──
+// Antes, um erro do Supabase em qualquer categoria (classificados, serviços, lojas,
+// LOVE, currículos, vagas, promoções) era simplesmente ignorado (`if(r.error||...) return;`),
+// então quem publicava via insert otimista local via o próprio item na hora, mas ninguém
+// mais via nada — e não sobrava nenhum log/aviso explicando o motivo. Esta função replica,
+// para todas as categorias, o mesmo tratamento que os posts já tinham.
+function _avisarErroCarga(nomeCategoria, error){
+  console.error('[EvoCity] Erro ao carregar '+nomeCategoria+':', error && error.message ? error.message : error);
+  var msg = (error && error.message ? error.message : '').toLowerCase();
+  if(msg.indexOf('permission')>-1 || msg.indexOf('policy')>-1 || msg.indexOf('rls')>-1 || (error && error.code==='42501')){
+    showToast('⚠️ Sem permissão para ler '+nomeCategoria+'. Configure o RLS no Supabase.');
+  }
+}
+
 async function _carregarShopSupabase(){
   if(!window._sb) return;
   try{
     var r = await window._sb.from('lojas').select('*').eq('removido',false).order('criado_em',{ascending:false}).limit(100);
-    if(r.error||!r.data||!r.data.length) return;
+    if(r.error){ _avisarErroCarga('lojas', r.error); return; }
+    if(!r.data||!r.data.length) return;
     var novos = r.data.map(function(row){
       return {
         id: row.id, supabase_id: row.id,
@@ -5895,7 +5904,8 @@ async function _carregarLoveSupabase(){
   if(!window._sb) return;
   try{
     var r = await window._sb.from('love_perfis').select('*').eq('removido',false).order('criado_em',{ascending:false}).limit(200);
-    if(r.error||!r.data||!r.data.length) return;
+    if(r.error){ _avisarErroCarga('LOVE', r.error); return; }
+    if(!r.data||!r.data.length) return;
     var novos = r.data.map(function(row){
       return {
         id: row.id, supabase_id: row.id,
@@ -6093,7 +6103,8 @@ async function _carregarCurriculosSupabase(){
   if(!window._sb) return;
   try{
     var r = await window._sb.from('emprega_curriculos').select('*').eq('removido',false).order('criado_em',{ascending:false}).limit(200);
-    if(r.error||!r.data||!r.data.length) return;
+    if(r.error){ _avisarErroCarga('currículos', r.error); return; }
+    if(!r.data||!r.data.length) return;
     var novos = r.data.map(function(row){
       return {
         id: row.id, supabase_id: row.id,
@@ -6249,7 +6260,8 @@ async function _carregarVagasSupabase(){
   if(!window._sb) return;
   try{
     var r = await window._sb.from('emprega_vagas').select('*').eq('removido',false).order('criado_em',{ascending:false}).limit(200);
-    if(r.error||!r.data||!r.data.length) return;
+    if(r.error){ _avisarErroCarga('vagas', r.error); return; }
+    if(!r.data||!r.data.length) return;
     var novos = r.data.map(function(row){
       return {
         id: row.id, supabase_id: row.id,
@@ -9423,7 +9435,8 @@ async function _carregarClsSupabase(){
   if(!window._sb) return;
   try{
     var r = await window._sb.from('classificados').select('*').eq('removido',false).order('criado_em',{ascending:false}).limit(100);
-    if(r.error||!r.data||!r.data.length) return;
+    if(r.error){ _avisarErroCarga('classificados', r.error); return; }
+    if(!r.data||!r.data.length) return;
     var novos = r.data.map(function(row){
       return {
         id: row.id, supabase_id: row.id,
@@ -9452,7 +9465,8 @@ async function _carregarSvcSupabase(){
   if(!window._sb) return;
   try{
     var r = await window._sb.from('servicos').select('*').eq('removido',false).order('criado_em',{ascending:false}).limit(100);
-    if(r.error||!r.data||!r.data.length) return;
+    if(r.error){ _avisarErroCarga('serviços', r.error); return; }
+    if(!r.data||!r.data.length) return;
     var svcIds = r.data.map(function(row){ return row.id; });
     var avalMap = {};
     try{
@@ -9489,7 +9503,8 @@ async function _carregarPromoSupabase(){
   if(!window._sb) return;
   try{
     var r = await window._sb.from('promocoes').select('*').eq('removido',false).order('criado_em',{ascending:false}).limit(100);
-    if(r.error||!r.data||!r.data.length) return;
+    if(r.error){ _avisarErroCarga('promoções', r.error); return; }
+    if(!r.data||!r.data.length) return;
     var novos = r.data.map(function(row){
       return {
         id: row.id, supabase_id: row.id,

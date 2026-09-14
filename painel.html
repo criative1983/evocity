@@ -236,7 +236,6 @@ select.f-inp option{background:var(--bg3);}
     <a onclick="goPage('membros')"><span class="ic">👥</span> Membros</a>
     <a onclick="goPage('moderacao')"><span class="ic">🛡️</span> Moderação</a>
     <a onclick="goPage('denuncias')"><span class="ic">🚨</span> Denúncias <span class="nb" id="nb-denuncias" style="display:none">0</span></a>
-    <a onclick="goPage('solicitacoes')"><span class="ic">🔑</span> Solicitações de Senha <span class="nb" id="nb-solicitacoes" style="display:none">0</span></a>
     <div class="sb-sub">Conteúdo</div>
     <a onclick="goPage('classificados')"><span class="ic">🏷️</span> Classificados</a>
     <a onclick="goPage('servicos')"><span class="ic">🔧</span> Serviços</a>
@@ -287,8 +286,6 @@ select.f-inp option{background:var(--bg3);}
 // ══════════════════════════════════════
 const SB_URL = 'https://aspzqjviojqoljpugdeu.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzcHpxanZpb2pxb2xqcHVnZGV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NzEzNjksImV4cCI6MjA4OTQ0NzM2OX0.RRzxs2zb3jMCdAOgHQeo1MxmaIzVKWGn5tbi5xeQe10';
-// Edge Function que gera senha provisória com segurança (roda no servidor do Supabase, nunca expõe a service_role key aqui)
-const FN_SETAR_SENHA = SB_URL + '/functions/v1/setar-senha-provisoria';
 let db = null;
 
 async function initSupabase(){
@@ -363,7 +360,6 @@ const PAGES = {
   membros: pgMembros,
   moderacao: pgModeracao,
   denuncias: pgDenuncias,
-  solicitacoes: pgSolicitacoesSenha,
   classificados: pgClassificados,
   servicos: pgServicos,
   comunidades: pgComunidades,
@@ -394,15 +390,6 @@ async function _updateBadges(){
     const nm = document.getElementById('nb-membros');
     if(np) np.textContent = posts?.length||0;
     if(nm) nm.textContent = membros?.length||0;
-  }catch(e){}
-  try{
-    const {data:solic} = await db.from('solicitacoes_senha').select('id',{count:'exact'}).eq('status','pendente');
-    const ns = document.getElementById('nb-solicitacoes');
-    if(ns){
-      const n = solic?.length||0;
-      ns.textContent = n;
-      ns.style.display = n>0 ? '' : 'none';
-    }
   }catch(e){}
 }
 
@@ -1791,43 +1778,23 @@ function exportarCSV(){
 
 async function resetarSenhaMembro(email, nome){
   if(!email){ showToast('Este membro não tem email cadastrado.','e'); return; }
-  openModal('🔑 Gerar Senha Provisória',
-    `<p style="color:var(--mt);line-height:1.7">Gerar uma senha provisória para <strong>${nome}</strong>?<br><span style="font-size:12px">${email}</span></p>
-     <p style="font-size:12px;color:var(--mt);margin-top:10px;">A senha antiga dela deixa de funcionar. Você vai receber a nova senha aqui pra repassar por WhatsApp ou email.</p>`,
-    async function(){ await _gerarSenhaProvisoria(email, null); },
-    'Gerar senha','btn-b');
-}
-
-// Chama a Edge Function que faz a troca de senha com segurança (usa a service_role key,
-// que fica só no servidor do Supabase — nunca no código do painel)
-async function _gerarSenhaProvisoria(email, solicitacaoId){
-  try{
-    const {data:sessao} = await db.auth.getSession();
-    const token = sessao?.session?.access_token;
-    if(!token){ showToast('Sessão expirada, faça login de novo.','e'); return; }
-
-    var resp = await fetch(FN_SETAR_SENHA,{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'apikey': SB_KEY,
-        'Authorization':'Bearer '+token
-      },
-      body: JSON.stringify({email_membro: email, solicitacao_id: solicitacaoId})
-    });
-    var out = await resp.json().catch(function(){return {};});
-    if(!resp.ok) throw new Error(out.error || 'Erro ao gerar senha ('+resp.status+')');
-
-    openModal('✅ Senha provisória gerada',
-      `<p style="line-height:1.7">Repasse esta senha para <strong>${email}</strong> por WhatsApp ou email:</p>
-       <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:14px;margin:14px 0;font-size:20px;font-weight:800;text-align:center;letter-spacing:1px;user-select:all;">${out.senha_provisoria}</div>
-       <p style="font-size:12px;color:var(--mt);">Ela poderá trocar por uma senha definitiva assim que entrar.</p>`,
-      function(){}, 'Fechar','btn-g');
-
-    if(solicitacaoId) pgSolicitacoesSenha();
-  }catch(e){
-    showToast('Erro: '+e.message,'e');
-  }
+  openModal('🔑 Resetar Senha',
+    `<p style="color:var(--mt);line-height:1.7">Enviar link de recuperação de senha para <strong>${nome}</strong>?<br><span style="font-size:12px">${email}</span></p>`,
+    async function(){
+      try{
+        var resp = await fetch(SB_URL+'/auth/v1/recover',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','apikey':SB_KEY},
+          body: JSON.stringify({email})
+        });
+        if(resp.ok){
+          showToast('📧 Link de recuperação enviado para '+email+'!','s');
+        } else {
+          var err = await resp.json().catch(function(){return {};});
+          showToast('Erro ao enviar email: '+(err.msg||err.error||resp.status),'e');
+        }
+      }catch(e){ showToast('Erro: '+e.message,'e'); }
+    },'Enviar link','btn-b');
 }
 
 async function removerMembro(userId, nome){
@@ -1907,61 +1874,6 @@ async function ignorarDenuncia(id){
   await db.from('denuncias').update({status:'ignorada'}).eq('id',id);
   showToast('🙈 Denúncia ignorada.','i');
   pgDenuncias();
-}
-
-// ══════════════════════════════════════
-// SOLICITAÇÕES DE SENHA
-// ══════════════════════════════════════
-async function pgSolicitacoesSenha(){
-  document.getElementById('page-title').textContent = 'Solicitações de Senha';
-  document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando solicitações...</div>';
-  if(!db) return;
-  try{
-    const {data,error} = await db.from('solicitacoes_senha').select('*').order('criado_em',{ascending:false}).limit(100);
-    if(error) throw error;
-    const pendentes = (data||[]).filter(s=>s.status==='pendente');
-    document.getElementById('content').innerHTML = `
-      <div class="cards">
-        <div class="card red"><div class="card-ico">🔑</div><div class="card-val">${pendentes.length}</div><div class="card-lbl">Pendentes</div></div>
-        <div class="card green"><div class="card-ico">✅</div><div class="card-val">${(data||[]).filter(s=>s.status==='atendido').length}</div><div class="card-lbl">Atendidas</div></div>
-        <div class="card blue"><div class="card-ico">📋</div><div class="card-val">${data?.length||0}</div><div class="card-lbl">Total</div></div>
-      </div>
-      <div class="sec">
-        <div class="sec-h"><h3>🔑 Pedidos de Recuperação de Senha</h3><button class="btn btn-ghost btn-sm" onclick="pgSolicitacoesSenha()">🔄</button></div>
-        <div class="sec-b" style="padding:0">
-          ${(data||[]).length === 0 ? '<div class="empty" style="padding:40px"><div class="empty-ico">🔑</div>Nenhum pedido de recuperação de senha.</div>' :
-          `<table class="tbl">
-            <thead><tr><th>Email</th><th>WhatsApp</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>
-            <tbody>
-              ${(data||[]).map(s=>`
-                <tr>
-                  <td style="font-size:12px">${s.email||'-'}</td>
-                  <td style="font-size:12px;color:var(--mt)">${s.whatsapp||'—'}</td>
-                  <td style="font-size:11px;color:var(--mt)">${_tempo(s.criado_em)}</td>
-                  <td><span class="badge ${s.status==='atendido'?'bg':'br'}">${s.status||'pendente'}</span></td>
-                  <td>
-                    ${s.status==='pendente'
-                      ? `<button class="btn btn-b btn-sm" onclick="_gerarSenhaProvisoria('${s.email}', ${s.id})">🔑 Gerar senha</button>`
-                      : '<span style="font-size:11px;color:var(--mt)">Concluído</span>'}
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>`}
-        </div>
-      </div>
-    `;
-  }catch(e){
-    // Tabela pode não existir ainda
-    document.getElementById('content').innerHTML = `
-      <div class="sec">
-        <div class="sec-h"><h3>🔑 Solicitações de Senha</h3></div>
-        <div class="sec-b">
-          <div class="empty"><div class="empty-ico">🔑</div>Nenhum pedido ainda, ou a tabela 'solicitacoes_senha' ainda não foi criada no Supabase.</div>
-        </div>
-      </div>
-    `;
-  }
 }
 
 // ══════════════════════════════════════
