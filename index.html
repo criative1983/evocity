@@ -2888,16 +2888,16 @@ function launch(u){
 
   // seed data — só carrega se não tiver Supabase (evita mostrar dados falsos antes do banco carregar)
   posts=JSON.parse(JSON.stringify(SEED));
-  // Food Aí ainda não tem tabela própria no Supabase — sempre carrega localmente
-  food_items=JSON.parse(JSON.stringify(SEED_FOOD)).filter(function(f){ return !_removidosFood.has(String(f.id)); });
   if(!window._sb || !U.id){
     cls_items=JSON.parse(JSON.stringify(SEED_CLS));
     svc_items=JSON.parse(JSON.stringify(SEED_SVC));
     shop_items=JSON.parse(JSON.stringify(SEED_SHOP));
+    food_items=JSON.parse(JSON.stringify(SEED_FOOD)).filter(function(f){ return !_removidosFood.has(String(f.id)); });
   } else {
     cls_items=[];
     svc_items=[];
     shop_items=[];
+    food_items=[];
   }
   convs=[];
 
@@ -2939,6 +2939,7 @@ function launch(u){
     _carregarLoveSupabase();
     _carregarCurriculosSupabase();
     _carregarVagasSupabase();
+    _carregarFoodSupabase();
     _escutarSupabase();
     _iniciarNotificacoesRealtime();
     _escutarAvisoGlobal();
@@ -3317,29 +3318,58 @@ async function submitFood(){
     fotos: food_photos.slice(),
     logo: food_logo,
   };
+  let editando = false, item;
   if(_foodEditId){
+    editando = true;
     const idx = food_items.findIndex(x=>x.id===_foodEditId);
+    item = food_items[idx];
     if(idx>=0) food_items[idx]=Object.assign(food_items[idx],dados);
-    closeFoodModal();
-    goTab('food');
-    renderFood();
-    showToast('✏️ Estabelecimento atualizado!');
   } else {
-    const item = Object.assign({id:++food_pid,author:U.name,ini:U.ini,clr:AVC[food_pid%AVC.length],autor_id:U.id||''},dados);
+    item = Object.assign({id:++food_pid,author:U.name,ini:U.ini,clr:AVC[food_pid%AVC.length],autor_id:U.id||''},dados);
     food_items.unshift(item);
-    closeFoodModal();
-    goTab('food');
-    renderFood();
-    showToast('🍔 Estabelecimento publicado!');
+  }
+  closeFoodModal();
+  goTab('food');
+  renderFood();
+  showToast(editando ? '✏️ Estabelecimento atualizado!' : '🍔 Estabelecimento publicado!');
+
+  if(window._sb && U.id){
+    try{
+      if(editando && item.supabase_id){
+        const {error} = await window._sb.from('food_negocios').update({
+          nome:dados.nome, tipo:dados.tipo, desc:dados.desc, horario:dados.horario,
+          endereco:dados.endereco, telefone:dados.telefone, fotos:dados.fotos, logo:dados.logo
+        }).eq('id',item.supabase_id);
+        if(error) console.error('[EvoCity] submitFood(update) erro:',error.message);
+      } else {
+        const {data, error} = await window._sb.from('food_negocios').insert([{
+          nome:dados.nome, tipo:dados.tipo, desc:dados.desc, horario:dados.horario,
+          endereco:dados.endereco, telefone:dados.telefone, fotos:dados.fotos, logo:dados.logo,
+          author:U.name, ini:U.ini, clr:item.clr, autor_id:U.id,
+          removido:false, criado_em:new Date().toISOString()
+        }]).select();
+        if(error) console.error('[EvoCity] submitFood(insert) erro:',error.message);
+        else if(data && data[0]){
+          const idx = food_items.findIndex(x=>x.id===item.id);
+          if(idx>-1) food_items[idx].supabase_id = data[0].id;
+        }
+      }
+    }catch(e){ console.error('[EvoCity] submitFood exceção:',e.message||e); }
   }
 }
-function deleteFood(id){
+async function deleteFood(id){
   if(!confirm('Remover este estabelecimento?')) return;
+  const item = food_items.find(x=>x.id===id);
   food_items = food_items.filter(x=>x.id!==id);
   _removidosFood.add(String(id));
+  if(item && item.supabase_id) _removidosFood.add(String(item.supabase_id));
   _persistRemovidosFood();
   renderFood();
   showToast('🗑️ Estabelecimento removido.');
+  if(window._sb && item && item.supabase_id){
+    try{ await window._sb.from('food_negocios').update({removido:true}).eq('id',item.supabase_id); }
+    catch(e){ console.warn('[EvoCity] deleteFood erro:',e.message||e); }
+  }
 }
 function filterFood(tipo,btn){
   food_filter=tipo;
@@ -6283,6 +6313,30 @@ async function _carregarVagasSupabase(){
     try{renderVagas();}catch(e){}
     console.log('[EvoCity] '+novos.length+' vaga(s) carregadas do Supabase.');
   }catch(e){ console.warn('[EvoCity] _carregarVagasSupabase erro:',e.message||e); }
+}
+
+/* ==== FOOD AÍ — Supabase ==== */
+async function _carregarFoodSupabase(){
+  if(!window._sb) return;
+  try{
+    var r = await window._sb.from('food_negocios').select('*').eq('removido',false).order('criado_em',{ascending:false}).limit(200);
+    if(r.error){ _avisarErroCarga('Food Aí', r.error); return; }
+    if(!r.data||!r.data.length) return;
+    var novos = r.data.map(function(row){
+      return {
+        id: row.id, supabase_id: row.id,
+        nome: row.nome||'', tipo: row.tipo||'outro', desc: row.desc||'',
+        horario: row.horario||'', endereco: row.endereco||'', telefone: row.telefone||'',
+        fotos: (row.fotos&&row.fotos.length?row.fotos:['','','','','']), logo: row.logo||'',
+        author: row.author||'', ini: row.ini||'?', clr: row.clr||'#E64A19', autor_id: row.autor_id||''
+      };
+    });
+    var locais = food_items.filter(function(f){ return !f.supabase_id; });
+    var locaisSemDup = locais.filter(function(f){ return !novos.some(function(n){ return n.autor_id && n.autor_id===f.autor_id; }); });
+    food_items = novos.filter(function(n){ return !_removidosFood.has(String(n.id)); }).concat(locaisSemDup);
+    try{renderFood();}catch(e){}
+    console.log('[EvoCity] '+novos.length+' estabelecimento(s) Food Aí carregados do Supabase.');
+  }catch(e){ console.warn('[EvoCity] _carregarFoodSupabase erro:',e.message||e); }
 }
 
 /* ==== SERVICES SEARCH ==== */
