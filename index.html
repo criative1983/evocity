@@ -5375,6 +5375,12 @@ const SHOP_EMOJI_POR_CATEGORIA={
   'Pet Shop':'🐾','Outros':'🛒'
 };
 
+function _urlValida(u){
+  if(!u) return '';
+  var url = String(u).trim();
+  if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  return url;
+}
 function _shopCardHTML(s){
   const img = s.foto
     ? `<div style="width:100%;aspect-ratio:1/1;overflow:hidden;background:#e4e6ea;"><img src="${s.foto}" alt="${esc(s.nome)}" style="width:100%;height:100%;object-fit:cover;display:block;"/></div>`
@@ -5393,7 +5399,7 @@ function _shopCardHTML(s){
         ${_isOwner(s)
           ? _shopOwnerBtns(s)
           : `<div style="display:flex;gap:8px;margin-top:4px;">
-               ${s.site?`<button onclick="window.open('${esc(s.site)}','_blank')" class="btn-fb" style="flex:1;padding:10px;font-size:14px;background:linear-gradient(135deg,#2563eb,#1e3a8a);">🔗 Visitar site</button>`:''}
+               ${s.site?`<button onclick="window.open('${esc(_urlValida(s.site))}','_blank')" class="btn-fb" style="flex:1;padding:10px;font-size:14px;background:linear-gradient(135deg,#2563eb,#1e3a8a);">🔗 Visitar site</button>`:''}
                <button onclick="startChat('${esc(s.autor||'Lojista')}','${esc(s.autor_ini||'LJ')}','${esc(s.autor_clr||'#2563eb')}')" class="btn-fb" style="flex:1;padding:10px;font-size:14px;">💬 Contato</button>
              </div>`
         }
