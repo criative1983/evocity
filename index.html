@@ -28,7 +28,8 @@
     name: "EvoCity",
     short_name: "EvoCity",
     description: "A rede social de Petrópolis",
-    start_url: "./",
+    start_url: location.origin + location.pathname,
+    scope: location.origin + "/",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#9333EA",
@@ -69,9 +70,6 @@
 <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
-
-<!-- PWA manifest inline via JS (sem arquivo externo) -->
-<link id="pwa-manifest" rel="manifest"/>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
