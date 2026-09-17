@@ -4052,7 +4052,7 @@ function cardPerfil(p){
   html += '<div class="post-av" style="width:32px;height:32px;font-size:11px;flex-shrink:0;'+cmtAvStyle+'">'+cmtAvInner+'</div>';
   html += '<div style="flex:1;display:flex;gap:8px;align-items:center;">';
   html += '<input id="cmt-inp-'+pid+'" data-postid="'+p.id+'" type="text" placeholder="Escreva um comentário..." style="flex:1;border:1.5px solid #ced0d4;border-radius:20px;padding:8px 14px;font-size:14px;outline:none;font-family:Nunito,sans-serif;background:#f0f2f5;" onkeydown="if(event.key===\'Enter\')addCommentPerfil(this)"/>';
-  html += '<button onmousedown="event.preventDefault()" onclick="addCommentPerfil(document.getElementById(\'cmt-inp-'+pid+'\'))" ontouchend="event.preventDefault();addCommentPerfil(document.getElementById(\'cmt-inp-'+pid+'\'))" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">';
+  html += '<button type="button" data-cmt-send-perfil="'+pid+'" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">';
   html += '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>';
   html += '</div></div>';
   html += '<div id="cmt-list-'+pid+'"></div>';
@@ -4370,7 +4370,7 @@ function card(p,i){
       <div style="flex:1;display:flex;gap:8px;align-items:center;">
         <input id="cmt-inp-${p.id}" type="text" placeholder="Escreva um comentário..." onkeydown="if(event.key==='Enter')addComment('${p.id}')"
           style="flex:1;border:1.5px solid #ced0d4;border-radius:20px;padding:8px 14px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;background:#f0f2f5;"/>
-        <button onmousedown="event.preventDefault()" onclick="addComment('${p.id}')" ontouchend="event.preventDefault();addComment('${p.id}')" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">
+        <button type="button" data-cmt-send="${p.id}" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         </button>
       </div>
@@ -4674,6 +4674,25 @@ function addComment(id){
     window._sb.from('postagens').update({comentarios:p.comments}).eq('id',p.supabase_id).then(function(){});
   }
 }
+
+/* ── ENVIAR COMENTÁRIO (feed + perfil) — listener delegado ──
+   Antes o botão redondo de enviar comentário usava onclick/ontouchend
+   direto no <button>. No celular, quando o teclado virtual está aberto,
+   o layout pode se ajustar bem na hora do toque e o toque acaba não
+   "acertando" o botão a tempo — o clique parecia simplesmente não fazer
+   nada. Um único listener delegado no document resolve isso: ele escuta
+   o clique em qualquer lugar da página e verifica se o alvo foi (ou está
+   dentro d)o botão de enviar, então funciona mesmo que o botão tenha
+   sido recriado ou deslocado no momento do toque. */
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('[data-cmt-send]');
+  if(btn){ addComment(btn.getAttribute('data-cmt-send')); return; }
+  var btnP = e.target.closest('[data-cmt-send-perfil]');
+  if(btnP){
+    var pid = btnP.getAttribute('data-cmt-send-perfil');
+    addCommentPerfil(document.getElementById('cmt-inp-'+pid));
+  }
+});
 
 /* ==== SHARE ==== */
 let share_post_id = null;
