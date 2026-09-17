@@ -1016,15 +1016,28 @@ img.av-foto[data-ini]{display:block;}
 .cmt-react-opt:hover{transform:scale(1.4);}
 .cmt-edit-area{width:100%;border:1.5px solid #9333EA;border-radius:10px;padding:7px 10px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;resize:none;background:#fff;color:#050505;line-height:1.5;}
 
-/* ── BOTÃO DE MENU FLUTUANTE (FAB) ── */
+/* ── BOTÃO DE MENU FLUTUANTE (FAB) ──
+   IMPORTANTE: #fab-menu-wrap é uma coluna que sobe do botão até o topo da
+   lista de itens (mesmo fechada, a lista continua ocupando espaço, só fica
+   com opacity:0). Sem pointer-events:none aqui, essa faixa INVISÍVEL ficava
+   por cima de tudo que estava embaixo dela no lado direito da tela — no
+   celular (onde o feed ocupa a largura toda) isso "roubava" o toque de
+   qualquer botão que caísse nessa coluna: Enviar comentário, Compartilhar,
+   o X do comunicado oficial, cards, etc. No computador não dava pra notar
+   porque ali sobra uma coluna lateral vazia (col-right) embaixo dela.
+   Agora só o próprio botão redondo (e a lista, quando aberta) recebem
+   toque; o resto da coluna deixa o clique passar direto para o que está
+   por baixo. */
 #fab-menu-wrap{
   position:fixed;
   right:20px;
   bottom:calc(20px + env(safe-area-inset-bottom, 0px));
   z-index:1400;
   display:flex;flex-direction:column;align-items:flex-end;gap:10px;
+  pointer-events:none;
 }
 #fab-menu-btn{
+  pointer-events:auto;
   width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
   background:linear-gradient(135deg,var(--blue),var(--purple));
   box-shadow:0 6px 20px rgba(147,51,234,.45);
