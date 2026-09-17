@@ -433,6 +433,13 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 
 .post-stats{padding:6px 16px;display:flex;align-items:center;justify-content:space-between;font-size:15px;color:#65676b;font-weight:500;}
 .post-divider{height:1px;background:#ced0d4;margin:0 16px;}
+.post-link-chip{display:flex;align-items:center;gap:10px;margin:8px 16px 4px;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#f8fafc;text-decoration:none;transition:.15s;}
+.post-link-chip:hover{background:#f3e8ff;border-color:#c084fc;}
+.post-link-ic{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--blue),var(--purple));font-size:15px;}
+.post-link-txt{min-width:0;flex:1;}
+.post-link-title{font-size:13px;font-weight:800;color:#1c1e21;font-family:'Nunito',sans-serif;}
+.post-link-url{font-size:12px;color:#65676b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Nunito',sans-serif;}
+.post-link-arrow{color:#9333EA;font-size:16px;flex-shrink:0;}
 .post-actions{display:flex;padding:4px 8px;}
 .post-act{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;border:none;background:none;font-size:15px;font-weight:700;color:#65676b;cursor:pointer;font-family:'Nunito',sans-serif;transition:.15s;}
 .post-act:hover{background:#f2f2f2;}
@@ -1054,6 +1061,16 @@ img.av-foto[data-ini]{display:block;}
           <button style="width:38px;height:38px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Humor">
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#f5533d" stroke-width="2"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </button>
+          <button id="compose-link-btn" style="width:38px;height:38px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Adicionar link" onclick="toggleComposeLinkField()">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2563eb" stroke-width="2"><path d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5"/><path d="M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="compose-link-area" style="display:none;margin-top:10px;">
+        <div style="display:flex;align-items:center;gap:8px;border:1.5px solid #ced0d4;border-radius:10px;padding:8px 12px;background:#f9fafb;">
+          <span style="font-size:16px;flex-shrink:0;">🔗</span>
+          <input id="c-link" type="url" placeholder="Cole ou digite o link (ex: https://site.com)" style="flex:1;border:none;background:none;outline:none;font-size:14px;font-family:'Nunito',sans-serif;color:#050505;min-width:0;" oninput="checkCompose()"/>
+          <button onclick="removeComposeLink()" title="Remover link" style="border:none;background:none;cursor:pointer;color:#9ca3af;font-size:16px;flex-shrink:0;line-height:1;">×</button>
         </div>
       </div>
       <button id="compose-submit" class="btn-fb" onclick="submitPost()" disabled style="margin-top:12px;font-size:17px;">📤 Publicar no Mural</button>
@@ -2510,6 +2527,7 @@ let posts=[],cls_items=[],svc_items=[],shop_items=[],love_items=[],curriculo_ite
     pid=100,cid=200,sid=300,lid=400,curid=500,vagid=600,conv_id=0,active_cid=null,
     compose_photo='',prof_photo='',prof_photo_pending='',
     compose_photo_file=null,prof_photo_file=null,
+    compose_link='',
     _composeComunidadeId=null,_composeComunidadeNome=null,
     love_photo1='',love_photo2='',_loveEditId=null,_removidosLove=new Set(),
     curr_photo='',_curriculoEditId=null,_removidosCurriculo=new Set(),
@@ -3534,6 +3552,11 @@ function closeCompose(){
   document.getElementById('overlay-compose').classList.remove('open');
   document.getElementById('c-text').value='';
   removeComposePhoto();
+  removeComposeLink();
+  const linkArea = document.getElementById('compose-link-area');
+  if(linkArea) linkArea.style.display='none';
+  const linkBtn = document.getElementById('compose-link-btn');
+  if(linkBtn) linkBtn.style.background='#f0f2f5';
   document.getElementById('compose-submit').disabled=true;
   const addArea = document.getElementById('compose-add-foto-area');
   if(addArea) addArea.style.display = 'block';
@@ -3547,7 +3570,49 @@ function closeCompose(){
   const sbtn = document.getElementById('compose-submit');
   if(sbtn){ sbtn.textContent = '📤 Publicar no Feed'; sbtn.disabled = true; }
 }
-function checkCompose(){document.getElementById('compose-submit').disabled=!document.getElementById('c-text').value.trim()&&!compose_photo;}
+function toggleComposeLinkField(){
+  const area = document.getElementById('compose-link-area');
+  const btn  = document.getElementById('compose-link-btn');
+  const abrir = area.style.display === 'none';
+  area.style.display = abrir ? 'block' : 'none';
+  btn.style.background = abrir ? '#dbeafe' : '#f0f2f5';
+  if(abrir) setTimeout(()=>document.getElementById('c-link').focus(),80);
+  else removeComposeLink();
+}
+function removeComposeLink(){
+  const inp = document.getElementById('c-link');
+  if(inp) inp.value='';
+  compose_link='';
+  checkCompose();
+}
+/* Garante que o link tenha protocolo (adiciona https:// se faltar) */
+function _normalizarLink(url){
+  url = (url||'').trim();
+  if(!url) return '';
+  if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  return url;
+}
+/* Extrai só o domínio para exibir de forma limpa no chip */
+function _linkDominio(url){
+  try{ return new URL(url).hostname.replace(/^www\./,''); }
+  catch(e){ return url; }
+}
+/* Monta o card clicável de link exibido no post */
+function _buildLinkChip(p, extraStyle){
+  if(!p || !p.link) return '';
+  const dom = _linkDominio(p.link);
+  const styleAttr = extraStyle ? ` style="${extraStyle}"` : '';
+  return `<a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer" class="post-link-chip"${styleAttr} onclick="event.stopPropagation()">
+    <span class="post-link-ic">🔗</span>
+    <div class="post-link-txt"><div class="post-link-title">Visitar link</div><div class="post-link-url">${esc(dom)}</div></div>
+    <span class="post-link-arrow">→</span>
+  </a>`;
+}
+function checkCompose(){
+  const linkInp = document.getElementById('c-link');
+  compose_link = linkInp ? linkInp.value.trim() : '';
+  document.getElementById('compose-submit').disabled = !document.getElementById('c-text').value.trim() && !compose_photo && !compose_link;
+}
 function setComposePhoto(inp){
   if(!inp.files[0]) return;
   compose_photo_file = inp.files[0];
@@ -3580,7 +3645,8 @@ function getUserAvatar(){
 
 async function submitPost(){
   const txt=document.getElementById('c-text').value.trim();
-  if(!txt&&!compose_photo)return;
+  const linkFinal = _normalizarLink(document.getElementById('c-link') ? document.getElementById('c-link').value : '');
+  if(!txt&&!compose_photo&&!linkFinal)return;
   const cat=document.getElementById('c-cat').value;
   const fileRef = compose_photo_file;
 
@@ -3600,6 +3666,7 @@ async function submitPost(){
   const p={id:++pid,author: _sc ? _sc.nome : U.name, ini: _sc ? (_sc.ini||_sc.nome.slice(0,2).toUpperCase()) : U.ini, clr: _sc ? _sc.clr : (AVC[pid%AVC.length]),
     cat:cat,time:'agora mesmo',text:txt,likes:0,liked:false,
     comments:0,commentList:[],own:true,img:imgFinal,avPhoto: _sc ? null : getUserAvatar(),
+    link: linkFinal,
     bairro: U.bairro ? U.bairro.split(',')[0].trim() : '',
     job: U.job||'', rel_label: _relLabel(U.rel||''),
     comunidade_id: _composeComunidadeId || null,
@@ -3891,6 +3958,7 @@ function cardPerfil(p){
   html += '</div>';
   if(p.text) html += '<p class="post-txt">'+esc(p.text)+'</p>';
   html += imgHTML;
+  html += _buildLinkChip(p);
   html += '<div class="post-stats"><span id="cmt-count-'+pid+'" style="cursor:pointer;" onclick="toggleCommentsPerfil(this)">'+(p.comments>0?p.comments+' comentários':'')+'</span></div>';
   html += '<div class="post-acts">';
   html += '<button class="post-act '+(p.liked?'liked':'')+'" onclick="doLike('+p.id+')"><svg width="20" height="20" fill="'+(p.liked?'currentColor':'none')+'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg> Curtir</button>';
@@ -4047,6 +4115,9 @@ function buildSharedFrom(p){
   const sfText = sf.text
     ? '<p style="font-size:14px;color:#374151;padding:2px 12px 10px;margin:0;line-height:1.6;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">'+esc(sf.text)+'</p>'
     : '';
+  const sfLink = sf.link
+    ? '<div style="padding:0 12px 10px;">'+_buildLinkChip(sf,'margin:0;')+'</div>'
+    : '';
   const sfComLabel = sf.comunidade_nome
     ? '<span style="font-size:11px;color:#9333EA;font-weight:700;display:inline-flex;align-items:center;gap:3px;">🏘️ '+esc(sf.comunidade_nome)+'</span><span style="color:#9ca3af;margin:0 4px;">·</span>'
     : '';
@@ -4060,6 +4131,7 @@ function buildSharedFrom(p){
     + '</div></div>'
     + sfText
     + sfImg
+    + sfLink
     + '</div>';
 }
 
@@ -4148,6 +4220,7 @@ function card(p,i){
   ${buildSharedFrom(p)}
   ${(!p.sharedFrom && p.img)?`<div class="post-img-wrap"><img src="${p.img}" alt="foto" onerror="this.closest('.post-img-wrap').style.display='none'"/></div>`:''}
   ${p.text?`<p class="post-text">${esc(p.text)}</p>`:''}
+  ${_buildLinkChip(p)}
   <div class="post-stats">
     <span>${p.likes>0?p.likes+' 👍':''}</span>
     <span id="cmt-count-${p.id}" style="cursor:pointer;" onclick="toggleComments(${p.id},this)">${p.comments>0?p.comments+' comentários':''}</span>
@@ -4575,6 +4648,7 @@ async function confirmShareFeed(){
     cat: p.cat,
     text: p.text,
     img: p.img || '',
+    link: p.link || '',
     comunidade_nome: p.comunidade_nome || null
   };
   const newPost = {
@@ -7999,6 +8073,7 @@ function _renderPostsSubconta(sc){
       +'</div>'
       +(p.text?'<p class="post-txt">'+esc(p.text)+'</p>':'')
       +imgHTML
+      +_buildLinkChip(p)
       +'</div>';
   }).join('');
 }
@@ -8924,6 +8999,7 @@ function abrirComunidade(id, nome, bg, emoji){
           '</div>',
           (p.text ? '<p style="padding:10px 16px;font-size:15px;color:#050505;line-height:1.6;white-space:pre-wrap;margin:0">'+esc(p.text)+'</p>' : ''),
           (p.img  ? '<div style="width:100%"><img src="'+p.img+'" style="width:100%;max-height:400px;object-fit:cover;display:block" /></div>' : ''),
+          (p.link ? _buildLinkChip(p) : ''),
           '<div style="display:flex;gap:0;padding:4px 8px;border-top:1px solid #e4e6ea">',
             '<button class="post-act" id="com-like-btn-'+pid+'" onclick="window._comLike(\''+pid+'\',this)">',
               (p.liked ? '<svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:#9333EA"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>' : '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>'),
