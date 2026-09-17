@@ -944,6 +944,26 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
    o comentário digitado não era enviado ao tocar no botão (só pelo Enter do
    teclado, que passa por outro caminho). */
 .cmt-send-btn{ -webkit-tap-highlight-color: transparent; }
+/* ── ENVIAR COMENTÁRIO — botão de texto ──
+   Trocado o botão redondo com ícone por um texto "Enviar" em azul.
+   Um botão de texto com bastante padding dá uma área de toque bem maior
+   e mais fácil de acertar no celular do que um círculo pequeno na borda
+   do card, sem depender de nenhum truque de CSS para aumentar a área. */
+.cmt-send-txt{
+  background:none;
+  border:none;
+  color:#2563eb;
+  font-weight:800;
+  font-size:14px;
+  font-family:'Nunito',sans-serif;
+  cursor:pointer;
+  white-space:nowrap;
+  flex-shrink:0;
+  padding:10px 6px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action:manipulation;
+}
+.cmt-send-txt:active{ opacity:.6; }
 /* ── LIBERAÇÃO DE CLIQUE — FILTROS DO FEED (pills: Empregos/Dúvidas/História/Resenha) ──
    O .pill-bar usa touch-action:pan-x pra permitir arrastar a barra pros lados no
    celular. Sem um touch-action próprio nos botões, alguns toques dentro da área
@@ -4066,8 +4086,7 @@ function cardPerfil(p){
   html += '<div class="post-av" style="width:32px;height:32px;font-size:11px;flex-shrink:0;'+cmtAvStyle+'">'+cmtAvInner+'</div>';
   html += '<div style="flex:1;display:flex;gap:8px;align-items:center;">';
   html += '<input id="cmt-inp-'+pid+'" data-postid="'+p.id+'" type="text" placeholder="Escreva um comentário..." style="flex:1;border:1.5px solid #ced0d4;border-radius:20px;padding:8px 14px;font-size:14px;outline:none;font-family:Nunito,sans-serif;background:#f0f2f5;" onkeydown="if(event.key===\'Enter\')addCommentPerfil(this)"/>';
-  html += '<button type="button" data-cmt-send-perfil="'+pid+'" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">';
-  html += '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>';
+  html += '<button type="button" data-cmt-send-perfil="'+pid+'" class="cmt-send-txt">Enviar</button>';
   html += '</div></div>';
   html += '<div id="cmt-list-'+pid+'"></div>';
   html += '</div></div>';
@@ -4384,9 +4403,7 @@ function card(p,i){
       <div style="flex:1;display:flex;gap:8px;align-items:center;">
         <input id="cmt-inp-${p.id}" type="text" placeholder="Escreva um comentário..." onkeydown="if(event.key==='Enter')addComment('${p.id}')"
           style="flex:1;border:1.5px solid #ced0d4;border-radius:20px;padding:8px 14px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;background:#f0f2f5;"/>
-        <button type="button" data-cmt-send="${p.id}" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-        </button>
+        <button type="button" data-cmt-send="${p.id}" class="cmt-send-txt">Enviar</button>
       </div>
     </div>
     <div id="cmt-list-${p.id}">${p.commentList && p.commentList.length ? _buildCmtListHTML(p) : ''}</div>
