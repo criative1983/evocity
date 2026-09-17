@@ -901,6 +901,17 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
   cursor: pointer !important;
   isolation: isolate;
 }
+/* ── LIBERAÇÃO DE CLIQUE — AÇÕES DO POST (curtir/comentar/compartilhar/menu/avatar) ──
+   Mesmo ajuste de cima, estendido para os botões de cada post no feed, que
+   estavam falhando especificamente no celular (toque não registrava). */
+.post-actions, .post-act, .msg-btn-post, .post-av, .post-name,
+.post-header, .post-stats, #tb-av, .tb-av,
+.svc-row button, .cls-card button {
+  position: relative !important;
+  pointer-events: auto !important;
+  z-index: 20;
+}
+.post-act, .msg-btn-post { touch-action: manipulation; }
 .btn-fb::before, .btn-fb::after,
 .modal button::before, .modal button::after {
   display: none !important;
@@ -8462,11 +8473,22 @@ var _social = {
 // ── Menu dropdown do post ──
 function togglePostMenu(e, postId, nome, ini, clr, isOwn, autorId){
   e.stopPropagation();
+  e.preventDefault();
   document.querySelectorAll('.post-menu').forEach(m=>m.remove());
   const btn = e.currentTarget;
-  const wrap = btn.parentElement;
+  // ANTES: o menu era anexado dentro do próprio card (wrap.appendChild), que tem
+  // overflow:hidden. Em cards mais baixos/estreitos (comum no celular), o menu
+  // abria CORTADO para fora da área visível e não dava pra tocar nos itens.
+  // Agora o menu é anexado direto no <body>, com posição fixa calculada a
+  // partir do botão tocado — assim ele nunca fica preso/cortado dentro do card.
+  const rect = btn.getBoundingClientRect();
   const menu = document.createElement('div');
   menu.className = 'post-menu';
+  menu.style.position = 'fixed';
+  menu.style.top = (rect.bottom + 4) + 'px';
+  menu.style.right = (window.innerWidth - rect.right) + 'px';
+  menu.style.left = 'auto';
+  menu.style.zIndex = '5000';
   var uid = autorId || '';
 
   if(isOwn){
@@ -8492,9 +8514,16 @@ function togglePostMenu(e, postId, nome, ini, clr, isOwn, autorId){
     `;
   }
 
-  wrap.appendChild(menu);
+  document.body.appendChild(menu);
+  // Se abrir perto do rodapé da tela, garante que não fique cortado embaixo
+  var mRect = menu.getBoundingClientRect();
+  if(mRect.bottom > window.innerHeight - 8){
+    menu.style.top = 'auto';
+    menu.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+  }
   setTimeout(function(){
     document.addEventListener('click', closePostMenu, {once:true});
+    document.addEventListener('touchstart', closePostMenu, {once:true});
   },10);
 }
 
