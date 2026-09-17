@@ -36,7 +36,7 @@
      Isso ajuda contra alguns ataques (clickjacking, injeção de scripts de terceiros,
      vazamento de referrer), mas NÃO substitui as regras de RLS no Supabase — veja
      o aviso no final da resposta sobre o que é realmente essencial. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob:; manifest-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'self'; base-uri 'self'; form-action 'self';"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net; worker-src 'self' blob:; manifest-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.open-meteo.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self';"/>
 <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
@@ -401,8 +401,9 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .pub-act:hover{background:#f2f2f2;}
 
 /* ─── POST CARD (Facebook scale) ─── */
-.post-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(100,0,180,.08),0 1px 2px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden;border:1px solid rgba(147,51,234,.07);}
+.post-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(100,0,180,.08),0 1px 2px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden;border:1px solid rgba(147,51,234,.07);animation:fadeUp .35s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes feedSpin{to{transform:rotate(360deg)}}
 .post-header{display:flex;align-items:flex-start;justify-content:space-between;padding:12px 16px 0;}
 .post-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0;}
 .post-name{font-size:15px;font-weight:700;color:#050505;}
@@ -420,7 +421,7 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .post-meta-prof{color:#059669;}
 .post-meta-status{color:#7c3aed;}
 .cat-pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;margin-left:6px;}
-.tag-n{background:#fae8ff;color:#7e22ce;}.tag-e{background:#fee2e2;color:#b91c1c;}.tag-j{background:#d1fae5;color:#065f46;}.tag-s{background:#fef3c7;color:#92400e;}.tag-d{background:#ede9fe;color:#5b21b6;}.tag-review{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+.tag-n{background:#fae8ff;color:#7e22ce;}.tag-e{background:#fee2e2;color:#b91c1c;}.tag-j{background:#d1fae5;color:#065f46;}.tag-s{background:#fef3c7;color:#92400e;}.tag-d{background:#ede9fe;color:#5b21b6;}.tag-review{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}.tag-h{background:#dbeafe;color:#1e40af;}
 .post-text{padding:12px 16px;font-size:15px;color:#050505;line-height:1.6;white-space:pre-wrap;}
 
 /* ─── PHOTO SQUARE — Instagram / Facebook 1:1 ─── */
@@ -546,6 +547,8 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .pil[data-cat="s"].on{background:#ea580c;border-color:transparent;color:#fff;}
 /* Dúvidas — roxo */
 .pil[data-cat="d"].on{background:#7C3AED;border-color:transparent;color:#fff;}
+/* História — azul */
+.pil[data-cat="h"].on{background:#1d4ed8;border-color:transparent;color:#fff;}
 
 /* ══════════════ CLASSIFIED ══════════════ */
 .section-head{background:linear-gradient(135deg,#2d1a4a,#9333EA,#C026D3);border-radius:8px;padding:20px 24px;margin-bottom:16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
@@ -902,6 +905,87 @@ img.av-foto[data-ini]{display:block;}
 .cmt-react-opt{background:none;border:none;cursor:pointer;font-size:22px;padding:2px 3px;border-radius:50%;transition:transform .15s;line-height:1;}
 .cmt-react-opt:hover{transform:scale(1.4);}
 .cmt-edit-area{width:100%;border:1.5px solid #9333EA;border-radius:10px;padding:7px 10px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;resize:none;background:#fff;color:#050505;line-height:1.5;}
+
+/* ── BOTÃO DE MENU FLUTUANTE (FAB) ── */
+#fab-menu-wrap{
+  position:fixed;
+  right:20px;
+  bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index:1400;
+  display:flex;flex-direction:column;align-items:flex-end;gap:10px;
+}
+#fab-menu-btn{
+  width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  box-shadow:0 6px 20px rgba(147,51,234,.45);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .2s ease,box-shadow .2s ease;
+  flex-shrink:0;
+}
+#fab-menu-btn:hover{box-shadow:0 8px 26px rgba(147,51,234,.55);}
+#fab-menu-btn:active{transform:scale(.94);}
+#fab-menu-btn svg{width:24px;height:24px;color:#fff;transition:transform .25s ease;}
+#fab-menu-wrap.open #fab-menu-btn svg{transform:rotate(135deg);}
+#fab-menu-list{
+  display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+  opacity:0;pointer-events:none;transform:translateY(8px);
+  transition:opacity .18s ease,transform .18s ease;
+  max-height:calc(100vh - 150px);
+  overflow-y:auto;overflow-x:hidden;
+  padding:6px 4px 2px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+#fab-menu-list::-webkit-scrollbar{display:none;}
+#fab-menu-wrap.open #fab-menu-list{opacity:1;pointer-events:auto;transform:translateY(0);}
+.fab-sec-label{
+  font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;
+  color:#fff;background:rgba(88,28,135,.85);
+  border-radius:20px;padding:3px 12px;margin:2px 0 0;
+  letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);
+}
+.fab-item{
+  display:flex;align-items:center;gap:10px;
+  background:#fff;border:1px solid #e5e7eb;border-radius:30px;
+  padding:7px 16px 7px 7px;cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,.18);
+  font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:#1c1e21;
+  transition:.15s;white-space:nowrap;
+}
+.fab-item:hover{background:#f3e8ff;}
+.fab-item.on{background:#f3e8ff;border-color:#c084fc;color:#7e22ce;}
+.fab-item-ic{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  font-size:16px;line-height:1;
+}
+.fab-item-ic svg{width:17px;height:17px;color:#fff;}
+.fab-badge{
+  background:#ef4444;color:#fff;font-size:10px;font-weight:800;
+  border-radius:9px;padding:1px 7px;margin-left:2px;
+}
+.fab-badge.rosa{background:#ec4899;}
+.fab-item-sub{
+  font-size:13px;padding:6px 14px 6px 7px;background:#faf5ff;
+}
+.fab-item-sub .fab-item-ic{width:28px;height:28px;font-size:14px;}
+#fab-comunidades-sub{
+  display:none;flex-direction:column;align-items:flex-end;gap:7px;
+  padding-right:10px;
+}
+#fab-comunidades-sub.open{display:flex;}
+.fab-caret{font-size:11px;color:#9333EA;transition:transform .2s ease;}
+.fab-item.exp .fab-caret{transform:rotate(180deg);}
+#fab-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.15);z-index:1390;}
+#fab-menu-wrap.open ~ #fab-backdrop,#fab-backdrop.open{display:block;}
+@media(max-width:600px){
+  #fab-menu-wrap{right:14px;bottom:calc(14px + env(safe-area-inset-bottom, 0px));}
+  #fab-menu-btn{width:52px;height:52px;}
+  #fab-menu-list{max-height:calc(100vh - 120px);}
+  .fab-item{font-size:13.5px;padding:6px 14px 6px 6px;}
+  .fab-item-ic{width:30px;height:30px;font-size:15px;}
+}
 </style>
 </head>
 <body>
@@ -941,7 +1025,7 @@ img.av-foto[data-ini]{display:block;}
           <select id="c-cat" style="border:1px solid #ced0d4;border-radius:6px;padding:4px 8px;font-size:13px;font-weight:600;outline:none;background:#fff;font-family:'Nunito',sans-serif;margin-top:2px;">
             <option value="g">💬 Geral</option><option value="n">📰 Notícias</option><option value="e">🎉 Eventos</option>
             <option value="j">💼 Empregos</option><option value="s">🔧 Serviços</option>
-            <option value="d">❓ Dúvidas</option><option value="review">⭐ Resenha</option>
+            <option value="d">❓ Dúvidas</option><option value="review">⭐ Resenha</option><option value="h">🏛️ História</option>
           </select>
         </div>
       </div>
@@ -972,7 +1056,7 @@ img.av-foto[data-ini]{display:block;}
           </button>
         </div>
       </div>
-      <button id="compose-submit" class="btn-fb" onclick="submitPost()" disabled style="margin-top:12px;font-size:17px;">📤 Publicar no Feed</button>
+      <button id="compose-submit" class="btn-fb" onclick="submitPost()" disabled style="margin-top:12px;font-size:17px;">📤 Publicar no Mural</button>
     </div>
   </div>
 </div>
@@ -1545,7 +1629,7 @@ img.av-foto[data-ini]{display:block;}
         <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#9333EA,#C026D3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         </div>
-        <div><p style="font-size:15px;font-weight:700;color:#050505;margin:0;">Compartilhar no Feed</p><p style="font-size:13px;color:#65676b;margin:0;">Aparece para seus seguidores</p></div>
+        <div><p style="font-size:15px;font-weight:700;color:#050505;margin:0;">Compartilhar no Mural</p><p style="font-size:13px;color:#65676b;margin:0;">Aparece para seus seguidores</p></div>
       </button>
       <button onclick="openShareMsg()" class="share-opt" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
         <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#db2777);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -1767,8 +1851,8 @@ img.av-foto[data-ini]{display:block;}
     </div>
     <div class="tb-center">
       <button class="tb-tab on" id="nt-feed" onclick="goTab('feed')">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-        <span>Feed</span>
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        <span>Mural</span>
       </button>
       <button class="tb-tab" id="nt-cls" onclick="goTab('cls')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
@@ -1885,7 +1969,7 @@ img.av-foto[data-ini]{display:block;}
           <span style="font-size:13px;font-weight:700;color:#5b21b6;margin-left:4px;">Clima de hoje</span>
           <span id="tb-clima-dot"></span>
         </div>
-        <button class="left-item on" id="li-feed" onclick="goTab('feed')"><div class="li-ico">🏠</div>Feed</button>
+        <button class="left-item on" id="li-feed" onclick="goTab('feed')"><div class="li-ico">📌</div>Mural</button>
         <button class="left-item" id="li-cls" onclick="goTab('cls')"><div class="li-ico">🛒</div>Classificados</button>
         <button class="left-item" id="li-svc" onclick="goTab('svc')"><div class="li-ico">🔧</div>Serviços Locais</button>
         <button class="left-item" id="li-shop" onclick="goTab('shop')"><div class="li-ico" style="background:#dbeafe;">🛍️</div>Shopping</button>
@@ -1898,7 +1982,7 @@ img.av-foto[data-ini]{display:block;}
         <p class="side-section-title">Comunidades</p>
         <button class="left-item" onclick="abrirComunidade('alertas','🚨 Alertas Petrópolis','#fee2e2','🚨')"><div class="li-ico" style="background:#fee2e2;">🚨</div>Alertas Petrópolis</button>
         <button class="left-item" onclick="abrirComunidade('itaipava','🌿 Itaipava','#f0fdf4','🌿')"><div class="li-ico" style="background:#f0fdf4;">🌿</div>Itaipava</button>
-        <button class="left-item" onclick="abrirComunidade('empregos','💼 Empregos RJ','#fdf4ff','💼')"><div class="li-ico" style="background:#fdf4ff;">💼</div>Empregos RJ</button>
+        <button class="left-item" onclick="abrirComunidade('cascatinha','🏞️ Cascatinha','#ecfeff','🏞️')"><div class="li-ico" style="background:#ecfeff;">🏞️</div>Cascatinha</button>
         <button class="left-item" onclick="abrirComunidade('petrópolis','🏛️ Petrópolis Centro','#f5f3ff','🏛️')"><div class="li-ico" style="background:#f5f3ff;">🏛️</div>Petrópolis Centro</button>
         <p style="font-size:12px;color:#bcc0c4;padding:8px;margin-top:4px;">EvoCity · Petrópolis · v2.0</p>
       </div>
@@ -1933,13 +2017,14 @@ img.av-foto[data-ini]{display:block;}
         </div>
         <!-- pills -->
         <div class="pill-bar">
-          <button class="pil on" data-cat="all" onclick="filterFeed('all',this)">🌐 Feed</button>
+          <button class="pil on" data-cat="all" onclick="filterFeed('all',this)">📌 Mural</button>
           <button class="pil" data-cat="n" onclick="filterFeed('n',this)">📰 Notícias</button>
           <button class="pil" data-cat="review" onclick="filterFeed('review',this)">⭐ Resenha</button>
           <button class="pil" data-cat="e" onclick="filterFeed('e',this)">🎉 Eventos</button>
           <button class="pil" data-cat="j" onclick="filterFeed('j',this)">💼 Empregos</button>
           <button class="pil" data-cat="s" onclick="filterFeed('s',this)">🔧 Serviços</button>
           <button class="pil" data-cat="d" onclick="filterFeed('d',this)">❓ Dúvidas</button>
+          <button class="pil" data-cat="h" onclick="filterFeed('h',this)">🏛️ História</button>
         </div>
         <!-- ══ AVISO GLOBAL DO ADMINISTRADOR ══ -->
         <div id="aviso-global-banner" role="alert" aria-live="polite">
@@ -2244,7 +2329,7 @@ img.av-foto[data-ini]{display:block;}
                       <input type="file" accept="image/*" style="display:none;" id="prof-pub-file" onchange="setProfPhoto(this)"/>
                     </label>
                     <select id="prof-pub-cat" style="border:1px solid #ced0d4;border-radius:8px;padding:8px 12px;font-size:14px;font-weight:700;outline:none;background:#fff;font-family:'Nunito',sans-serif;color:#606770;">
-                      <option value="g">💬 Geral</option><option value="n">📰 Notícias</option><option value="e">🎉 Eventos</option><option value="j">💼 Empregos</option><option value="s">🔧 Serviços</option><option value="d">❓ Dúvidas</option><option value="review">⭐ Resenha</option>
+                      <option value="g">💬 Geral</option><option value="n">📰 Notícias</option><option value="e">🎉 Eventos</option><option value="j">💼 Empregos</option><option value="s">🔧 Serviços</option><option value="d">❓ Dúvidas</option><option value="review">⭐ Resenha</option><option value="h">🏛️ História</option>
                     </select>
                   </div>
                   <button id="prof-pub-btn" class="btn-fb" onclick="submitProfPost()" disabled style="width:auto;padding:9px 24px;font-size:15px;border-radius:8px;">Publicar</button>
@@ -2287,33 +2372,33 @@ img.av-foto[data-ini]{display:block;}
           <span style="font-size:11px;font-weight:600;color:#9ca3af;">ao vivo</span>
         </div>
         <div id="clima-body">
-          <!-- preenchido pelo JS -->
+          <!-- preenchido pelo JS com dados reais da Open-Meteo -->
           <div style="display:flex;align-items:center;gap:16px;">
-            <div style="font-size:52px;line-height:1;" id="clima-icon">⛅</div>
+            <div style="font-size:52px;line-height:1;" id="clima-icon">⏳</div>
             <div>
-              <p style="font-size:36px;font-weight:800;color:#050505;margin:0;line-height:1;" id="clima-temp">22°</p>
-              <p style="font-size:13px;font-weight:600;color:#65676b;margin:3px 0 0;" id="clima-desc">Parcialmente nublado</p>
+              <p style="font-size:36px;font-weight:800;color:#050505;margin:0;line-height:1;" id="clima-temp">--°</p>
+              <p style="font-size:13px;font-weight:600;color:#65676b;margin:3px 0 0;" id="clima-desc">Carregando...</p>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
             <div style="background:#f8fafc;border-radius:8px;padding:10px;text-align:center;">
               <p style="font-size:11px;font-weight:700;color:#9ca3af;margin:0 0 3px;text-transform:uppercase;letter-spacing:1px;">Umidade</p>
-              <p style="font-size:17px;font-weight:800;color:#050505;margin:0;" id="clima-umid">78%</p>
+              <p style="font-size:17px;font-weight:800;color:#050505;margin:0;" id="clima-umid">--%</p>
             </div>
             <div style="background:#f8fafc;border-radius:8px;padding:10px;text-align:center;">
               <p style="font-size:11px;font-weight:700;color:#9ca3af;margin:0 0 3px;text-transform:uppercase;letter-spacing:1px;">Vento</p>
-              <p style="font-size:17px;font-weight:800;color:#050505;margin:0;" id="clima-vento">14 km/h</p>
+              <p style="font-size:17px;font-weight:800;color:#050505;margin:0;" id="clima-vento">-- km/h</p>
             </div>
             <div style="background:#f8fafc;border-radius:8px;padding:10px;text-align:center;">
               <p style="font-size:11px;font-weight:700;color:#9ca3af;margin:0 0 3px;text-transform:uppercase;letter-spacing:1px;">Mín</p>
-              <p style="font-size:17px;font-weight:800;color:#9333EA;margin:0;" id="clima-min">16°</p>
+              <p style="font-size:17px;font-weight:800;color:#9333EA;margin:0;" id="clima-min">--°</p>
             </div>
             <div style="background:#f8fafc;border-radius:8px;padding:10px;text-align:center;">
               <p style="font-size:11px;font-weight:700;color:#9ca3af;margin:0 0 3px;text-transform:uppercase;letter-spacing:1px;">Máx</p>
-              <p style="font-size:17px;font-weight:800;color:#ef4444;margin:0;" id="clima-max">26°</p>
+              <p style="font-size:17px;font-weight:800;color:#ef4444;margin:0;" id="clima-max">--°</p>
             </div>
           </div>
-          <p style="font-size:11px;color:#9ca3af;font-weight:500;text-align:center;margin:10px 0 0;" id="clima-hora">Atualizado agora</p>
+          <p style="font-size:11px;color:#9ca3af;font-weight:500;text-align:center;margin:10px 0 0;" id="clima-hora">Carregando...</p>
         </div>
       </div>
 
@@ -2430,6 +2515,13 @@ let posts=[],cls_items=[],svc_items=[],shop_items=[],love_items=[],curriculo_ite
     curr_photo='',_curriculoEditId=null,_removidosCurriculo=new Set(),
     _vagaEditId=null,_removidosVaga=new Set();
 
+// ── Estado do scroll infinito do feed (rolagem tipo Facebook/Instagram) ──
+let _feedShown=0, _feedObserver=null, _feedLoadingMore=false;
+const FEED_BATCH_SIZE=8;
+// Controle de paginação real no Supabase — carrega mais posts antigos conforme o usuário rola
+let _feedSupCursor=null, _feedSupTemMais=true, _feedSupCarregando=false;
+const FEED_SUP_PAGE_SIZE=20;
+
 // Expõe posts no window para que funções em outros escopos (_comLike, _comRemove) possam acessar.
 // let não vira propriedade de window — este alias garante o acesso.
 Object.defineProperty(window, 'posts', {
@@ -2445,6 +2537,7 @@ const TAGS={
   s:{l:'🔧 Serviços',c:'tag-s'},
   d:{l:'❓ Dúvidas',c:'tag-d'},
   review:{l:'⭐ Resenha',c:'tag-review'},
+  h:{l:'🏛️ História',c:'tag-h'},
 };
 const AVC=['#7e22ce','#dc2626','#059669','#7c3aed','#d97706','#db2777','#0891b2'];
 const PEOPLE=[];  // Carregado do Supabase
@@ -3627,27 +3720,113 @@ function filterFeed(cat,btn){
   feed_filter=cat;
   document.querySelectorAll('.pil').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
+  _feedShown=0; // troca de categoria sempre volta ao topo do feed
   renderFeed();
 }
-function renderFeed(){
+function _feedListaFiltrada(){
   const listBase=feed_filter==='all'?posts:posts.filter(p=>p.cat===feed_filter);
   // Posts de comunidade só aparecem para membros da comunidade
-  const list=listBase.filter(p=>{
+  return listBase.filter(p=>{
     if(p.comunidade_id){
       return !!_comunidades_membros[p.comunidade_id];
     }
     return true;
   }).filter(p=>!_bloqueados.includes(p.author));
+}
+/* Redesenha o feed. IMPORTANTE: não reseta o scroll infinito — mantém a quantidade
+   de posts que já estava visível (curtidas, fotos, comentários e outras atualizações
+   em segundo plano não devem "colapsar" o feed de volta pro topo). Para voltar ao
+   topo de fato (troca de categoria), zere _feedShown antes de chamar renderFeed(). */
+function renderFeed(){
   const el=document.getElementById('feed-list'),em=document.getElementById('feed-empty');
+  if(_feedObserver){ _feedObserver.disconnect(); }
+  _feedLoadingMore=false;
+  const list=_feedListaFiltrada();
   if(!list.length){
     el.innerHTML='';
     em.style.display='block';
     em.querySelector('p').textContent=feed_filter==='review'?'Nenhuma resenha publicada ainda. Seja o primeiro a avaliar!':'Nenhum post nesta categoria';
+    _feedShown=0;
+    _feedRemoverSentinela();
     return;
   }
   em.style.display='none';
-  el.innerHTML=list.map((p,i)=>card(p,i)).join('');
-  _aplicarFotosNoFeed(list, el);
+  const alvo=Math.min(Math.max(_feedShown,FEED_BATCH_SIZE),list.length);
+  const visiveis=list.slice(0,alvo);
+  el.innerHTML=visiveis.map((p,i)=>card(p,i)).join('');
+  _aplicarFotosNoFeed(visiveis,el);
+  _feedShown=alvo;
+  _feedAtualizarSentinela();
+}
+/* Acrescenta o próximo lote de posts ao final do feed (scroll infinito).
+   Quando o buffer local acaba mas ainda pode haver posts mais antigos no servidor,
+   busca a próxima página no Supabase antes de desistir. */
+async function _feedRenderProximoLote(){
+  const el=document.getElementById('feed-list');
+  if(!el) return;
+  let list=_feedListaFiltrada();
+  let alvoDesejado=_feedShown+FEED_BATCH_SIZE;
+  if(alvoDesejado>list.length && _feedSupTemMais && !_feedSupCarregando){
+    try{ await _carregarMaisPostsSupabase(); }catch(e){ console.warn('[EvoCity] paginação feed erro:', e); }
+    list=_feedListaFiltrada();
+  }
+  const alvo=Math.min(alvoDesejado,list.length);
+  if(alvo<=_feedShown){
+    _feedRemoverSentinela();
+    _feedLoadingMore=false;
+    return;
+  }
+  const novos=list.slice(_feedShown,alvo);
+  const wrap=document.createElement('div');
+  wrap.innerHTML=novos.map((p,i)=>card(p,_feedShown+i)).join('');
+  const novosNos=Array.prototype.slice.call(wrap.children);
+  // insere os novos cards antes da sentinela (se já existir) para manter o gatilho no final
+  const sentinela=document.getElementById('feed-sentinel');
+  novosNos.forEach(function(no){
+    if(sentinela) el.insertBefore(no, sentinela);
+    else el.appendChild(no);
+  });
+  _aplicarFotosNoFeed(novos, el);
+  _feedShown=alvo;
+  _feedLoadingMore=false;
+  _feedAtualizarSentinela();
+}
+/* Cria/atualiza o observador que detecta quando o usuário chega perto do fim do feed */
+function _feedAtualizarSentinela(){
+  const el=document.getElementById('feed-list');
+  if(!el) return;
+  const listaAtual=_feedListaFiltrada();
+  const esgotouLocal=_feedShown>=listaAtual.length;
+  if(esgotouLocal && !_feedSupTemMais){
+    _feedRemoverSentinela();
+    return;
+  }
+  let sentinela=document.getElementById('feed-sentinel');
+  if(!sentinela){
+    sentinela=document.createElement('div');
+    sentinela.id='feed-sentinel';
+    sentinela.style.cssText='width:100%;padding:20px 0;display:flex;align-items:center;justify-content:center;';
+    sentinela.innerHTML='<div class="feed-loading-spin" style="width:22px;height:22px;border:3px solid #e4e6ea;border-top-color:#9333EA;border-radius:50%;animation:feedSpin .7s linear infinite;"></div>';
+  }
+  el.appendChild(sentinela);
+  if(!_feedObserver){
+    _feedObserver=new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting && !_feedLoadingMore){
+          _feedLoadingMore=true;
+          // pequeno delay para dar sensação natural de carregamento, como Face/Instagram
+          setTimeout(_feedRenderProximoLote,250);
+        }
+      });
+    },{root:null,rootMargin:'600px 0px 600px 0px',threshold:0});
+  }
+  _feedObserver.disconnect();
+  _feedObserver.observe(sentinela);
+}
+function _feedRemoverSentinela(){
+  if(_feedObserver) _feedObserver.disconnect();
+  const sentinela=document.getElementById('feed-sentinel');
+  if(sentinela) sentinela.remove();
 }
 function _aplicarFotosNoFeed(list, container){
   list.forEach(function(p){
@@ -4333,7 +4512,7 @@ function doShare(id){
   if(nm) nm.textContent = U.name;
 
   // build preview
-  const TAGS_L={g:'💬 Geral',n:'📰 Notícias',e:'🎉 Eventos',j:'💼 Empregos',s:'🔧 Serviços',d:'❓ Dúvidas',review:'⭐ Resenha'};
+  const TAGS_L={g:'💬 Geral',n:'📰 Notícias',e:'🎉 Eventos',j:'💼 Empregos',s:'🔧 Serviços',d:'❓ Dúvidas',review:'⭐ Resenha',h:'🏛️ História'};
   const preview = document.getElementById('share-preview');
   const comLabel = p.comunidade_nome ? `<span style="color:#9333EA;font-weight:700;">🏘️ ${esc(p.comunidade_nome)} · </span>` : '';
   preview.innerHTML=`
@@ -7082,7 +7261,16 @@ async function renderClima(){
   }catch(err){
     console.warn('[EvoCity] Clima: erro na API. ' + String(err&&err.message?err.message:err));
     const hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    set('clima-hora', 'Dados offline · ' + hora);
+    // Se já tínhamos dados reais de uma atualização anterior, mantém eles na tela
+    // (só avisa que ficaram desatualizados) em vez de mostrar algo inventado.
+    if(window._climaDados){
+      set('clima-hora', 'Sem conexão · última atualização válida');
+    } else {
+      set('clima-desc', 'Sem conexão com o serviço de clima');
+      set('clima-hora', 'Falha ao carregar · ' + hora);
+    }
+    // Tenta de novo em 2 minutos em vez de desistir até a próxima recarga da página
+    setTimeout(renderClima, 2 * 60 * 1000);
   }
 }
 
@@ -8692,7 +8880,7 @@ function abrirComunidade(id, nome, bg, emoji){
   var postsCom = posts.filter(function(p){
     if(p.comunidade_id) return String(p.comunidade_id) === String(id);
     if(id==='alertas') return p.cat==='n';
-    if(id==='empregos') return p.cat==='j';
+    if(id==='cascatinha') return p.text && p.text.toLowerCase().includes('cascatinha');
     if(id==='itaipava') return p.text && p.text.toLowerCase().includes('itaipava');
     if(id==='petrópolis') return true;
     return false;
@@ -9163,7 +9351,11 @@ async function _carregarPostsSupabase(){
       return;
     }
     _sbPostsRetryCount = 0;
-    if(!r.data || !r.data.length) return;
+    if(!r.data || !r.data.length){ _feedSupTemMais=false; return; }
+    // Define o cursor de paginação: timestamp do post mais antigo já carregado nesta primeira página.
+    // A partir daqui, o scroll infinito busca posts mais antigos que esse cursor conforme o usuário rola.
+    _feedSupCursor = r.data[r.data.length-1].criado_em;
+    _feedSupTemMais = r.data.length >= 30;
 
     // ── Fase 1: monta posts com o que temos e renderiza JÁ ──
     var _novos = [];
@@ -9277,6 +9469,78 @@ async function _carregarPostsSupabase(){
     }).catch(function(e){ console.warn('[EvoCity] fase 2 erro:', e); });
 
   }catch(e){console.warn('[EvoCity] Supabase posts erro: ' + String(e&&e.message?e.message:e));}
+}
+
+/* Busca a próxima página de posts mais antigos no Supabase (scroll infinito real).
+   Chamada quando o usuário rola até o fim dos posts já carregados localmente.
+   Retorna true se conseguiu adicionar pelo menos um post novo ao array `posts`. */
+async function _carregarMaisPostsSupabase(){
+  if(!window._sb || !_feedSupCursor){ _feedSupTemMais=false; return false; }
+  if(!_feedSupTemMais || _feedSupCarregando) return false;
+  _feedSupCarregando = true;
+  try{
+    var r = await window._sb.from('postagens').select('*').eq('removido',false)
+      .lt('criado_em', _feedSupCursor)
+      .order('criado_em',{ascending:false}).limit(FEED_SUP_PAGE_SIZE);
+    if(r.error || !r.data || !r.data.length){
+      _feedSupTemMais = false;
+      return false;
+    }
+    // Enriquecimento: fotos/bairro/trabalho dos autores e likes do usuário atual
+    var autorIds = [...new Set(r.data.map(function(row){ return row.autor_id; }).filter(Boolean))];
+    var membrosMap = {};
+    if(autorIds.length){
+      try{
+        var mr = await window._sb.from('membros').select('user_id,bairro,job,rel,photo,avatar_url').in('user_id', autorIds);
+        (mr.data||[]).forEach(function(m){ membrosMap[m.user_id]=m; });
+      }catch(e){}
+    }
+    var likedSet = new Set();
+    if(U.id){
+      try{
+        var lr = await window._sb.from('likes').select('post_id').eq('user_id', U.id).in('post_id', r.data.map(function(row){return row.id;}));
+        (lr.data||[]).forEach(function(l){ likedSet.add(l.post_id); });
+      }catch(e){}
+    }
+    var adicionados = 0;
+    r.data.forEach(function(row){
+      var existe = posts.some(function(p){ return String(p.supabase_id)===String(row.id); });
+      if(existe) return;
+      var isOwn = row.autor_id && U.id && row.autor_id === U.id;
+      var membro = membrosMap[row.autor_id] || {};
+      var fotoMembro = membro.photo || membro.avatar_url || '';
+      var sharedFromBanco = (function(){ try{ return row.shared_from ? JSON.parse(row.shared_from) : null; }catch(e){ return null; } })();
+      posts.push({
+        id: row.id, supabase_id: row.id,
+        autor_id: row.autor_id || '',
+        author: row.autor||'📣 Admin EvoCity',
+        ini: row.ini || (row.autor||'?').slice(0,2).toUpperCase(),
+        clr: row.clr || '#7c3aed',
+        cat: row.categoria||'n',
+        time: _tempoSB(row.criado_em),
+        text: row.texto||'',
+        likes: row.likes||0, liked: likedSet.has(row.id),
+        comments: row.comentarios||0, commentList:[],
+        own: isOwn, img: row.img ? _resolvePhotoUrl(row.img) : '',
+        bairro: isOwn ? (U.bairro ? U.bairro.split(',')[0].trim() : '') : (membro.bairro||row.bairro||''),
+        job: isOwn ? (U.job||'') : (membro.job||row.job||''),
+        rel_label: (!isOwn && membro.rel) ? (_REL_LABELS_SHORT[membro.rel]||'') : '',
+        avPhoto: isOwn ? (U.photo||U.photo_url||'') : (fotoMembro ? _resolvePhotoUrl(fotoMembro) : (row.autor_photo_url||row.autor_photo||'')),
+        comunidade_id: row.comunidade_id||null,
+        comunidade_nome: row.comunidade_nome||null,
+        sharedFrom: sharedFromBanco
+      });
+      adicionados++;
+    });
+    _feedSupCursor = r.data[r.data.length-1].criado_em;
+    _feedSupTemMais = r.data.length >= FEED_SUP_PAGE_SIZE;
+    return adicionados>0;
+  }catch(e){
+    console.warn('[EvoCity] Erro ao paginar posts:', e);
+    return false;
+  }finally{
+    _feedSupCarregando = false;
+  }
 }
 // Escuta posts e comandos em tempo real
 function _escutarSupabase(){
@@ -10046,7 +10310,7 @@ window.addEventListener('load', function(){
 
       <!-- Abas do guia -->
       <div style="display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;">
-        <button class="guia-tab on" data-tab="0" onclick="trocarGuiaTab(0)" style="padding:6px 14px;border:1.5px solid rgba(167,139,250,.5);border-radius:20px;background:rgba(147,51,234,.35);color:#e9d5ff;font-size:12px;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">🏠 Feed</button>
+        <button class="guia-tab on" data-tab="0" onclick="trocarGuiaTab(0)" style="padding:6px 14px;border:1.5px solid rgba(167,139,250,.5);border-radius:20px;background:rgba(147,51,234,.35);color:#e9d5ff;font-size:12px;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">📌 Mural</button>
         <button class="guia-tab" data-tab="1" onclick="trocarGuiaTab(1)" style="padding:6px 14px;border:1.5px solid rgba(255,255,255,.15);border-radius:20px;background:none;color:#c4b5fd;font-size:12px;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">🛒 Classificados</button>
         <button class="guia-tab" data-tab="2" onclick="trocarGuiaTab(2)" style="padding:6px 14px;border:1.5px solid rgba(255,255,255,.15);border-radius:20px;background:none;color:#c4b5fd;font-size:12px;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">🔧 Serviços</button>
         <button class="guia-tab" data-tab="3" onclick="trocarGuiaTab(3)" style="padding:6px 14px;border:1.5px solid rgba(255,255,255,.15);border-radius:20px;background:none;color:#c4b5fd;font-size:12px;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">🏷️ Promoções</button>
@@ -10060,8 +10324,8 @@ window.addEventListener('load', function(){
 
       <!-- TAB 0: Feed -->
       <div class="guia-panel" id="guia-panel-0">
-        <div style="font-size:15px;font-weight:800;color:#1c1e21;margin-bottom:14px;font-family:Nunito,sans-serif;">🏠 O Feed — o mural da cidade</div>
-        <p style="font-size:14px;color:#444;line-height:1.6;font-family:Nunito,sans-serif;margin-bottom:14px;">O Feed é a página principal do EvoCity. É aqui que toda a comunidade de Petrópolis se conecta — veja o que está acontecendo na sua cidade em tempo real.</p>
+        <div style="font-size:15px;font-weight:800;color:#1c1e21;margin-bottom:14px;font-family:Nunito,sans-serif;">📌 O Mural — o mural da cidade</div>
+        <p style="font-size:14px;color:#444;line-height:1.6;font-family:Nunito,sans-serif;margin-bottom:14px;">O Mural é a página principal do EvoCity. É aqui que toda a comunidade de Petrópolis se conecta — veja o que está acontecendo na sua cidade em tempo real.</p>
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div style="display:flex;gap:12px;align-items:flex-start;background:#f8f0ff;border-radius:12px;padding:14px;">
             <span style="font-size:22px;flex-shrink:0;">✍️</span>
@@ -10081,7 +10345,7 @@ window.addEventListener('load', function(){
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;background:#fdf4ff;border-radius:12px;padding:14px;">
             <span style="font-size:22px;flex-shrink:0;">👁️</span>
-            <div><div style="font-weight:800;font-size:14px;color:#1c1e21;font-family:Nunito,sans-serif;">Ver perfil de alguém</div><div style="font-size:13px;color:#65676b;margin-top:3px;font-family:Nunito,sans-serif;">Clique no nome ou na foto de qualquer usuário no feed para ver o perfil completo, adicionar como amigo ou enviar mensagem.</div></div>
+            <div><div style="font-weight:800;font-size:14px;color:#1c1e21;font-family:Nunito,sans-serif;">Ver perfil de alguém</div><div style="font-size:13px;color:#65676b;margin-top:3px;font-family:Nunito,sans-serif;">Clique no nome ou na foto de qualquer usuário no mural para ver o perfil completo, adicionar como amigo ou enviar mensagem.</div></div>
           </div>
         </div>
       </div>
@@ -10189,7 +10453,7 @@ window.addEventListener('load', function(){
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;background:#f0f9ff;border-radius:12px;padding:14px;">
             <span style="font-size:22px;flex-shrink:0;">📸</span>
-            <div><div style="font-weight:800;font-size:14px;color:#1c1e21;font-family:Nunito,sans-serif;">Galeria de fotos</div><div style="font-size:13px;color:#65676b;margin-top:3px;font-family:Nunito,sans-serif;">Todas as fotos que você publicou no feed ficam salvas na aba Fotos do seu perfil — um álbum automático da sua atividade.</div></div>
+            <div><div style="font-weight:800;font-size:14px;color:#1c1e21;font-family:Nunito,sans-serif;">Galeria de fotos</div><div style="font-size:13px;color:#65676b;margin-top:3px;font-family:Nunito,sans-serif;">Todas as fotos que você publicou no mural ficam salvas na aba Fotos do seu perfil — um álbum automático da sua atividade.</div></div>
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;background:#fff7ed;border-radius:12px;padding:14px;">
             <span style="font-size:22px;flex-shrink:0;">🏢</span>
@@ -10308,5 +10572,141 @@ function trocarGuiaTab(idx){
   </div>
 </div>
 
+<!-- ═══ BOTÃO DE MENU FLUTUANTE (FAB) ═══ -->
+<div id="fab-backdrop" onclick="closeFabMenu()"></div>
+<div id="fab-menu-wrap">
+  <div id="fab-menu-list">
+
+    <!-- ── Ação rápida ── -->
+    <button class="fab-item" onclick="fabAction(function(){openCompose()})">
+      <span class="fab-item-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
+      Publicar
+    </button>
+    <button class="fab-item" onclick="fabAction(function(){toggleNotifPanel()})">
+      <span class="fab-item-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></span>
+      Notificações
+    </button>
+
+    <!-- ── Navegação (mesma lista do menu lateral) ── -->
+    <p class="fab-sec-label">Navegar</p>
+
+    <button class="fab-item" id="fab-feed" onclick="fabAction(function(){goTab('feed')})">
+      <span class="fab-item-ic">📌</span>Mural
+    </button>
+    <button class="fab-item" id="fab-cls" onclick="fabAction(function(){goTab('cls')})">
+      <span class="fab-item-ic">🛒</span>Classificados
+    </button>
+    <button class="fab-item" id="fab-svc" onclick="fabAction(function(){goTab('svc')})">
+      <span class="fab-item-ic">🔧</span>Serviços Locais
+    </button>
+    <button class="fab-item" id="fab-shop" onclick="fabAction(function(){goTab('shop')})">
+      <span class="fab-item-ic">🛍️</span>Shopping
+    </button>
+    <button class="fab-item" id="fab-love" onclick="fabAction(function(){goTab('love')})">
+      <span class="fab-item-ic">❤️</span>LOVE<span class="fab-badge rosa">18+</span>
+    </button>
+    <button class="fab-item" id="fab-emprega" onclick="fabAction(function(){goTab('emprega')})">
+      <span class="fab-item-ic">💼</span>Emprega Aí
+    </button>
+    <button class="fab-item" id="fab-food" onclick="fabAction(function(){goTab('food')})">
+      <span class="fab-item-ic">🍔</span>Food Aí
+    </button>
+    <button class="fab-item" id="fab-msg" onclick="fabAction(function(){goTab('msg')})">
+      <span class="fab-item-ic">💬</span>Mensagens<span class="fab-badge" id="fab-msg-badge">2</span>
+    </button>
+    <button class="fab-item" id="fab-profile" onclick="fabAction(function(){goTab('profile')})">
+      <span class="fab-item-ic">👤</span>Perfil
+    </button>
+    <button class="fab-item" id="fab-clima" onclick="fabAction(function(){abrirClimaMobile()})">
+      <span class="fab-item-ic" id="fab-clima-ic">⛅</span>Clima<span class="fab-badge" id="fab-clima-temp" style="background:#8b5cf6;">--°</span>
+    </button>
+
+    <!-- ── Comunidades (submenu) ── -->
+    <button class="fab-item" id="fab-com-btn" onclick="toggleFabComunidades(event)">
+      <span class="fab-item-ic">👥</span>Comunidades<span class="fab-caret">▼</span>
+    </button>
+    <div id="fab-comunidades-sub">
+      <button class="fab-item fab-item-sub" onclick="fabAction(function(){abrirComunidade('alertas','🚨 Alertas Petrópolis','#fee2e2','🚨')})">
+        <span class="fab-item-ic" style="background:#fee2e2;">🚨</span>Alertas Petrópolis
+      </button>
+      <button class="fab-item fab-item-sub" onclick="fabAction(function(){abrirComunidade('itaipava','🌿 Itaipava','#f0fdf4','🌿')})">
+        <span class="fab-item-ic" style="background:#f0fdf4;">🌿</span>Itaipava
+      </button>
+      <button class="fab-item fab-item-sub" onclick="fabAction(function(){abrirComunidade('cascatinha','🏞️ Cascatinha','#ecfeff','🏞️')})">
+        <span class="fab-item-ic" style="background:#ecfeff;">🏞️</span>Cascatinha
+      </button>
+      <button class="fab-item fab-item-sub" onclick="fabAction(function(){abrirComunidade('petrópolis','🏛️ Petrópolis Centro','#f5f3ff','🏛️')})">
+        <span class="fab-item-ic" style="background:#f5f3ff;">🏛️</span>Petrópolis Centro
+      </button>
+    </div>
+
+  </div>
+  <button id="fab-menu-btn" onclick="toggleFabMenu(event)" title="Menu rápido" aria-label="Abrir menu rápido">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+</div>
+<script>
+function toggleFabMenu(e){
+  if(e) e.stopPropagation();
+  var w=document.getElementById('fab-menu-wrap');
+  var b=document.getElementById('fab-backdrop');
+  var open=w.classList.toggle('open');
+  b.classList.toggle('open',open);
+  if(open){
+    syncFabMenu();
+    var l=document.getElementById('fab-menu-list');
+    if(l) l.scrollTop=l.scrollHeight;
+  }else{
+    fecharFabComunidades();
+  }
+}
+function closeFabMenu(){
+  document.getElementById('fab-menu-wrap').classList.remove('open');
+  document.getElementById('fab-backdrop').classList.remove('open');
+  fecharFabComunidades();
+}
+function fabAction(fn){
+  closeFabMenu();
+  try{ fn(); }catch(e){ console.error(e); }
+}
+function toggleFabComunidades(e){
+  if(e) e.stopPropagation();
+  var sub=document.getElementById('fab-comunidades-sub');
+  var btn=document.getElementById('fab-com-btn');
+  var open=sub.classList.toggle('open');
+  btn.classList.toggle('exp',open);
+  if(open){
+    var l=document.getElementById('fab-menu-list');
+    if(l) setTimeout(function(){ l.scrollTop=l.scrollHeight; },60);
+  }
+}
+function fecharFabComunidades(){
+  var sub=document.getElementById('fab-comunidades-sub');
+  var btn=document.getElementById('fab-com-btn');
+  if(sub) sub.classList.remove('open');
+  if(btn) btn.classList.remove('exp');
+}
+/* Marca o item ativo e copia badge de mensagens + clima do menu lateral */
+function syncFabMenu(){
+  try{
+    var mapa={feed:'fab-feed',cls:'fab-cls',svc:'fab-svc',shop:'fab-shop',love:'fab-love',
+              emprega:'fab-emprega',food:'fab-food',msg:'fab-msg',profile:'fab-profile'};
+    for(var k in mapa){
+      var fb=document.getElementById(mapa[k]);
+      var lat=document.getElementById('li-'+k);
+      if(fb) fb.classList.toggle('on', !!(lat && lat.classList.contains('on')));
+    }
+    var lb=document.getElementById('msg-left-badge'), fbg=document.getElementById('fab-msg-badge');
+    if(lb && fbg){
+      fbg.textContent=lb.textContent;
+      fbg.style.display=(lb.textContent.trim()==='' || lb.textContent.trim()==='0')?'none':'';
+    }
+    var ci=document.getElementById('tb-clima-icon'), ct=document.getElementById('tb-clima-temp');
+    var fci=document.getElementById('fab-clima-ic'), fct=document.getElementById('fab-clima-temp');
+    if(ci && fci) fci.textContent=ci.textContent;
+    if(ct && fct) fct.textContent=ct.textContent;
+  }catch(e){ console.error(e); }
+}
+</script>
 </body>
 </html>
