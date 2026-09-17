@@ -231,6 +231,7 @@ select.f-inp option{background:var(--bg3);}
     <a onclick="goPage('posts')"><span class="ic">📝</span> Posts <span class="nb g" id="nb-posts">0</span></a>
     <a onclick="goPage('editor')"><span class="ic">🎨</span> Editor do Site</a>
     <a onclick="goPage('avisos')"><span class="ic">📣</span> Avisos ao Site</a>
+    <a onclick="goPage('anuncios')"><span class="ic">💰</span> Anúncios <span class="nb" id="nb-anuncios" style="display:none">0</span></a>
     <div class="sb-sub">Usuários</div>
     <a onclick="goPage('cadastros')"><span class="ic">📋</span> Cadastros <span class="nb" id="nb-membros">0</span></a>
     <a onclick="goPage('membros')"><span class="ic">👥</span> Membros</a>
@@ -355,6 +356,7 @@ const PAGES = {
   dashboard: pgDashboard,
   posts: pgPosts,
   avisos: pgAvisos,
+  anuncios: pgAnuncios,
   editor: pgEditorSite,
   cadastros: pgCadastros,
   membros: pgMembros,
@@ -460,6 +462,255 @@ async function pgDashboard(){
 }
 
 // ══════════════════════════════════════
+// ANÚNCIOS PATROCINADOS
+// Publica um post com patrocinado=true. O site injeta esses posts
+// no feed a cada 5 publicações, com selo "Patrocinado" e X pra dispensar.
+// ══════════════════════════════════════
+let _adImgBase64 = '';
+let _adLogoBase64 = '';
+
+// Recorta a imagem no centro em formato quadrado e comprime (igual ao feed do site)
+// Recorta a imagem no centro numa proporção largura x altura (ex: 900x450 = banner 2:1)
+function _recortarProporcao(file, larguraFinal, alturaFinal, qualidade){
+  return new Promise(function(resolve, reject){
+    const r = new FileReader();
+    r.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        const alvoProp = larguraFinal / alturaFinal;
+        const origProp = img.width / img.height;
+        let sx, sy, sw, sh;
+        if(origProp > alvoProp){
+          // imagem mais larga que o alvo — corta as laterais
+          sh = img.height;
+          sw = sh * alvoProp;
+          sx = (img.width - sw) / 2;
+          sy = 0;
+        } else {
+          // imagem mais alta que o alvo — corta em cima/embaixo
+          sw = img.width;
+          sh = sw / alvoProp;
+          sx = 0;
+          sy = (img.height - sh) / 2;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = larguraFinal; canvas.height = alturaFinal;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, larguraFinal, alturaFinal);
+        resolve(canvas.toDataURL('image/jpeg', qualidade||0.82));
+      };
+      img.onerror = function(){ reject(new Error('Não consegui ler essa imagem.')); };
+      img.src = e.target.result;
+    };
+    r.onerror = function(){ reject(new Error('Falha ao abrir o arquivo.')); };
+    r.readAsDataURL(file);
+  });
+}
+// Mantido por compatibilidade (recorte quadrado 1:1, usado no logo)
+function _recortarQuadrado(file, lado, qualidade){
+  return _recortarProporcao(file, lado, lado, qualidade);
+}
+
+async function _adSelecionarImagem(inp){
+  const file = inp.files && inp.files[0];
+  if(!file) return;
+  if(!/^image\//.test(file.type)){ showToast('Selecione um arquivo de imagem.','e'); return; }
+  try{
+    let b64 = await _recortarProporcao(file, 900, 450, 0.8);
+    if(b64.length > 900000) b64 = await _recortarProporcao(file, 650, 325, 0.68);
+    _adImgBase64 = b64;
+    const prev = document.getElementById('ad-preview');
+    prev.innerHTML = '<img src="'+b64+'" style="width:100%;height:100%;object-fit:cover;display:block;"/>';
+    prev.style.border = 'none';
+    document.getElementById('ad-img-info').textContent =
+      'Imagem pronta · banner 2:1 · ' + Math.round(b64.length/1024) + ' KB';
+    document.getElementById('ad-btn-limpar').style.display = 'inline-flex';
+  }catch(e){ showToast(e.message,'e'); }
+}
+
+async function _adSelecionarLogo(inp){
+  const file = inp.files && inp.files[0];
+  if(!file) return;
+  try{
+    _adLogoBase64 = await _recortarQuadrado(file, 200, 0.8);
+    document.getElementById('ad-logo-prev').innerHTML =
+      '<img src="'+_adLogoBase64+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"/>';
+  }catch(e){ showToast(e.message,'e'); }
+}
+
+function _adLimparImagem(){
+  _adImgBase64 = '';
+  const prev = document.getElementById('ad-preview');
+  prev.innerHTML = '<div style="text-align:center;color:var(--mt);font-size:13px;padding:20px;">🖼️<br><br>A imagem aparece aqui<br><span style="font-size:11px;opacity:.7">recorte automático — banner 2:1</span></div>';
+  prev.style.border = '2px dashed var(--border)';
+  document.getElementById('ad-img-info').textContent = 'Nenhuma imagem selecionada.';
+  document.getElementById('ad-btn-limpar').style.display = 'none';
+  const inp = document.getElementById('ad-img-inp'); if(inp) inp.value = '';
+}
+
+const AD_AREAS = [
+  {v:'shopping',      ic:'🛍️', lbl:'Shopping'},
+  {v:'food',          ic:'🍔', lbl:'Food Aí'},
+  {v:'emprega',       ic:'💼', lbl:'Emprega Aí'},
+  {v:'classificados', ic:'📋', lbl:'Classificados'},
+  {v:'servicos',      ic:'🔧', lbl:'Serviços Locais'},
+  {v:'love',          ic:'❤️', lbl:'Love'}
+];
+function _areaLabel(v){
+  const a = AD_AREAS.find(x=>x.v===v);
+  return a ? (a.ic+' '+a.lbl) : v;
+}
+
+async function pgAnuncios(){
+  document.getElementById('page-title').textContent = 'Anúncios';
+  document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando anúncios...</div>';
+  if(!db){
+    document.getElementById('content').innerHTML = '<div class="empty"><div class="empty-ico">⚠️</div>Supabase ainda não conectou. Aguarde um instante e clique em Atualizar, ou recarregue a página.<br><br><button class="btn btn-ghost btn-sm" onclick="pgAnuncios()">🔄 Tentar novamente</button></div>';
+    return;
+  }
+  _adImgBase64 = ''; _adLogoBase64 = '';
+  try{
+    const {data:ads, error} = await db.from('postagens').select('*')
+      .eq('patrocinado', true).order('criado_em',{ascending:false}).limit(50);
+    if(error) throw error;
+    const ativos = (ads||[]).filter(a=>!a.removido);
+
+    document.getElementById('content').innerHTML = `
+      <div class="sec" style="margin-bottom:20px">
+        <div class="sec-h"><h3>💰 Novo Anúncio Patrocinado</h3></div>
+        <div class="sec-b">
+          <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.25);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--mt);line-height:1.6;margin-bottom:16px;">
+            O anúncio entra no feed <strong style="color:var(--fg)">a cada 5 posts</strong>, com selo <strong style="color:var(--fg)">Patrocinado</strong> e um <strong style="color:var(--fg)">X</strong> para o usuário dispensar (volta na próxima visita). A imagem é recortada automaticamente em formato de banner.
+          </div>
+
+          <div class="f-row">
+            <label class="f-lbl">Nome do anunciante</label>
+            <input class="f-inp" id="ad-anunciante" placeholder="Ex: Pizzaria do Zé" maxlength="60"/>
+          </div>
+          <div class="f-row">
+            <label class="f-lbl">Texto do anúncio</label>
+            <textarea class="f-inp" id="ad-texto" placeholder="Ex: Pizza grande + refri por R$ 49,90. Só hoje!" maxlength="400"></textarea>
+          </div>
+          <div class="f-row">
+            <label class="f-lbl">Link de destino <span style="font-weight:600;color:var(--mt)">(opcional — site, WhatsApp, o que for)</span></label>
+            <input class="f-inp" id="ad-link" placeholder="https://wa.me/5524999999999"/>
+          </div>
+
+          <div class="f-row">
+            <label class="f-lbl" style="display:block;margin-bottom:8px;">Onde este anúncio pode ser postado</label>
+            <div id="ad-areas" style="display:flex;flex-wrap:wrap;gap:8px;">
+              ${AD_AREAS.map(a=>`
+                <label style="display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px;font-weight:700;">
+                  <input type="checkbox" class="ad-area-chk" value="${a.v}" style="accent-color:var(--purple);width:15px;height:15px;"/> ${a.ic} ${a.lbl}
+                </label>
+              `).join('')}
+            </div>
+            <div style="font-size:11px;color:var(--mt);margin-top:6px;">Selecione uma ou mais áreas do site onde o anúncio vai aparecer.</div>
+          </div>
+
+          <div class="f-row">
+            <label class="f-lbl" style="display:block;margin-bottom:8px;">Imagem do anúncio — banner (2:1)</label>
+            <div id="ad-preview" style="width:100%;max-width:560px;aspect-ratio:2/1;border:2px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:rgba(255,255,255,.03);">
+              <div style="text-align:center;color:var(--mt);font-size:13px;padding:20px;">🖼️<br><br>A imagem aparece aqui<br><span style="font-size:11px;opacity:.7">recorte automático — banner 2:1</span></div>
+            </div>
+            <div id="ad-img-info" style="font-size:11px;color:var(--mt);margin:8px 0;">Nenhuma imagem selecionada.</div>
+            <input type="file" id="ad-img-inp" accept="image/*" onchange="_adSelecionarImagem(this)" style="font-size:12px;color:var(--mt);width:100%;max-width:560px;"/>
+            <button class="btn btn-ghost btn-sm" id="ad-btn-limpar" onclick="_adLimparImagem()" style="display:none;margin-top:8px;">🗑️ Remover imagem</button>
+          </div>
+
+          <div class="f-row">
+            <label class="f-lbl">Foto de perfil do anúncio <span style="font-weight:600;color:var(--mt)">(aparece redonda ao lado de "Patrocinado" — como o avatar de um post normal)</span></label>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div id="ad-logo-prev" style="width:44px;height:44px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;">🏪</div>
+              <input type="file" accept="image/*" onchange="_adSelecionarLogo(this)" style="font-size:12px;color:var(--mt)"/>
+            </div>
+            <div style="font-size:11px;color:var(--mt);margin-top:6px;">Sem foto, aparece só o ícone da loja no lugar do avatar.</div>
+          </div>
+
+          <div style="margin-top:18px;">
+            <button class="btn btn-p" onclick="publicarAnuncio()">💰 Publicar Anúncio no Feed</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-h">
+          <h3>📋 Anúncios Ativos (${ativos.length})</h3>
+          <button class="btn btn-ghost btn-sm" onclick="pgAnuncios()">🔄 Atualizar</button>
+        </div>
+        <div class="sec-b">
+          ${(ads||[]).map(a=>`
+            <div class="post-card ${a.removido?'post-removido':''}">
+              ${a.img?`<img src="${a.img}" style="width:96px;aspect-ratio:2/1;border-radius:8px;object-fit:cover;flex-shrink:0;" alt="anúncio"/>`:`<div class="av">AD</div>`}
+              <div class="pc-body">
+                <div class="pc-author" style="display:flex;align-items:center;gap:8px;">
+                  ${a.autor_photo_url?`<img src="${a.autor_photo_url}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0;" alt="foto de perfil"/>`:`<span style="width:22px;height:22px;border-radius:50%;background:var(--grad);display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">🏪</span>`}
+                  ${a.patrocinador||a.autor||'Anunciante'}
+                  ${a.removido?'<span class="badge br">removido</span>':'<span class="badge bg">no ar</span>'}
+                </div>
+                <div class="pc-text">${a.texto||''}</div>
+                <div class="pc-meta">
+                  <span class="badge bb">patrocinado</span>
+                  ${(a.areas||[]).map(ar=>`<span class="badge bp">${_areaLabel(ar)}</span>`).join('')}
+                  ${a.link?`<a href="${a.link}" target="_blank" rel="noopener" style="font-size:11px;color:var(--mt)">🔗 link</a>`:''}
+                  <span class="pc-time">${_tempo(a.criado_em)}</span>
+                  ${!a.removido?`<button class="btn btn-r btn-sm" onclick="removerAnuncio(${a.id})">🗑️ Tirar do ar</button>`:''}
+                </div>
+              </div>
+            </div>
+          `).join('')||'<div class="empty"><div class="empty-ico">💰</div>Nenhum anúncio criado ainda.</div>'}
+        </div>
+      </div>
+    `;
+  }catch(e){
+    document.getElementById('content').innerHTML = `<div class="empty"><div class="empty-ico">❌</div>${e.message}</div>`;
+  }
+}
+
+async function publicarAnuncio(){
+  const anunciante = document.getElementById('ad-anunciante')?.value?.trim();
+  const texto = document.getElementById('ad-texto')?.value?.trim();
+  const link = document.getElementById('ad-link')?.value?.trim() || null;
+  const areas = Array.from(document.querySelectorAll('.ad-area-chk:checked')).map(c=>c.value);
+  if(!anunciante){ showToast('Informe o nome do anunciante.','e'); return; }
+  if(!texto && !_adImgBase64){ showToast('O anúncio precisa de texto ou imagem.','e'); return; }
+  if(link && !/^https?:\/\//i.test(link)){ showToast('O link deve começar com http:// ou https://','e'); return; }
+  if(areas.length===0){ showToast('Escolha ao menos uma área para postar o anúncio.','e'); return; }
+  if(!db){ showToast('Supabase não conectado.','e'); return; }
+  try{
+    const {error} = await db.from('postagens').insert([{
+      texto: texto || '',
+      autor: anunciante,
+      patrocinador: anunciante,
+      patrocinado: true,
+      categoria: 'n',
+      areas: areas,
+      img: _adImgBase64 || null,
+      link: link,
+      autor_photo_url: _adLogoBase64 || null,
+      removido: false,
+      criado_em: new Date().toISOString()
+    }]);
+    if(error) throw error;
+    showToast('✅ Anúncio publicado! Já está rodando no feed.','s');
+    setTimeout(pgAnuncios, 600);
+  }catch(e){
+    showToast('Erro: '+e.message,'e');
+  }
+}
+
+async function removerAnuncio(id){
+  openModal('Tirar anúncio do ar',
+    '<p style="color:var(--mt);line-height:1.7">Este anúncio deixa de aparecer no feed imediatamente. Deseja continuar?</p>',
+    async function(){
+      const {error} = await db.from('postagens').update({removido:true}).eq('id',id);
+      if(error){ showToast('Erro: '+error.message,'e'); return; }
+      showToast('Anúncio retirado do feed.','s');
+      pgAnuncios();
+    }, 'Tirar do ar');
+}
+
+// ══════════════════════════════════════
 // POSTS
 // ══════════════════════════════════════
 async function pgPosts(){
@@ -467,8 +718,10 @@ async function pgPosts(){
   document.getElementById('content').innerHTML = '<div class="loading"><div class="spinner"></div> Carregando posts...</div>';
   if(!db) return;
   try{
-    const {data:posts,error} = await db.from('postagens').select('*').order('criado_em',{ascending:false}).limit(100);
+    const {data:postsRaw,error} = await db.from('postagens').select('*').order('criado_em',{ascending:false}).limit(100);
     if(error) throw error;
+    // Anúncios patrocinados têm página própria — não poluem a lista de posts
+    const posts = (postsRaw||[]).filter(p=>!p.patrocinado);
     document.getElementById('content').innerHTML = `
       <div class="sec" style="margin-bottom:20px">
         <div class="sec-h"><h3>✍️ Publicar Post no Feed</h3></div>

@@ -403,6 +403,16 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 /* ─── POST CARD (Facebook scale) ─── */
 .post-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(100,0,180,.08),0 1px 2px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden;border:1px solid rgba(147,51,234,.07);animation:fadeUp .35s ease;}
 .post-card.post-fixado{border:1.5px solid rgba(245,158,11,.55);box-shadow:0 2px 12px rgba(245,158,11,.18);}
+.post-card.post-ad{border:1px solid rgba(14,165,233,.22);}
+.post-ad-label{display:flex;align-items:center;gap:4px;font-size:12px;color:#65676b;font-weight:700;margin-top:1px;}
+.post-ad-label span{opacity:.6;}
+.post-ad-x{background:none;border:none;cursor:pointer;color:#65676b;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;}
+.post-ad-x:hover{background:#f0f2f5;color:#050505;}
+.post-ad-img{width:100%;aspect-ratio:2/1;overflow:hidden;background:#f0f2f5;}
+.post-ad-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.post-ad-img a{display:block;width:100%;height:100%;}
+.post-ad-footer{padding:10px 16px;border-top:1px solid #eef0f2;background:#fafbfc;display:flex;justify-content:flex-end;}
+.post-ad-cta{background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;text-decoration:none;font-size:13px;font-weight:800;padding:8px 18px;border-radius:8px;display:inline-block;}
 .post-fixado-tag{display:flex;align-items:center;gap:6px;background:linear-gradient(90deg,rgba(245,158,11,.14),rgba(245,158,11,.04));color:#b45309;font-size:12px;font-weight:800;padding:7px 16px;border-bottom:1px solid rgba(245,158,11,.22);letter-spacing:.2px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes feedSpin{to{transform:rotate(360deg)}}
@@ -3037,6 +3047,7 @@ function launch(u){
   try{seedNotifications();}catch(e){console.warn('seedNotifications: '+String(e&&e.message?e.message:e));}
   // Posts têm prioridade máxima — carregam primeiro sozinhos
   _carregarPostsSupabase();
+  _carregarAnunciosSupabase();
   _carregarAvisoGlobal();
 
   // Todo o resto carrega depois, sem disputar conexão com os posts
@@ -3857,7 +3868,7 @@ function renderFeed(){
   em.style.display='none';
   const alvo=Math.min(Math.max(_feedShown,FEED_BATCH_SIZE),list.length);
   const visiveis=list.slice(0,alvo);
-  el.innerHTML=visiveis.map((p,i)=>card(p,i)).join('');
+  el.innerHTML=_montarHTMLFeed(visiveis,0);
   _aplicarFotosNoFeed(visiveis,el);
   _feedShown=alvo;
   _feedAtualizarSentinela();
@@ -3882,7 +3893,7 @@ async function _feedRenderProximoLote(){
   }
   const novos=list.slice(_feedShown,alvo);
   const wrap=document.createElement('div');
-  wrap.innerHTML=novos.map((p,i)=>card(p,_feedShown+i)).join('');
+  wrap.innerHTML=_montarHTMLFeed(novos,_feedShown);
   const novosNos=Array.prototype.slice.call(wrap.children);
   // insere os novos cards antes da sentinela (se já existir) para manter o gatilho no final
   const sentinela=document.getElementById('feed-sentinel');
@@ -9508,6 +9519,114 @@ function fecharAvisoGlobal() {
   }
 }
 
+/* ══════════════════════════════════════════════════════════
+   ANÚNCIOS PATROCINADOS
+   Posts criados no painel com patrocinado=true. Não entram no
+   fluxo normal do feed: ficam num array próprio e são injetados
+   a cada FEED_ADS_INTERVALO posts na renderização.
+   O X de dispensar vale só até o usuário fechar o site (sessionStorage).
+   ══════════════════════════════════════════════════════════ */
+var _anuncios = [];
+var FEED_ADS_INTERVALO = 5; // injeta 1 anúncio a cada 5 posts
+
+function _adsDispensados(){
+  try{ return JSON.parse(sessionStorage.getItem('evocity_ads_dispensados')||'[]'); }
+  catch(e){ return []; }
+}
+function _anunciosAtivos(){
+  var fora = _adsDispensados().map(String);
+  return _anuncios.filter(function(a){ return fora.indexOf(String(a.id))===-1; });
+}
+function dispensarAnuncio(id){
+  try{
+    var lista = _adsDispensados();
+    if(lista.map(String).indexOf(String(id))===-1){ lista.push(id); }
+    sessionStorage.setItem('evocity_ads_dispensados', JSON.stringify(lista));
+  }catch(e){}
+  // Remove da tela todas as aparições desse anúncio, com uma saidinha suave
+  document.querySelectorAll('.post-ad[data-ad-id="'+id+'"]').forEach(function(no){
+    no.style.transition='opacity .18s ease, transform .18s ease';
+    no.style.opacity='0'; no.style.transform='scale(.97)';
+    setTimeout(function(){ no.remove(); }, 180);
+  });
+  try{ showToast('Anúncio ocultado por enquanto.'); }catch(e){}
+}
+
+async function _carregarAnunciosSupabase(){
+  if(!window._sb) return;
+  try{
+    var r = await window._sb.from('postagens').select('*')
+      .eq('patrocinado', true).eq('removido', false)
+      .order('criado_em',{ascending:false}).limit(10);
+    if(r.error || !r.data){ return; }
+    _anuncios = r.data.map(_mapAnuncio);
+    if(_anuncios.length) try{ renderFeed(); }catch(e){}
+    console.log('[EvoCity] '+_anuncios.length+' anúncio(s) carregado(s).');
+  }catch(e){ console.warn('[EvoCity] anúncios: '+String(e&&e.message?e.message:e)); }
+}
+
+function _mapAnuncio(row){
+  return {
+    id: row.id,
+    anunciante: row.patrocinador || row.autor || 'Anunciante',
+    ini: (row.patrocinador||row.autor||'AD').slice(0,2).toUpperCase(),
+    clr: row.clr || '#0ea5e9',
+    text: row.texto || '',
+    img: row.img ? _resolvePhotoUrl(row.img) : '',
+    link: row.link || '',
+    logo: row.autor_photo_url || row.autor_photo || ''
+  };
+}
+
+function cardAnuncio(a){
+  var logoSrc = a.logo ? _resolvePhotoUrl(a.logo) : '';
+  var avInner = logoSrc
+    ? '<img src="'+esc(logoSrc)+'" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;" onerror="this.remove();"/>'
+    : esc(a.ini);
+  var ctaHTML = a.link
+    ? '<a href="'+esc(a.link)+'" target="_blank" rel="noopener noreferrer sponsored" class="post-ad-cta" onclick="event.stopPropagation()">Saiba mais →</a>'
+    : '';
+  var imgHTML = a.img
+    ? '<div class="post-ad-img">'+(a.link?'<a href="'+esc(a.link)+'" target="_blank" rel="noopener noreferrer sponsored">':'')
+      +'<img src="'+esc(a.img)+'" alt="Anúncio" onerror="this.closest(\'.post-ad-img\').style.display=\'none\'"/>'
+      +(a.link?'</a>':'')+'</div>'
+    : '';
+  return '<div class="post-card post-ad" data-ad-id="'+a.id+'">'
+    + '<div class="post-header">'
+    +   '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">'
+    +     '<div class="post-av" style="background:'+esc(a.clr)+';width:40px;height:40px;overflow:hidden;padding:0;">'+avInner+'</div>'
+    +     '<div style="min-width:0;flex:1;">'
+    +       '<div class="post-name">'+esc(a.anunciante)+'</div>'
+    +       '<div class="post-ad-label">Patrocinado <span>·</span> <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>'
+    +     '</div>'
+    +   '</div>'
+    +   '<button class="post-ad-x" title="Não quero ver isso" onclick="dispensarAnuncio(\''+a.id+'\')">'
+    +     '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>'
+    +   '</button>'
+    + '</div>'
+    + (a.text ? '<p class="post-text">'+esc(a.text)+'</p>' : '')
+    + imgHTML
+    + (ctaHTML ? '<div class="post-ad-footer">'+ctaHTML+'</div>' : '')
+    + '</div>';
+}
+
+/* Monta o HTML de um trecho do feed já intercalando os anúncios.
+   `offset` é a posição global do primeiro post do trecho, para que a
+   contagem de 5 em 5 continue certa quando o scroll infinito acrescenta lotes. */
+function _montarHTMLFeed(lista, offset){
+  var ads = _anunciosAtivos();
+  var html = '';
+  lista.forEach(function(p, i){
+    var globalIdx = offset + i;
+    html += card(p, globalIdx);
+    if(ads.length && (globalIdx+1) % FEED_ADS_INTERVALO === 0){
+      var ad = ads[Math.floor(globalIdx / FEED_ADS_INTERVALO) % ads.length];
+      html += cardAnuncio(ad);
+    }
+  });
+  return html;
+}
+
 async function _carregarAvisoGlobal() {
   if (!window._sb) return;
   try {
@@ -9560,6 +9679,7 @@ async function _carregarPostsSupabase(){
     // ── Fase 1: monta posts com o que temos e renderiza JÁ ──
     var _novos = [];
     r.data.forEach(function(row){
+      if(row.patrocinado) return; // anúncios são tratados por _carregarAnunciosSupabase
       var existe = posts.some(function(p){ return String(p.supabase_id)===String(row.id); });
       if(!existe){
         var isOwn = row.autor_id && U.id && row.autor_id === U.id;
@@ -9706,6 +9826,7 @@ async function _carregarMaisPostsSupabase(){
     }
     var adicionados = 0;
     r.data.forEach(function(row){
+      if(row.patrocinado) return; // anúncios não entram na paginação normal
       var existe = posts.some(function(p){ return String(p.supabase_id)===String(row.id); });
       if(existe) return;
       var isOwn = row.autor_id && U.id && row.autor_id === U.id;
@@ -9753,6 +9874,14 @@ function _escutarSupabase(){
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'postagens'},function(payload){
         var row = payload.new;
         if(!row||row.removido) return;
+        // Anúncio patrocinado — entra no carrossel de ads, não no feed comum
+        if(row.patrocinado){
+          if(!_anuncios.some(function(a){ return String(a.id)===String(row.id); })){
+            _anuncios.unshift(_mapAnuncio(row));
+            try{renderFeed();}catch(e){}
+          }
+          return;
+        }
         // Verifica pelo supabase_id OU pelo conteúdo do post local recém-publicado ainda sem supabase_id
         var existe = posts.some(function(p){
           if(p.supabase_id===row.id) return true;
@@ -9787,6 +9916,17 @@ function _escutarSupabase(){
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'postagens'},function(payload){
         var row = payload.new;
         if(!row) return;
+        // Anúncio patrocinado: publicado/removido no painel reflete na hora
+        if(row.patrocinado || _anuncios.some(function(a){ return String(a.id)===String(row.id); })){
+          if(row.removido || !row.patrocinado){
+            _anuncios = _anuncios.filter(function(a){ return String(a.id)!==String(row.id); });
+          } else {
+            var iAd = _anuncios.findIndex(function(a){ return String(a.id)===String(row.id); });
+            if(iAd>=0) _anuncios[iAd] = _mapAnuncio(row); else _anuncios.unshift(_mapAnuncio(row));
+          }
+          try{renderFeed();}catch(e){}
+          return;
+        }
         if(row.removido){
           // Remove do array local e re-renderiza o feed em tempo real
           posts = posts.filter(function(p){ return String(p.supabase_id)!==String(row.id); });
