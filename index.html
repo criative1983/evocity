@@ -456,7 +456,22 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .post-act{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;border:none;background:none;font-size:15px;font-weight:700;color:#65676b;cursor:pointer;font-family:'Nunito',sans-serif;transition:.15s;}
 .post-act:hover{background:#f2f2f2;}
 .post-act.liked{color:var(--blue);}
-.msg-btn-post{width:30px;height:30px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.msg-btn-post{width:30px;height:30px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;position:relative;}
+/* ── ÁREA DE TOQUE AMPLIADA (mobile) — ⋮ do post e enviar comentário ──
+   No celular esses botões redondos ficam bem na borda do card e o toque
+   às vezes "erra" por poucos pixels, dando a impressão de que o botão não
+   funciona (às vezes funciona, às vezes não, dependendo de onde exatamente
+   o dedo toca). Este ::after cria uma área de toque invisível maior ao
+   redor do botão, sem mudar o tamanho visual dele. */
+@media (max-width:768px), (pointer:coarse){
+  .msg-btn-post::after, .cmt-send-btn::after{
+    content:'';
+    position:absolute;
+    top:-12px; left:-12px; right:-12px; bottom:-12px;
+    z-index:1;
+  }
+  .msg-btn-post, .cmt-send-btn{ position:relative; }
+}
 .msg-btn-post:hover{background:#e4e6e9;}
 
 /* ── Menu dropdown de post ── */
