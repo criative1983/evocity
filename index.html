@@ -501,6 +501,7 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
   content:'';
   position:absolute;top:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,rgba(167,139,250,.7),rgba(192,38,211,.6),transparent);
+  pointer-events:none;
 }
 .aviso-global-inner{display:flex;align-items:flex-start;gap:12px;position:relative;z-index:1;}
 .aviso-global-icon{
@@ -524,7 +525,7 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
   background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.25);
   color:#c4b5fd;font-size:14px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  transition:.2s;position:relative;z-index:1;
+  transition:.2s;position:relative;z-index:5;pointer-events:auto;touch-action:manipulation;
 }
 .aviso-global-close:hover{background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.4);color:#fca5a5;}
 @keyframes avisoIn{from{opacity:0;transform:translateY(-10px) scale(.97);}to{opacity:1;transform:none;}}
@@ -2097,7 +2098,7 @@ img.av-foto[data-ini]{display:block;}
               <div class="aviso-global-label">Comunicado Oficial</div>
               <div class="aviso-global-texto" id="aviso-global-texto">—</div>
             </div>
-            <button class="aviso-global-close" onclick="fecharAvisoGlobal()" title="Dispensar">×</button>
+            <button class="aviso-global-close" onclick="fecharAvisoGlobal()" ontouchend="event.preventDefault();fecharAvisoGlobal()" title="Dispensar">×</button>
           </div>
         </div>
         <div id="feed-list"></div>
@@ -4051,7 +4052,7 @@ function cardPerfil(p){
   html += '<div class="post-av" style="width:32px;height:32px;font-size:11px;flex-shrink:0;'+cmtAvStyle+'">'+cmtAvInner+'</div>';
   html += '<div style="flex:1;display:flex;gap:8px;align-items:center;">';
   html += '<input id="cmt-inp-'+pid+'" data-postid="'+p.id+'" type="text" placeholder="Escreva um comentário..." style="flex:1;border:1.5px solid #ced0d4;border-radius:20px;padding:8px 14px;font-size:14px;outline:none;font-family:Nunito,sans-serif;background:#f0f2f5;" onkeydown="if(event.key===\'Enter\')addCommentPerfil(this)"/>';
-  html += '<button onmousedown="event.preventDefault()" onclick="addCommentPerfil(document.getElementById(\'cmt-inp-'+pid+'\'))" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">';
+  html += '<button onmousedown="event.preventDefault()" onclick="addCommentPerfil(document.getElementById(\'cmt-inp-'+pid+'\'))" ontouchend="event.preventDefault();addCommentPerfil(document.getElementById(\'cmt-inp-'+pid+'\'))" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">';
   html += '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>';
   html += '</div></div>';
   html += '<div id="cmt-list-'+pid+'"></div>';
@@ -4369,7 +4370,7 @@ function card(p,i){
       <div style="flex:1;display:flex;gap:8px;align-items:center;">
         <input id="cmt-inp-${p.id}" type="text" placeholder="Escreva um comentário..." onkeydown="if(event.key==='Enter')addComment('${p.id}')"
           style="flex:1;border:1.5px solid #ced0d4;border-radius:20px;padding:8px 14px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;background:#f0f2f5;"/>
-        <button onmousedown="event.preventDefault()" onclick="addComment('${p.id}')" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">
+        <button onmousedown="event.preventDefault()" onclick="addComment('${p.id}')" ontouchend="event.preventDefault();addComment('${p.id}')" style="width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;" class="g cmt-send-btn">
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         </button>
       </div>
