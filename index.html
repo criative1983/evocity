@@ -457,20 +457,19 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .post-act:hover{background:#f2f2f2;}
 .post-act.liked{color:var(--blue);}
 .msg-btn-post{width:30px;height:30px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;position:relative;}
-/* ── ÁREA DE TOQUE AMPLIADA (mobile) — ⋮ do post e enviar comentário ──
-   No celular esses botões redondos ficam bem na borda do card e o toque
-   às vezes "erra" por poucos pixels, dando a impressão de que o botão não
-   funciona (às vezes funciona, às vezes não, dependendo de onde exatamente
-   o dedo toca). Este ::after cria uma área de toque invisível maior ao
-   redor do botão, sem mudar o tamanho visual dele. */
+/* ── ÁREA DE TOQUE MAIOR (mobile) — ⋮ do post e enviar comentário ──
+   Primeira tentativa foi aumentar a área de toque "por fora" do botão
+   (pseudo-elemento com posição negativa), mas o .post-card tem
+   overflow:hidden (pros cantos arredondados) e isso CORTAVA boa parte
+   dessa área extra perto da borda — por isso ainda precisava tocar
+   várias vezes. Agora o tamanho real do botão aumenta no celular
+   (fica dentro da área visível, não é cortado), o ícone continua do
+   mesmo tamanho visual, só centralizado num círculo maior. */
 @media (max-width:768px), (pointer:coarse){
-  .msg-btn-post::after, .cmt-send-btn::after{
-    content:'';
-    position:absolute;
-    top:-12px; left:-12px; right:-12px; bottom:-12px;
-    z-index:1;
-  }
-  .msg-btn-post, .cmt-send-btn{ position:relative; }
+  .msg-btn-post{ width:40px; height:40px; touch-action:manipulation; }
+  /* !important necessário: o botão tem width/height fixos no atributo
+     style="" (inline), que sempre vence uma regra normal de CSS externo. */
+  .cmt-send-btn{ width:42px!important; height:42px!important; touch-action:manipulation; }
 }
 .msg-btn-post:hover{background:#e4e6e9;}
 
