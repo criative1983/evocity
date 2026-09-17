@@ -3404,7 +3404,7 @@ function openNewFood(){
   document.getElementById('overlay-food').classList.add('open');
 }
 function openEditFood(id){
-  const f = food_items.find(x=>x.id===id); if(!f) return;
+  const f = food_items.find(x=>String(x.id)===String(id)); if(!f) return;
   _foodEditId = id;
   food_photos = (f.fotos&&f.fotos.length?f.fotos.slice():['','','','','']);
   while(food_photos.length<5) food_photos.push('');
@@ -3478,7 +3478,7 @@ async function submitFood(){
 }
 async function deleteFood(id){
   if(!confirm('Remover este estabelecimento?')) return;
-  const item = food_items.find(x=>x.id===id);
+  const item = food_items.find(x=>String(x.id)===String(id));
   food_items = food_items.filter(x=>x.id!==id);
   _removidosFood.add(String(id));
   if(item && item.supabase_id) _removidosFood.add(String(item.supabase_id));
@@ -3532,7 +3532,7 @@ function renderFood(){
   }).join('');
 }
 function viewFood(id){
-  const f = food_items.find(x=>x.id===id); if(!f) return;
+  const f = food_items.find(x=>String(x.id)===String(id)); if(!f) return;
   const t = FOOD_TYPE[f.tipo] || FOOD_TYPE.outro;
   document.getElementById('fv-nome').textContent = f.nome;
   const fotos = (f.fotos||[]).filter(p=>p);
@@ -4033,7 +4033,7 @@ function toggleCommentsPerfil(el){
     var postId = parseInt(box.dataset.postid);
     var pid = box.id.replace('cmt-box-','');
     // Se não tem comentários em memória mas tem no Supabase, busca primeiro
-    var p = posts.find(function(x){ return x.id===postId; });
+    var p = posts.find(function(x){ return String(x.id)===String(postId); });
     if(p && p.supabase_id && (!p.commentList || !p.commentList.length) && p.comments > 0 && window._sb){
       var listEl = document.getElementById('cmt-list-'+pid);
       if(listEl) listEl.innerHTML = '<p style="font-size:13px;color:#90949c;padding:4px 0;">Carregando comentários...</p>';
@@ -4088,7 +4088,7 @@ function _cmtReactCount(c){
 }
 function _buildCmtHTML(c,idx,postId,isPerf){
   const isMe=c.name===U.name||c.autor_id===U.id;
-  const post=posts.find(x=>x.id===postId);
+  const post=posts.find(x=>String(x.id)===String(postId));
   const isPostOwner=post&&(post.own||(post.autor_id&&post.autor_id===U.id));
   const canDelete=isMe||isPostOwner;
   const photo=isMe?(getUserAvatar()||(c.photo||'')):(c.photo||'');
@@ -4119,7 +4119,7 @@ function _buildCmtHTML(c,idx,postId,isPerf){
     +'</div></div></div>';
 }
 function renderCommentsPerfil(pid, postId){
-  const p=posts.find(x=>x.id===postId); if(!p) return;
+  const p=posts.find(x=>String(x.id)===String(postId)); if(!p) return;
   if(!p.commentList) p.commentList=[];
   const el=document.getElementById('cmt-list-'+pid); if(!el) return;
   if(!p.commentList.length){el.innerHTML='<p style="font-size:13px;color:#90949c;padding:4px 0;">Nenhum comentário ainda.</p>';return;}
@@ -4131,7 +4131,7 @@ function addCommentPerfil(inp){
   const pid = inp.id.replace('cmt-inp-','');
   const postId = parseInt(inp.dataset.postid);
   const txt=inp.value.trim(); if(!txt) return;
-  const p=posts.find(x=>x.id===postId); if(!p) return;
+  const p=posts.find(x=>String(x.id)===String(postId)); if(!p) return;
   if(!p.commentList) p.commentList=[];
   const now=new Date();
   const time=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
@@ -4346,9 +4346,14 @@ function card(p,i){
 }
 
 async function doLike(id){
-  const p=posts.find(x=>x.id===id);if(!p)return;
+  const p=posts.find(x=>String(x.id)===String(id));if(!p)return;
   if(p._likeBusy) return; // evita clique duplo/repetido enquanto processa
   p._likeBusy = true;
+  // try/finally garante que _likeBusy SEMPRE volte para false, mesmo se algo
+  // der erro no meio do caminho. Antes, um erro inesperado aqui deixava o
+  // botão de curtir travado para sempre naquele post (parecia "não funcionar"
+  // até recarregar a página).
+  try{
 
   // Antes de alternar, confirma no banco se o usuário já curtiu este post
   // (evita contar de novo quando o app ainda não tinha carregado esse estado, ex: ao voltar ao site)
@@ -4392,7 +4397,9 @@ async function doLike(id){
     }
     window._sb.from('postagens').update({likes:p.likes}).eq('id',p.supabase_id).then(function(){});
   }
-  p._likeBusy = false;
+  }finally{
+    p._likeBusy = false;
+  }
 }
 
 function toggleComments(id, btn){
@@ -4403,7 +4410,7 @@ function toggleComments(id, btn){
   const open = sec.style.display==='none' || sec.style.display==='';
   sec.style.display = open ? 'block' : 'none';
   if(open){
-    var p = posts.find(function(x){ return x.id===id || String(x.supabase_id)===String(id); });
+    var p = posts.find(function(x){ return String(x.id)===String(id) || String(x.supabase_id)===String(id); });
     // Atualiza o avatar do usuário logado na caixa de comentários
     const av = sec.querySelector('[id^="cmt-av-"]');
     if(av){
@@ -4456,7 +4463,7 @@ function _updateCmtCount(p){
 }
 
 function renderComments(id){
-  const p=posts.find(x=>x.id===id || String(x.supabase_id)===String(id)); if(!p) return;
+  const p=posts.find(x=>String(x.id)===String(id) || String(x.supabase_id)===String(id)); if(!p) return;
   // Renderiza em TODOS os cmt-list com esse id (feed + perfil) — busca pelos dois IDs possíveis
   var ids = [p.id, p.supabase_id].filter(Boolean);
   ids.forEach(function(pid){
@@ -4466,7 +4473,7 @@ function renderComments(id){
   });
 }
 function renderCommentsEl(id, container){
-  const p=posts.find(x=>x.id===id || String(x.supabase_id)===String(id)); if(!p) return;
+  const p=posts.find(x=>String(x.id)===String(id) || String(x.supabase_id)===String(id)); if(!p) return;
   const el = container ? container.querySelector('[id^="cmt-list-"]') : null;
   if(el) _renderCmtList(el, p);
   else renderComments(id);
@@ -4494,7 +4501,7 @@ function toggleReactPicker(postId, idx, e){
 document.addEventListener('click',function(){ document.querySelectorAll('[id^="react-picker-"]').forEach(function(el){el.style.display='none';}); });
 
 function pickReactCmt(postId, idx, emoji, isPerf){
-  var p=posts.find(x=>x.id===postId); if(!p||!p.commentList) return;
+  var p=posts.find(x=>String(x.id)===String(postId)); if(!p||!p.commentList) return;
   var c=p.commentList[idx]; if(!c) return;
   if(!c.reactions) c.reactions={};
   // toggle: se já tinha essa reação, remove
@@ -4510,7 +4517,7 @@ function pickReactCmt(postId, idx, emoji, isPerf){
     c.reactions[emoji]=(c.reactions[emoji]||0)+1;
   }
   document.querySelectorAll('[id^="react-picker-"]').forEach(function(el){el.style.display='none';});
-  if(isPerf){ var prf=posts.find(x=>x.id===postId); if(prf){ var pid='p-'+postId; renderCommentsPerfil(pid,postId); } }
+  if(isPerf){ var prf=posts.find(x=>String(x.id)===String(postId)); if(prf){ var pid='p-'+postId; renderCommentsPerfil(pid,postId); } }
   else { renderComments(postId); }
 }
 
@@ -4520,7 +4527,7 @@ function likeCmt(postId, idx){
 }
 
 function startEditCmt(postId, idx, isPerf){
-  var p=posts.find(x=>x.id===postId); if(!p||!p.commentList) return;
+  var p=posts.find(x=>String(x.id)===String(postId)); if(!p||!p.commentList) return;
   var c=p.commentList[idx]; if(!c) return;
   var txtEl=document.getElementById('cmt-txt-'+postId+'-'+idx);
   if(!txtEl) return;
@@ -4535,13 +4542,13 @@ function startEditCmt(postId, idx, isPerf){
 }
 
 function cancelEditCmt(postId, idx, isPerf, encodedOrig){
-  var c=(posts.find(x=>x.id===postId)||{commentList:[]}).commentList[idx]; if(!c) return;
+  var c=(posts.find(x=>String(x.id)===String(postId))||{commentList:[]}).commentList[idx]; if(!c) return;
   var txtEl=document.getElementById('cmt-txt-'+postId+'-'+idx);
   if(txtEl) txtEl.textContent=decodeURIComponent(encodedOrig);
 }
 
 function saveCmt(postId, idx, isPerf){
-  var p=posts.find(x=>x.id===postId); if(!p||!p.commentList) return;
+  var p=posts.find(x=>String(x.id)===String(postId)); if(!p||!p.commentList) return;
   var c=p.commentList[idx]; if(!c) return;
   var ta=document.getElementById('cmt-edit-ta-'+postId+'-'+idx);
   if(!ta) return;
@@ -4577,7 +4584,7 @@ function confirmDeleteCmt(postId, idx, isPerf){
 }
 
 function deleteCmt(postId, idx, isPerf){
-  var p=posts.find(x=>x.id===postId); if(!p||!p.commentList) return;
+  var p=posts.find(x=>String(x.id)===String(postId)); if(!p||!p.commentList) return;
   var c=p.commentList[idx]; if(!c) return;
   const isPostOwner=p.own||(p.autor_id&&p.autor_id===U.id);
   if(c.name!==U.name && c.autor_id!==U.id && !isPostOwner){ showToast('Você só pode excluir seus próprios comentários.'); return; }
@@ -4596,7 +4603,7 @@ function deleteCmt(postId, idx, isPerf){
 function addComment(id){
   const inp=document.getElementById('cmt-inp-'+id); if(!inp) return;
   const txt=inp.value.trim(); if(!txt) return;
-  const p=posts.find(x=>x.id===id); if(!p) return;
+  const p=posts.find(x=>String(x.id)===String(id)); if(!p) return;
   if(!p.commentList) p.commentList=[];
   const now=new Date();
   const time=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
@@ -4804,7 +4811,7 @@ function sendShareMsg(name,ini,clr){
 }
 
 async function shareNativo(){
-  const p = posts.find(x=>x.id===share_post_id); if(!p) return;
+  const p = posts.find(x=>String(x.id)===String(share_post_id)); if(!p) return;
   const title = 'EvoCity · Petrópolis';
   const text  = p.author + ': ' + (p.text ? p.text.slice(0,300) : '');
   // Tenta compartilhar com imagem se o post tiver uma
@@ -4829,7 +4836,7 @@ async function shareNativo(){
 }
 
 function shareCopyLink(){
-  const p=posts.find(x=>x.id===share_post_id); if(!p) return;
+  const p=posts.find(x=>String(x.id)===String(share_post_id)); if(!p) return;
   const txt='[EvoCity · Petrópolis] '+p.author+': '+(p.text?p.text.slice(0,100):'post');
   if(navigator.clipboard){
     navigator.clipboard.writeText(txt).then(()=>{ closeShare(); showToast('✓ Link copiado!'); });
@@ -4839,14 +4846,14 @@ function shareCopyLink(){
 }
 
 function shareWhatsApp(){
-  const p=posts.find(x=>x.id===share_post_id); if(!p) return;
+  const p=posts.find(x=>String(x.id)===String(share_post_id)); if(!p) return;
   const txt=encodeURIComponent('Vi isso no EvoCity (Petrópolis):\n\n'+p.author+': '+(p.text?p.text.slice(0,200):''));
   closeShare();
   window.open('https://wa.me/?text='+txt,'_blank');
 }
 
 function shareFacebook(){
-  const p=posts.find(x=>x.id===share_post_id); if(!p) return;
+  const p=posts.find(x=>String(x.id)===String(share_post_id)); if(!p) return;
   const shareUrl=encodeURIComponent(window.location.href);
   const quote=encodeURIComponent('Vi isso no EvoCity (Petrópolis): '+p.author+': '+(p.text?p.text.slice(0,200):''));
   closeShare();
@@ -4854,7 +4861,7 @@ function shareFacebook(){
 }
 
 function shareInstagram(){
-  const p=posts.find(x=>x.id===share_post_id); if(!p) return;
+  const p=posts.find(x=>String(x.id)===String(share_post_id)); if(!p) return;
   const txt='Vi isso no EvoCity (Petrópolis) 📍\n\n'+p.author+': '+(p.text?p.text.slice(0,300):'')+'\n\n#EvoCity #Petrópolis';
   if(navigator.clipboard){
     navigator.clipboard.writeText(txt).then(()=>{
@@ -5348,7 +5355,7 @@ function renderConvs(q=''){
 
 function openConv(id){
   active_cid=id;
-  const c=convs.find(x=>x.id===id);if(!c)return;
+  const c=convs.find(x=>String(x.id)===String(id));if(!c)return;
   c.unread=0;
   updateBadges();renderConvs();
   document.getElementById('chat-empty').style.display='none';
@@ -5856,7 +5863,7 @@ async function saveEditShop(id){
 
 async function deleteShop(id){
   openConfirm('Remover esta loja?', async function(){
-    const item = shop_items.find(x=>x.id===id || x.id==id);
+    const item = shop_items.find(x=>String(x.id)===String(id) || x.id==id);
     if(!item) return;
     shop_items = shop_items.filter(x=>x.id!==id && x.id!=id);
     renderShop();
@@ -7744,7 +7751,7 @@ function renderNotifList(){
 }
 
 function clickNotif(id){
-  const n = notifications.find(x=>x.id===id);
+  const n = notifications.find(x=>String(x.id)===String(id));
   if(n){ n.unread=false; updateNotifBadge(); }
   document.getElementById('notif-panel').style.display='none';
   // navigate to relevant tab
@@ -9763,7 +9770,32 @@ async function _carregarPostsSupabase(){
         posts.forEach(function(p){ if(p.own) p.avPhoto = own; });
         atualizou = true;
       }
-      if(atualizou) try{ renderFeed(); }catch(e){}
+      // ATUALIZAÇÃO CIRÚRGICA: antes isto chamava renderFeed() inteiro, o que apagava
+      // e recriava TODOS os cards do feed (innerHTML='' + reconstrução completa).
+      // Se o usuário estivesse com o menu "⋮", o compartilhar, ou tocando em
+      // curtir/comentar nesse exato momento, o botão sumia no meio do clique —
+      // por isso os botões pareciam "bugar" de forma aleatória. Agora só
+      // atualizamos foto e estado de curtida nos cards que já estão na tela,
+      // sem destruir o resto do DOM (menus abertos continuam abertos).
+      if(atualizou) try{
+        var _elFeed=document.getElementById('feed-list');
+        if(_elFeed){
+          _aplicarFotosNoFeed(posts,_elFeed);
+          posts.forEach(function(p){
+            if(!p.supabase_id) return;
+            _elFeed.querySelectorAll('[data-id="'+p.id+'"]').forEach(function(card){
+              var btn=card.querySelector('.post-act');
+              if(btn){
+                btn.classList.toggle('liked',!!p.liked);
+                var svg=btn.querySelector('svg');
+                if(svg) svg.setAttribute('fill',p.liked?'currentColor':'none');
+              }
+              var span=card.querySelector('.post-stats span');
+              if(span) span.textContent=p.likes>0?p.likes+' 👍':'';
+            });
+          });
+        }
+      }catch(e){}
 
       // ── Fase 3: comentários em background ──
       var postIds = _novos.map(function(p){ return p.supabase_id; }).filter(Boolean);
@@ -9894,15 +9926,41 @@ function _escutarSupabase(){
         if(!existe){
           var app = document.getElementById('pg-app');
           if(app && app.style.display!=='none'){
-            posts.unshift({id:row.id,supabase_id:row.id,
+            var novoPost = {id:row.id,supabase_id:row.id,
               author:row.autor||'📣 Admin EvoCity',ini:row.ini||'EC',clr:row.clr||'#7c3aed',
               cat:row.categoria||'n',time:'agora mesmo',
               text:row.texto||'',likes:0,liked:false,comments:0,commentList:[],
               own:!!(row.autor_id && U.id && String(row.autor_id)===String(U.id)),img:'',
               comunidade_id: row.comunidade_id||null,
               comunidade_nome: row.comunidade_nome||null,
-              sharedFrom:(function(){ try{ return row.shared_from ? JSON.parse(row.shared_from) : null; }catch(e){ return null; } })()});
-            try{renderFeed();}catch(e){}
+              sharedFrom:(function(){ try{ return row.shared_from ? JSON.parse(row.shared_from) : null; }catch(e){ return null; } })()};
+            posts.unshift(novoPost);
+            // INSERÇÃO CIRÚRGICA: antes isto sempre chamava renderFeed() completo
+            // ao chegar QUALQUER post novo de QUALQUER pessoa em tempo real — o que
+            // fechava na hora qualquer menu "⋮", compartilhar ou caixa de comentário
+            // que você estivesse usando naquele instante. Agora só insere o card
+            // novo no topo, sem mexer no resto do feed já na tela.
+            try{
+              var _elFeed = document.getElementById('feed-list');
+              var _combina = (feed_filter==='all' || feed_filter===novoPost.cat);
+              if(_elFeed && _combina && _feedShown>0){
+                var _wrap=document.createElement('div');
+                _wrap.innerHTML=card(novoPost,0);
+                var _noNovo=_wrap.firstElementChild;
+                var _primeiroCard=_elFeed.querySelector('.post-card');
+                if(_primeiroCard){ _elFeed.insertBefore(_noNovo,_primeiroCard); }
+                else{
+                  var _sentinela=document.getElementById('feed-sentinel');
+                  if(_sentinela) _elFeed.insertBefore(_noNovo,_sentinela); else _elFeed.appendChild(_noNovo);
+                }
+                _aplicarFotosNoFeed([novoPost],_elFeed);
+                _feedShown++;
+                var _em=document.getElementById('feed-empty');
+                if(_em) _em.style.display='none';
+              } else {
+                renderFeed();
+              }
+            }catch(e){ try{renderFeed();}catch(e2){} }
             if(!row.autor_id || !U.id || String(row.autor_id)!==String(U.id)){
               showToast('📣 Novo post do Admin!');
             }
@@ -10276,7 +10334,7 @@ async function deleteCls(id){
   console.log('[DELETE] deleteCls chamado, id=', id, typeof id);
   openConfirm('Remover este anúncio?', async function(){
     console.log('[DELETE] Confirmado. Buscando item com id=', id);
-    const item = cls_items.find(x=>x.id===id || x.id==id);
+    const item = cls_items.find(x=>String(x.id)===String(id) || x.id==id);
     console.log('[DELETE] item encontrado:', item);
     if(!item){ console.error('[DELETE] ITEM NÃO ENCONTRADO na lista!'); return; }
     cls_items = cls_items.filter(x=>x.id!==id && x.id!=id);
@@ -10378,7 +10436,7 @@ async function saveEditSvc(id){
 
 async function deleteSvc(id){
   openConfirm('Remover este serviço?', async function(){
-    const item=svc_items.find(x=>x.id===id||x.id==id);
+    const item=svc_items.find(x=>String(x.id)===String(id)||x.id==id);
     if(!item){ console.error('[DELETE] deleteSvc: item não encontrado, id=',id); return; }
     svc_items=svc_items.filter(x=>x.id!==id&&x.id!=id);
     _removidosSvc.add(String(id));
@@ -10403,7 +10461,7 @@ function openNewPromo(){
 }
 
 function openEditPromo(id){
-  const p=promo_items.find(x=>x.id===id); if(!p) return;
+  const p=promo_items.find(x=>String(x.id)===String(id)); if(!p) return;
   document.getElementById('promo-tipo').value=p.tipo||'produto';
   document.getElementById('promo-titulo').value=p.titulo||'';
   document.getElementById('promo-desc').value=p.desc||'';
@@ -10432,7 +10490,7 @@ function openEditPromo(id){
 async function saveEditPromo(id){
   const titulo=document.getElementById('promo-titulo').value.trim();
   if(!titulo){alert('Informe o título.');return;}
-  const idx=promo_items.findIndex(x=>x.id===id); if(idx<0) return;
+  const idx=promo_items.findIndex(x=>String(x.id)===String(id)); if(idx<0) return;
   const valRaw=document.getElementById('promo-validade').value;
   let valLabel=promo_items[idx].validade||'Tempo limitado';
   if(valRaw){const d=new Date(valRaw+'T12:00:00');valLabel='Até '+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});}
@@ -10470,7 +10528,7 @@ async function saveEditPromo(id){
 
 async function deletePromo(id){
   openConfirm('Remover esta promoção?', async function(){
-    const item=promo_items.find(x=>x.id===id||x.id==id);
+    const item=promo_items.find(x=>String(x.id)===String(id)||x.id==id);
     if(!item){ console.error('[DELETE] deletePromo: item não encontrado, id=',id); return; }
     promo_items=promo_items.filter(x=>x.id!==id&&x.id!=id);
     _removidosPromo.add(String(id));
