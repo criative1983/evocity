@@ -8480,7 +8480,7 @@ function togglePostMenu(e, postId, nome, ini, clr, isOwn, autorId){
         ${statusAmiz==='aceita' ? '👥 Desfazer amizade' : statusAmiz==='pendente' ? '⏳ Solicitação enviada' : '👥 Adicionar amigo'}
       </button>
       <div class="post-menu-sep"></div>
-      <button class="post-menu-item red" onclick="closePostMenu();denunciarPost(${postId},'${nome}')">🚨 Denunciar post</button>
+      <button class="post-menu-item red" onclick="closePostMenu();denunciarPost('${postId}','${nome}')">🚨 Denunciar post</button>
       <button class="post-menu-item red" onclick="closePostMenu();bloquearUsuario('${nome}')">🚫 Bloquear ${nome}</button>
     `;
   }
