@@ -498,14 +498,15 @@ async function pgPosts(){
         </div>
         <div class="sec-b">
           ${(posts||[]).map(p=>`
-            <div class="post-card ${p.removido?'post-removido':''}">
+            <div class="post-card ${p.removido?'post-removido':''}" ${p.fixado?'style="border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.06);"':''}>
               <div class="av">${(p.autor||'A').slice(0,2).toUpperCase()}</div>
               <div class="pc-body">
-                <div class="pc-author">${p.autor||'Admin'} ${p.removido?'<span class="badge br">removido</span>':''}</div>
+                <div class="pc-author">${p.autor||'Admin'} ${p.fixado?'<span class="badge bo">📌 Fixado</span>':''} ${p.removido?'<span class="badge br">removido</span>':''}</div>
                 <div class="pc-text">${p.texto||''}</div>
                 <div class="pc-meta">
                   <span class="badge bb">${p.categoria||'n'}</span>
                   <span class="pc-time">${_tempo(p.criado_em)}</span>
+                  ${!p.removido?`<button class="btn ${p.fixado?'btn-o':'btn-ghost'} btn-sm" onclick="fixarPost(${p.id},${!!p.fixado})">${p.fixado?'📌 Desafixar':'📌 Fixar'}</button>`:''}
                   ${!p.removido?`<button class="btn btn-r btn-sm" onclick="removerPost(${p.id})">🗑️ Remover</button>`:''}
                 </div>
               </div>
@@ -548,6 +549,18 @@ async function removerPost(id){
       showToast('Post removido.','s');
       pgPosts();
     }, 'Remover','btn-r');
+}
+
+async function fixarPost(id, estaFixadoAtualmente){
+  if(!db){ showToast('Supabase não conectado.','e'); return; }
+  try{
+    const {error} = await db.from('postagens').update({fixado: !estaFixadoAtualmente}).eq('id', id);
+    if(error) throw error;
+    showToast(estaFixadoAtualmente ? '📌 Post desafixado.' : '📌 Post fixado no topo do feed!', 's');
+    pgPosts();
+  }catch(e){
+    showToast('Erro: '+e.message,'e');
+  }
 }
 
 // ══════════════════════════════════════
@@ -766,7 +779,7 @@ async function pgMembros(){
         <div class="card red"><div class="card-ico">🚫</div><div class="card-val">${(membros||[]).filter(m=>m.banido).length}</div><div class="card-lbl">Banidos</div></div>
         <div class="card purple">
           <div class="card-ico">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1d9bf0"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.26 3.91.8c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.36 14.67 22.25 13.43 22.25 12zm-6.07-1.92L10.5 15.76l-2.68-2.68a.75.75 0 00-1.06 1.06l3.21 3.22a.75.75 0 001.06 0l6.22-6.22a.75.75 0 10-1.06-1.06z"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#f2b705"/><circle cx="12" cy="12" r="11" fill="none" stroke="#a86a00" stroke-width="1.3"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#6b4400" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div class="card-val">${(membros||[]).filter(m=>m.verificado).length}</div>
           <div class="card-lbl">Verificados</div>
@@ -797,12 +810,12 @@ async function pgMembros(){
 
 function _renderMembroRowsV2(lista){
   if(!lista.length) return `<tr><td colspan="6"><div class="empty"><div class="empty-ico">👤</div>Nenhum membro.</div></td></tr>`;
-  const selinho = `<svg width="14" height="14" viewBox="0 0 24 24" fill="#1d9bf0" style="vertical-align:middle;margin-left:3px"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.26 3.91.8c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.36 14.67 22.25 13.43 22.25 12zm-6.07-1.92L10.5 15.76l-2.68-2.68a.75.75 0 00-1.06 1.06l3.21 3.22a.75.75 0 001.06 0l6.22-6.22a.75.75 0 10-1.06-1.06z"/></svg>`;
+  const selinho = `<svg width="14" height="14" viewBox="0 0 24 24" style="vertical-align:middle;margin-left:3px"><circle cx="12" cy="12" r="11" fill="#f2b705"/><circle cx="12" cy="12" r="11" fill="none" stroke="#a86a00" stroke-width="1.3"/><path d="M7.5 12.5l3 3 6-6.5" stroke="#6b4400" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   return lista.map(m=>`
     <tr id="mrow-${m.user_id}">
       <td style="white-space:nowrap">
         <div style="display:flex;align-items:center;gap:8px">
-          ${m.photo?`<img src="${m.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid ${m.verificado?'#1d9bf0':'#e4e6ea'}" alt="${m.ini}"/>`:`<span class="av" style="background:${m.clr||'var(--grad)'};border:2px solid ${m.verificado?'#1d9bf0':'transparent'}">${m.ini||'?'}</span>`}
+          ${m.photo?`<img src="${m.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid ${m.verificado?'#f2b705':'#e4e6ea'}" alt="${m.ini}"/>`:`<span class="av" style="background:${m.clr||'var(--grad)'};border:2px solid ${m.verificado?'#f2b705':'transparent'}">${m.ini||'?'}</span>`}
           <div>
             <div style="font-weight:800;font-size:13px;display:flex;align-items:center">${m.nome||'Usuário'}${m.verificado?selinho:''}</div>
             <div style="font-size:11px;color:var(--mt)">${m.email||''}</div>
@@ -813,7 +826,7 @@ function _renderMembroRowsV2(lista){
       <td><span class="badge ${m.banido?'br':'bg'}">${m.banido?'🚫 banido':'✅ ativo'}</span></td>
       <td>
         <button onclick="toggleVerificar('${m.user_id}',${m.verificado})"
-          style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;border:2px solid ${m.verificado?'#1d9bf0':'var(--border)'};background:${m.verificado?'rgba(29,155,240,.1)':'var(--bg3)'};cursor:pointer;font-size:12px;font-weight:800;color:${m.verificado?'#1d9bf0':'var(--mt)'};font-family:'Nunito',sans-serif;transition:.15s">
+          style="display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;border:2px solid ${m.verificado?'#c98a00':'var(--border)'};background:${m.verificado?'rgba(242,183,5,.15)':'var(--bg3)'};cursor:pointer;font-size:12px;font-weight:800;color:${m.verificado?'#8a5a00':'var(--mt)'};font-family:'Nunito',sans-serif;transition:.15s">
           ${m.verificado?selinho+'<span>Verificado</span>':'<span>Verificar</span>'}
         </button>
       </td>

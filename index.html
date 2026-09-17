@@ -108,7 +108,7 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 .subconta-item{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;transition:.15s;border:none;background:none;width:100%;text-align:left;font-family:'Nunito',sans-serif;}
 .subconta-item:hover{background:#f2f2f2;}
 .subconta-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;flex-shrink:0;position:relative;}
-.subconta-av .verif-dot{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:#1d9bf0;border:2px solid #fff;display:flex;align-items:center;justify-content:center;}
+.subconta-av .verif-dot{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:#f2b705;border:2px solid #fff;display:flex;align-items:center;justify-content:center;}
 .subconta-ativa{background:#fdf4ff!important;}
 .subconta-ativa .subconta-nome{color:#9333EA!important;}
 .subconta-badge-oficial{display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#9333EA,#C026D3);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:4px;}
@@ -402,6 +402,8 @@ body{background:var(--bg);color:#1c1e21;font-size:15px;min-height:100%;}
 
 /* ─── POST CARD (Facebook scale) ─── */
 .post-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(100,0,180,.08),0 1px 2px rgba(0,0,0,.06);margin-bottom:14px;overflow:hidden;border:1px solid rgba(147,51,234,.07);animation:fadeUp .35s ease;}
+.post-card.post-fixado{border:1.5px solid rgba(245,158,11,.55);box-shadow:0 2px 12px rgba(245,158,11,.18);}
+.post-fixado-tag{display:flex;align-items:center;gap:6px;background:linear-gradient(90deg,rgba(245,158,11,.14),rgba(245,158,11,.04));color:#b45309;font-size:12px;font-weight:800;padding:7px 16px;border-bottom:1px solid rgba(245,158,11,.22);letter-spacing:.2px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes feedSpin{to{transform:rotate(360deg)}}
 .post-header{display:flex;align-items:flex-start;justify-content:space-between;padding:12px 16px 0;}
@@ -1741,7 +1743,7 @@ img.av-foto[data-ini]{display:block;}
 
 <!-- ════ MODAL: PERFIL DE OUTRO USUÁRIO ════ -->
 <div id="overlay-verperfil" class="overlay" onclick="if(event.target===this)fecharVerPerfil()">
-  <div class="modal" style="max-width:480px;padding:0;overflow:hidden;">
+  <div class="modal" style="max-width:480px;padding:0;overflow-y:auto;overflow-x:hidden;">
     <!-- Header com foto em destaque -->
     <div style="position:relative;background:linear-gradient(160deg,#2d1a4a,#9333EA 50%,#C026D3);min-height:140px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:56px;">
       <button class="x-btn" onclick="fecharVerPerfil()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.35);color:#fff;border:none;z-index:2;">×</button>
@@ -1777,7 +1779,7 @@ img.av-foto[data-ini]{display:block;}
       </div>
       <!-- Posts recentes -->
       <p style="font-size:13px;font-weight:700;color:#65676b;margin:0 0 8px;">Posts recentes</p>
-      <div id="vp-posts" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;padding-bottom:16px;">
+      <div id="vp-posts" style="display:flex;flex-direction:column;gap:8px;padding-bottom:16px;text-align:left;">
         <p style="font-size:13px;color:#65676b;">Carregando...</p>
       </div>
     </div>
@@ -2287,9 +2289,36 @@ img.av-foto[data-ini]{display:block;}
               <div id="prof-big-av" class="prof-big-av g" style="margin-top:0;width:168px;height:168px;cursor:pointer;" onclick="_verFotoPerfilAmpliada()" title="Ver foto de perfil">EU
                 <input type="file" id="av-file" accept="image/*" style="display:none;" onchange="setAvatarDireto(this)"/>
               </div>
-              <!-- Badge verificado — fora do círculo, no canto inferior direito do wrap -->
-              <div id="prof-verif-badge" style="display:none;position:absolute;bottom:4px;right:4px;width:28px;height:28px;border-radius:50%;background:#fff;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);border:2px solid #fff;z-index:15;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#1d9bf0"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.26 3.91.8c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.36 14.67 22.25 13.43 22.25 12zm-6.07-1.92L10.5 15.76l-2.68-2.68a.75.75 0 00-1.06 1.06l3.21 3.22a.75.75 0 001.06 0l6.22-6.22a.75.75 0 10-1.06-1.06z"/></svg>
+              <!-- Badge verificado (moeda dourada Premium) — fora do círculo, no canto inferior direito do wrap -->
+              <div id="prof-verif-badge" title="Membro Premium" style="display:none;position:absolute;bottom:2px;right:2px;width:34px;height:34px;border-radius:50%;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:15;">
+                <svg width="34" height="34" viewBox="0 0 34 34">
+                  <defs>
+                    <radialGradient id="goldCoinBody" cx="35%" cy="30%" r="75%">
+                      <stop offset="0%" stop-color="#fff6d0"/>
+                      <stop offset="35%" stop-color="#ffe066"/>
+                      <stop offset="65%" stop-color="#f2b705"/>
+                      <stop offset="100%" stop-color="#a86a00"/>
+                    </radialGradient>
+                    <linearGradient id="goldCoinRim" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#fff2b0"/>
+                      <stop offset="50%" stop-color="#c98a00"/>
+                      <stop offset="100%" stop-color="#7a5200"/>
+                    </linearGradient>
+                    <path id="prof-verif-badge-arc" d="M 5,17 A 12,12 0 0 1 29,17"/>
+                  </defs>
+                  <!-- borda/aro da moeda -->
+                  <circle cx="17" cy="17" r="16" fill="url(#goldCoinRim)"/>
+                  <!-- corpo interno -->
+                  <circle cx="17" cy="17" r="13" fill="url(#goldCoinBody)" stroke="#8a5a00" stroke-width="0.6"/>
+                  <!-- serrilha da borda -->
+                  <circle cx="17" cy="17" r="15" fill="none" stroke="#fff6d0" stroke-width="0.6" stroke-dasharray="1.4 1.6" opacity=".55"/>
+                  <!-- texto PREMIUM em arco -->
+                  <text font-size="5.4" font-weight="900" letter-spacing="0.3" fill="#6b4400" font-family="'Nunito',Arial,sans-serif">
+                    <textPath href="#prof-verif-badge-arc" startOffset="50%" text-anchor="middle">PREMIUM</textPath>
+                  </text>
+                  <!-- estrela central -->
+                  <path d="M17 18.6l-2.6 1.55.7-2.95-2.3-2 3.02-.26L17 12.2l1.18 2.74 3.02.26-2.3 2 .7 2.95z" fill="#6b4400"/>
+                </svg>
               </div>
               <!-- Menu manter compatibilidade -->
               <div id="menu-avatar" style="display:none;"></div>
@@ -3798,7 +3827,15 @@ function _feedListaFiltrada(){
       return !!_comunidades_membros[p.comunidade_id];
     }
     return true;
-  }).filter(p=>!_bloqueados.includes(p.author));
+  }).filter(p=>!_bloqueados.includes(p.author))
+  // Posts fixados pelo admin sobem para o topo, mantendo a ordem original entre si
+  .map((p,idx)=>({p,idx}))
+  .sort((a,b)=>{
+    const fa=a.p.fixado?1:0, fb=b.p.fixado?1:0;
+    if(fa!==fb) return fb-fa;
+    return a.idx-b.idx;
+  })
+  .map(x=>x.p);
 }
 /* Redesenha o feed. IMPORTANTE: não reseta o scroll infinito — mantém a quantidade
    de posts que já estava visível (curtidas, fotos, comentários e outras atualizações
@@ -4177,6 +4214,35 @@ function _updateProfMetaLine(){
   el.textContent = partes.join(' • ');
 }
 
+/* Selo dourado "PREMIUM" (mesmo desenho da moeda usada no perfil) — reutilizável no feed.
+   uid precisa ser único por elemento na página, pois o SVG usa <defs> com ids. */
+function seloPremiumSVG(uid, size){
+  size = size || 16;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 34 34">
+    <defs>
+      <radialGradient id="gc-body-${uid}" cx="35%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="#fff6d0"/>
+        <stop offset="35%" stop-color="#ffe066"/>
+        <stop offset="65%" stop-color="#f2b705"/>
+        <stop offset="100%" stop-color="#a86a00"/>
+      </radialGradient>
+      <linearGradient id="gc-rim-${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fff2b0"/>
+        <stop offset="50%" stop-color="#c98a00"/>
+        <stop offset="100%" stop-color="#7a5200"/>
+      </linearGradient>
+      <path id="gc-arc-${uid}" d="M 5,17 A 12,12 0 0 1 29,17"/>
+    </defs>
+    <circle cx="17" cy="17" r="16" fill="url(#gc-rim-${uid})"/>
+    <circle cx="17" cy="17" r="13" fill="url(#gc-body-${uid})" stroke="#8a5a00" stroke-width="0.6"/>
+    <circle cx="17" cy="17" r="15" fill="none" stroke="#fff6d0" stroke-width="0.6" stroke-dasharray="1.4 1.6" opacity=".55"/>
+    <text font-size="5.4" font-weight="900" letter-spacing="0.3" fill="#6b4400" font-family="'Nunito',Arial,sans-serif">
+      <textPath href="#gc-arc-${uid}" startOffset="50%" text-anchor="middle">PREMIUM</textPath>
+    </text>
+    <path d="M17 18.6l-2.6 1.55.7-2.95-2.3-2 3.02-.26L17 12.2l1.18 2.74 3.02.26-2.3 2 .7 2.95z" fill="#6b4400"/>
+  </svg>`;
+}
+
 function card(p,i){
   const t=TAGS[p.cat]||TAGS['n'];
 
@@ -4185,7 +4251,8 @@ function card(p,i){
   const displayIni  = p.own ? U.ini  : (p.ini||'?');
   const displayClr  = p.own ? (AVC[p.id%AVC.length]||'#9333EA') : (p.clr||'#9333EA');
   const eVerificado = p.verificado || (_social&&_social.verificados&&(_social.verificados[displayName]||_social.verificados[p.author])) || (p.own && U.verificado);
-  const selinhoSVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="#1d9bf0"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.26 3.91.8c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.36 14.67 22.25 13.43 22.25 12zm-6.07-1.92L10.5 15.76l-2.68-2.68a.75.75 0 00-1.06 1.06l3.21 3.22a.75.75 0 001.06 0l6.22-6.22a.75.75 0 10-1.06-1.06z"/></svg>`;
+  const seloUid = 'p'+p.id+'_'+i;
+  const selinhoSVG = seloPremiumSVG('av'+seloUid, 20);
 
   // Avatar — usa data-photo para evitar base64 gigante no innerHTML
   const photoSrc = p.own ? (U.photo || p.avPhoto || '') : (p.avPhoto || '');
@@ -4195,16 +4262,17 @@ function card(p,i){
       style="background:${displayClr};width:40px;height:40px;overflow:hidden;padding:0;cursor:pointer;"
       onclick="verPerfil('${esc(displayName)}','${displayIni}','${displayClr}','${p.own ? U.id : (p.autor_id||'')}')"
     >${hasPhoto ? '' : displayIni}</div>
-    ${eVerificado?`<div style="position:absolute;bottom:-2px;right:-2px;width:16px;height:16px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;">${selinhoSVG}</div>`:''}
+    ${eVerificado?`<div style="position:absolute;bottom:-4px;right:-4px;width:20px;height:20px;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3);z-index:2;">${selinhoSVG}</div>`:''}
   </div>`;
 
-  return`<div class="post-card" data-id="${p.id}" >
+  return`<div class="post-card${p.fixado?' post-fixado':''}" data-id="${p.id}" >
+  ${p.fixado?`<div class="post-fixado-tag">📌 Fixado pelo Admin</div>`:''}
   <div class="post-header">
     <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
       ${avHTML}
       <div style="min-width:0;flex:1;">
         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
-          <span class="post-name" style="cursor:pointer;" onclick="verPerfil('${esc(displayName)}','${displayIni}','${displayClr}','${p.own ? U.id : (p.autor_id||'')}')">${esc(displayName)}</span>${p.verificado||(_social&&_social.verificados&&_social.verificados[displayName])?'<svg width="16" height="16" viewBox="0 0 24 24" fill="#1d9bf0" style="margin-left:3px;vertical-align:middle;flex-shrink:0"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.26 3.91.8c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.36 14.67 22.25 13.43 22.25 12zm-6.07-1.92L10.5 15.76l-2.68-2.68a.75.75 0 00-1.06 1.06l3.21 3.22a.75.75 0 001.06 0l6.22-6.22a.75.75 0 10-1.06-1.06z"/></svg>':''}
+          <span class="post-name" style="cursor:pointer;" onclick="verPerfil('${esc(displayName)}','${displayIni}','${displayClr}','${p.own ? U.id : (p.autor_id||'')}')">${esc(displayName)}</span>${eVerificado?`<span style="margin-left:3px;vertical-align:middle;display:inline-flex;flex-shrink:0;">${seloPremiumSVG('nm'+seloUid,17)}</span>`:''}
           <span class="cat-pill ${t.c}">${t.l}</span>
         </div>
         ${p.comunidade_nome?`<div style="display:flex;align-items:center;gap:3px;font-size:12px;color:#65676b;font-weight:600;margin-top:2px;"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg><span style="color:#9333EA;font-weight:700;">🏘️ ${esc(p.comunidade_nome)}</span></div>`:''}
@@ -8542,6 +8610,40 @@ function openConfirm(msg, cb){
 // Estado do perfil sendo visualizado
 var _vp = { userId:null, nome:'', ini:'', clr:'', seguindo:false };
 
+// Renderiza uma linha da tabela `postagens` como um card completo (igual ao feed),
+// usado na telinha de perfil de outra pessoa.
+function _vpPostCardHTML(row){
+  var t = TAGS[row.categoria]||TAGS['n'];
+  var ini = row.ini || (row.autor||'?').slice(0,2).toUpperCase();
+  var clr = row.clr || '#9333EA';
+  var avPhotoRaw = row.autor_photo_url||row.autor_photo||'';
+  var avPhoto = avPhotoRaw ? _resolvePhotoUrl(avPhotoRaw) : '';
+  var avHTML = avPhoto
+    ? '<div class="post-av" style="background:'+clr+';width:40px;height:40px;overflow:hidden;padding:0;"><img src="'+avPhoto+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.remove();" /></div>'
+    : '<div class="post-av" style="background:'+clr+';width:40px;height:40px;">'+ini+'</div>';
+  var imgHTML = row.img ? '<div class="post-img-wrap"><img src="'+_resolvePhotoUrl(row.img)+'" alt="foto" onerror="this.closest(\'.post-img-wrap\').style.display=\'none\'"/></div>' : '';
+  return '<div class="post-card">'
+    +'<div class="post-header">'
+      +'<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">'
+        +avHTML
+        +'<div style="min-width:0;flex:1;">'
+          +'<div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">'
+            +'<span class="post-name">'+esc(row.autor||_vp.nome)+'</span>'
+            +'<span class="cat-pill '+t.c+'">'+t.l+'</span>'
+          +'</div>'
+          +'<div class="post-meta-info">'+_tempoSB(row.criado_em)+'</div>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+    +(row.texto?'<p class="post-text">'+esc(row.texto)+'</p>':'')
+    +imgHTML
+    +'<div class="post-stats">'
+      +'<span>'+((row.likes||0)>0?row.likes+' 👍':'')+'</span>'
+      +'<span>'+((row.comentarios||0)>0?row.comentarios+' comentários':'')+'</span>'
+    +'</div>'
+  +'</div>';
+}
+
 async function verPerfil(nome, ini, clr, userId){
   _vp = { userId:userId||null, nome:nome, ini:ini, clr:clr||'#9333EA', seguindo:_social.seguindo[userId||nome]||false };
   document.getElementById('overlay-verperfil').classList.add('open');
@@ -8557,9 +8659,22 @@ async function verPerfil(nome, ini, clr, userId){
   _atualizarBtnSeguir();
   if(!window._sb) return;
   try{
-    let query = window._sb.from('membros').select('*');
-    if(userId) query = query.eq('user_id', userId); else query = query.eq('nome', nome);
-    const {data:m} = await query.maybeSingle();
+    let m = null;
+    if(userId){
+      const r1 = await window._sb.from('membros').select('*').eq('user_id', userId).maybeSingle();
+      if(r1.error) console.warn('[EvoCity] verPerfil busca por user_id falhou: '+r1.error.message);
+      m = r1.data;
+      if(!m){
+        // Plano B: se não achou pelo user_id (ou a consulta falhou), tenta pelo nome
+        const r2 = await window._sb.from('membros').select('*').eq('nome', nome).maybeSingle();
+        if(r2.error) console.warn('[EvoCity] verPerfil busca por nome falhou: '+r2.error.message);
+        m = r2.data;
+      }
+    } else {
+      const r3 = await window._sb.from('membros').select('*').eq('nome', nome).maybeSingle();
+      if(r3.error) console.warn('[EvoCity] verPerfil busca por nome falhou: '+r3.error.message);
+      m = r3.data;
+    }
     if(m){
       _vp.userId = m.user_id || _vp.userId;
       document.getElementById('vp-bairro').textContent = '📍 ' + (m.bairro||'Petrópolis, RJ');
@@ -8586,10 +8701,12 @@ async function verPerfil(nome, ini, clr, userId){
       document.getElementById('vp-n-seguidores').textContent = nSeg||0;
       document.getElementById('vp-n-seguindo').textContent = nSeg2||0;
       _vp.seguindo = _social.seguindo[_vp.userId]||false; _atualizarBtnSeguir();
-      const {data:postsData} = await window._sb.from('posts').select('texto,criado_em').eq('autor_id',_vp.userId).order('criado_em',{ascending:false}).limit(5);
+      const {count:nPosts} = await window._sb.from('postagens').select('*',{count:'exact',head:true}).eq('autor_id',_vp.userId).eq('removido',false);
+      document.getElementById('vp-n-posts').textContent = nPosts||0;
+      const {data:postsData, error:postsErr} = await window._sb.from('postagens').select('*').eq('autor_id',_vp.userId).eq('removido',false).order('criado_em',{ascending:false}).limit(20);
+      if(postsErr) console.warn('[EvoCity] verPerfil busca de posts falhou: '+postsErr.message);
       if(postsData && postsData.length){
-        document.getElementById('vp-n-posts').textContent = postsData.length;
-        document.getElementById('vp-posts').innerHTML = postsData.map(function(p){ return '<div style="background:#f0f2f5;border-radius:8px;padding:10px 12px;font-size:13px;color:#050505;line-height:1.5;">'+(p.texto||'').slice(0,120)+((p.texto||'').length>120?'...':'')+'<span style="font-size:11px;color:#65676b;display:block;margin-top:4px;">'+new Date(p.criado_em).toLocaleDateString('pt-BR')+'</span></div>'; }).join('');
+        document.getElementById('vp-posts').innerHTML = postsData.map(_vpPostCardHTML).join('');
       } else { document.getElementById('vp-posts').innerHTML = '<p style="font-size:13px;color:#65676b;text-align:center;padding:12px;">Nenhum post ainda.</p>'; }
     }
   }catch(e){ console.warn('[EvoCity] verPerfil erro: ' + String(e&&e.message?e.message:e)); }
@@ -8698,7 +8815,7 @@ async function buscarPessoas(q){
   res.innerHTML = lista.map(m=>{
     var mPhoto = (m.avatar_url||m.photo) ? _resolvePhotoUrl(m.avatar_url||m.photo) : '';
     return `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;transition:.1s;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background=''" onclick="selecionarPessoa('${m.nome||m.name}','${m.ini}','${m.clr||'#9333EA'}')">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;transition:.1s;" onmouseover="this.style.background='#f2f2f2'" onmouseout="this.style.background=''" onclick="_abrirPerfilDaBusca('${m.nome||m.name}','${m.ini}','${m.clr||'#9333EA'}','${m.user_id||''}')">
       ${mPhoto
         ?`<img src="${mPhoto}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;" alt="${m.ini}" onerror="this.outerHTML='<div style=width:38px;height:38px;border-radius:50%;background:${m.clr||'#9333EA'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;>${m.ini}</div>'"/>`
         :`<div style="width:38px;height:38px;border-radius:50%;background:${m.clr||'#9333EA'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;">${m.ini}</div>`
@@ -8718,6 +8835,11 @@ function selecionarPessoa(nome, ini, clr){
   document.getElementById('busca-resultado').style.display='none';
   document.getElementById('busca-inp').value='';
   startChat(nome, ini, clr);
+}
+function _abrirPerfilDaBusca(nome, ini, clr, userId){
+  document.getElementById('busca-resultado').style.display='none';
+  document.getElementById('busca-inp').value='';
+  verPerfil(nome, ini, clr, userId||null);
 }
 
 // Fechar busca ao clicar fora
@@ -8751,6 +8873,7 @@ async function renderSuggestions(){
     var mPhoto = (m.avatar_url||m.photo) ? _resolvePhotoUrl(m.avatar_url||m.photo) : '';
     return `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;" onclick="verPerfil('${m.nome||m.name}','${m.ini}','${m.clr||'#9333EA'}','${m.user_id||''}')">
       ${mPhoto
         ? `<img src="${mPhoto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;" alt="${m.ini}" onerror="this.outerHTML='<div class=tb-av style=width:40px;height:40px;font-size:14px;background:${m.clr||'#9333EA'};flex-shrink:0;>${m.ini}</div>'"/>`
         : `<div class="tb-av" style="width:40px;height:40px;font-size:14px;background:${m.clr||'#9333EA'};flex-shrink:0;">${m.ini}</div>`
@@ -8759,7 +8882,8 @@ async function renderSuggestions(){
         <p style="font-size:15px;font-weight:700;color:#050505;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.nome||m.name}</p>
         <p style="font-size:12px;color:#65676b;margin:0;">📍 ${m.bairro||'Petrópolis'}</p>
       </div>
-      <button onclick="toggleSeguir('${m.nome||m.name}','${m.ini}','${m.clr||'#9333EA'}')"
+      </div>
+      <button onclick="event.stopPropagation();toggleSeguir('${m.nome||m.name}','${m.ini}','${m.clr||'#9333EA'}')"
         style="padding:5px 12px;border:1.5px solid #9333EA;border-radius:6px;background:#fff;font-size:12px;font-weight:800;color:#9333EA;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;transition:.15s;">
         ${_social.seguindo[m.nome||m.name]?'✓ Seguindo':'+ Seguir'}
       </button>
@@ -9464,6 +9588,7 @@ async function _carregarPostsSupabase(){
           avPhoto: isOwn ? (U.photo||U.photo_url||'') : (row.autor_photo_url||row.autor_photo||''),
           comunidade_id: row.comunidade_id||null,
           comunidade_nome: row.comunidade_nome||null,
+          fixado: !!row.fixado,
           sharedFrom: sharedFromBanco || (localMatch ? localMatch.sharedFrom : null)
         });
         // Remove o rascunho local para evitar duplicata
@@ -9471,6 +9596,7 @@ async function _carregarPostsSupabase(){
       } else {
         // Post já existe — garante que sharedFrom está preenchido caso estivesse faltando
         var existing = posts.find(function(p){ return String(p.supabase_id)===String(row.id); });
+        if(existing) existing.fixado = !!row.fixado;
         if(existing && !existing.sharedFrom && row.shared_from){
           try{ existing.sharedFrom = JSON.parse(row.shared_from); }catch(e){}
         }
@@ -9604,6 +9730,7 @@ async function _carregarMaisPostsSupabase(){
         avPhoto: isOwn ? (U.photo||U.photo_url||'') : (fotoMembro ? _resolvePhotoUrl(fotoMembro) : (row.autor_photo_url||row.autor_photo||'')),
         comunidade_id: row.comunidade_id||null,
         comunidade_nome: row.comunidade_nome||null,
+        fixado: !!row.fixado,
         sharedFrom: sharedFromBanco
       });
       adicionados++;
@@ -9664,6 +9791,18 @@ function _escutarSupabase(){
           // Remove do array local e re-renderiza o feed em tempo real
           posts = posts.filter(function(p){ return String(p.supabase_id)!==String(row.id); });
           try{renderFeed(); renderProfileFeed(); updateCounts();}catch(e){}
+          return;
+        }
+        // Fixar / desafixar pelo painel — reflete no feed sem precisar recarregar
+        var alvo = posts.find(function(p){ return String(p.supabase_id)===String(row.id); });
+        if(alvo){
+          var antes = !!alvo.fixado, agora = !!row.fixado;
+          if(antes !== agora){
+            alvo.fixado = agora;
+            if(agora) _feedShown = 0; // garante que o post fixado apareça no topo visível
+            try{renderFeed();}catch(e){}
+            if(agora) try{ showToast('📌 Um post foi fixado no topo do feed!'); }catch(e){}
+          }
         }
       })
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'comandos'},function(payload){
